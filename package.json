@@ -1,0 +1,9 @@
+{
+  "devDependencies": {
+    "@bitget-ai/bitget-agent-cli": "^3.0.0",
+    "@bitget-ai/bitget-agent-mcp": "^3.3.0",
+    "@bitget-ai/bitget-agent-sdk": "^3.3.0",
+    "@bitget-ai/bitget-agent-skill": "^3.2.1",
+    "@bitget-ai/bitget-signal": "^1.2.0"
+  }
+}

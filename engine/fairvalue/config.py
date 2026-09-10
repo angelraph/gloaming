@@ -1,15 +1,21 @@
 """
 Universe map and fair-value model weights for Gloaming.
 
-RTOKEN_UNIVERSE maps each Bitget rToken symbol to:
-  - underlying: the real equity/ETF ticker it tracks
+RTOKEN_UNIVERSE maps each underlying ticker to:
+  - rtoken_symbol: the live Bitget SPOT symbol (confirmed Day 1 via `bgc market
+    --action instruments --category SPOT` — rTokens are regular SPOT pairs with
+    symbolType == "stock", baseCoin prefixed "r", isReality == "yes"; naming
+    convention is R<TICKER>USDT, e.g. AAPL -> RAAPLUSDT).
   - futures_proxy: nearest CME index-futures proxy (Yahoo ticker) for overnight signal
   - sector_beta_hint: rough crypto/risk-sentiment sensitivity, used only as an
     initial prior before OLS calibration (Day 3) replaces it.
 
-TODO (Day 1 spike): confirm exact rToken symbols exposed by the Bitget Agent SDK
-market-data ops and reconcile against this list — this is a first-draft mapping
-from the "first batch, ~36 large-cap names" announced with Stocks 2.0.
+Day 1 finding: the live universe is far larger than the ~36-name announcement —
+`instruments_spot.json` (fetched Sept 10) shows **1,175** rToken symbols online.
+The full list is cached at engine/data/cache/rtoken_universe.json (symbol, baseCoin,
+status, launchTime) for later expansion; RTOKEN_UNIVERSE below starts with a
+deliberately small, liquid, well-known core to keep the fair-value model and
+backtest tractable for the hackathon build, not the full 1,175.
 """
 
 FUTURES_PROXY = {
@@ -17,18 +23,17 @@ FUTURES_PROXY = {
     "broad_market": "ES=F",     # S&P 500 futures proxy
 }
 
-# underlying ticker -> config. rToken symbol prefix/suffix convention TBD Day 1.
+# underlying ticker -> config. Confirmed live against Bitget SPOT instruments Day 1.
 RTOKEN_UNIVERSE = {
-    "AAPL": {"futures_proxy": FUTURES_PROXY["large_cap_tech"], "sector_beta_hint": 0.8},
-    "AMZN": {"futures_proxy": FUTURES_PROXY["large_cap_tech"], "sector_beta_hint": 0.9},
-    "META": {"futures_proxy": FUTURES_PROXY["large_cap_tech"], "sector_beta_hint": 1.0},
-    "TSLA": {"futures_proxy": FUTURES_PROXY["large_cap_tech"], "sector_beta_hint": 1.3},
-    "GOOGL": {"futures_proxy": FUTURES_PROXY["large_cap_tech"], "sector_beta_hint": 0.85},
-    "NVDA": {"futures_proxy": FUTURES_PROXY["large_cap_tech"], "sector_beta_hint": 1.2},
-    "MSFT": {"futures_proxy": FUTURES_PROXY["large_cap_tech"], "sector_beta_hint": 0.8},
-    "QQQ": {"futures_proxy": FUTURES_PROXY["large_cap_tech"], "sector_beta_hint": 1.0},
-    # remainder of the ~36-name batch to be filled in once the live symbol list
-    # is confirmed against the Bitget Agent SDK on Day 1.
+    "AAPL": {"rtoken_symbol": "RAAPLUSDT", "futures_proxy": FUTURES_PROXY["large_cap_tech"], "sector_beta_hint": 0.8},
+    "AMZN": {"rtoken_symbol": "RAMZNUSDT", "futures_proxy": FUTURES_PROXY["large_cap_tech"], "sector_beta_hint": 0.9},
+    "META": {"rtoken_symbol": "RMETAUSDT", "futures_proxy": FUTURES_PROXY["large_cap_tech"], "sector_beta_hint": 1.0},
+    "TSLA": {"rtoken_symbol": "RTSLAUSDT", "futures_proxy": FUTURES_PROXY["large_cap_tech"], "sector_beta_hint": 1.3},
+    "GOOGL": {"rtoken_symbol": "RGOOGLUSDT", "futures_proxy": FUTURES_PROXY["large_cap_tech"], "sector_beta_hint": 0.85},
+    "NVDA": {"rtoken_symbol": "RNVDAUSDT", "futures_proxy": FUTURES_PROXY["large_cap_tech"], "sector_beta_hint": 1.2},
+    "MSFT": {"rtoken_symbol": "RMSFTUSDT", "futures_proxy": FUTURES_PROXY["large_cap_tech"], "sector_beta_hint": 0.8},
+    "QQQ": {"rtoken_symbol": "RQQQUSDT", "futures_proxy": FUTURES_PROXY["large_cap_tech"], "sector_beta_hint": 1.0},
+    "SPY": {"rtoken_symbol": "RSPYUSDT", "futures_proxy": FUTURES_PROXY["broad_market"], "sector_beta_hint": 1.0},
 }
 
 # Fair-value blend weights (v1 heuristic prior; Day 3 replaces with OLS-calibrated

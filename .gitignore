@@ -10,3 +10,5 @@ engine/data/cache/*
 !engine/data/cache/.gitkeep
 gloaming_agent/decision_log/*.jsonl
 *.log
+engine/data/cache/rtoken_universe.json
+instruments_spot.json

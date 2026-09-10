@@ -1,9 +1,9 @@
 fastapi==0.115.0
 uvicorn[standard]==0.30.6
-pandas==2.2.2
-numpy==1.26.4
+pandas==3.0.5
+numpy==2.5.3
 sqlalchemy==2.0.34
-yfinance==0.2.43
+yfinance==1.7.0
 python-dotenv==1.0.1
 openai==1.51.0
 apscheduler==3.10.4
