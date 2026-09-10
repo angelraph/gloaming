@@ -33,6 +33,15 @@ def fetch_futures_history(tickers: list[str] = FUTURES_TICKERS, period: str = "9
     return closes
 
 
+def get_futures_returns_daily(tickers: list[str] = FUTURES_TICKERS, period: str = "6mo") -> pd.DataFrame:
+    """Daily close-to-close % returns for each futures-proxy ticker, for backtesting.
+    period='6mo' comfortably covers rToken's ~90-day live history."""
+    df = fetch_futures_history(tickers=tickers, period=period, interval="1d")
+    if isinstance(df.columns, pd.MultiIndex):
+        df.columns = df.columns.get_level_values(0)
+    return df.pct_change().dropna(how="all")
+
+
 def cache_futures_history(**kwargs) -> Path:
     CACHE_DIR.mkdir(parents=True, exist_ok=True)
     df = fetch_futures_history(**kwargs)

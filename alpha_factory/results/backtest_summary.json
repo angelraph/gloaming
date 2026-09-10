@@ -1,0 +1,284 @@
+{
+  "out_of_sample_days": 30,
+  "portfolio_report": {
+    "sharpe": 1.8595475626172375,
+    "sortino": 2.01311561202173,
+    "max_drawdown": -0.0350843918031134,
+    "turnover": 0.16010735982564864,
+    "win_rate": 0.5833333333333334,
+    "total_return": 0.041122409198410814,
+    "n_periods": 84
+  },
+  "per_symbol": {
+    "AAPL": {
+      "underlying": "AAPL",
+      "rtoken_symbol": "RAAPLUSDT",
+      "calibrated_weights": {
+        "futures_proxy_return": -0.10975989022466907,
+        "crypto_beta_return": 0.3346810469919501,
+        "fx_risk_sentiment_return": -1.545357875237864
+      },
+      "n_days_total": 89,
+      "n_days_in_sample": 59,
+      "n_days_out_of_sample": 30,
+      "full_window_report": {
+        "sharpe": 5.579497345742915,
+        "sortino": 10.770017232385918,
+        "max_drawdown": -0.027225610997629324,
+        "turnover": 0.31502061726730773,
+        "win_rate": 0.5595238095238095,
+        "total_return": 0.21057383718632017,
+        "n_periods": 84
+      },
+      "out_of_sample_report": {
+        "sharpe": 5.802622185557886,
+        "sortino": 10.91852559660036,
+        "max_drawdown": -0.021905295445947992,
+        "turnover": 0.2973785283912768,
+        "win_rate": 0.5666666666666667,
+        "total_return": 0.06233782505380159,
+        "n_periods": 30
+      }
+    },
+    "AMZN": {
+      "underlying": "AMZN",
+      "rtoken_symbol": "RAMZNUSDT",
+      "calibrated_weights": {
+        "futures_proxy_return": 0.2211776624365677,
+        "crypto_beta_return": 0.02788501565690593,
+        "fx_risk_sentiment_return": 3.6373276848775644
+      },
+      "n_days_total": 88,
+      "n_days_in_sample": 58,
+      "n_days_out_of_sample": 30,
+      "full_window_report": {
+        "sharpe": 2.7607243168608284,
+        "sortino": 3.950916745262927,
+        "max_drawdown": -0.05108643686451586,
+        "turnover": 0.28607587387637606,
+        "win_rate": 0.46987951807228917,
+        "total_return": 0.14003020112350617,
+        "n_periods": 83
+      },
+      "out_of_sample_report": {
+        "sharpe": 2.288275596247765,
+        "sortino": 5.47035480134153,
+        "max_drawdown": -0.01799787187961399,
+        "turnover": 0.2686057652498107,
+        "win_rate": 0.4,
+        "total_return": 0.021996618707049498,
+        "n_periods": 30
+      }
+    },
+    "META": {
+      "underlying": "META",
+      "rtoken_symbol": "RMETAUSDT",
+      "calibrated_weights": {
+        "futures_proxy_return": 0.8538517007359548,
+        "crypto_beta_return": 0.452810869175277,
+        "fx_risk_sentiment_return": -1.1163206983523886
+      },
+      "n_days_total": 88,
+      "n_days_in_sample": 58,
+      "n_days_out_of_sample": 30,
+      "full_window_report": {
+        "sharpe": -1.5334363763986991,
+        "sortino": -1.5337516275321736,
+        "max_drawdown": -0.14396185831617014,
+        "turnover": 0.22804390900955432,
+        "win_rate": 0.524390243902439,
+        "total_return": -0.11066061587075915,
+        "n_periods": 83
+      },
+      "out_of_sample_report": {
+        "sharpe": -3.4983307465803666,
+        "sortino": -3.2818003917600955,
+        "max_drawdown": -0.09732297704543946,
+        "turnover": 0.18275340723418101,
+        "win_rate": 0.5666666666666667,
+        "total_return": -0.07260158532562155,
+        "n_periods": 30
+      }
+    },
+    "TSLA": {
+      "underlying": "TSLA",
+      "rtoken_symbol": "RTSLAUSDT",
+      "calibrated_weights": {
+        "futures_proxy_return": 0.4815229978368537,
+        "crypto_beta_return": 0.3738465041703195,
+        "fx_risk_sentiment_return": 0.6018295728443884
+      },
+      "n_days_total": 89,
+      "n_days_in_sample": 59,
+      "n_days_out_of_sample": 30,
+      "full_window_report": {
+        "sharpe": 0.08026048170993241,
+        "sortino": 0.08529956223148215,
+        "max_drawdown": -0.19559050169013437,
+        "turnover": 0.2931722434543799,
+        "win_rate": 0.5714285714285714,
+        "total_return": -0.01030299532744372,
+        "n_periods": 84
+      },
+      "out_of_sample_report": {
+        "sharpe": 4.56646685062287,
+        "sortino": 14.66868841061626,
+        "max_drawdown": -0.02802972753207833,
+        "turnover": 0.3640689555842946,
+        "win_rate": 0.5666666666666667,
+        "total_return": 0.13739732904808966,
+        "n_periods": 30
+      }
+    },
+    "GOOGL": {
+      "underlying": "GOOGL",
+      "rtoken_symbol": "RGOOGLUSDT",
+      "calibrated_weights": {
+        "futures_proxy_return": 0.4745470112320568,
+        "crypto_beta_return": 0.20086744875996243,
+        "fx_risk_sentiment_return": 1.503406041423284
+      },
+      "n_days_total": 89,
+      "n_days_in_sample": 59,
+      "n_days_out_of_sample": 30,
+      "full_window_report": {
+        "sharpe": 2.392338736444031,
+        "sortino": 3.0961416182174637,
+        "max_drawdown": -0.06350947461504153,
+        "turnover": 0.2783359224688336,
+        "win_rate": 0.5119047619047619,
+        "total_return": 0.12170787714958009,
+        "n_periods": 84
+      },
+      "out_of_sample_report": {
+        "sharpe": 0.7086802910325926,
+        "sortino": 1.1341635153120229,
+        "max_drawdown": -0.013988477130087551,
+        "turnover": 0.21321035078690484,
+        "win_rate": 0.4666666666666667,
+        "total_return": 0.0065980361539990096,
+        "n_periods": 30
+      }
+    },
+    "NVDA": {
+      "underlying": "NVDA",
+      "rtoken_symbol": "RNVDAUSDT",
+      "calibrated_weights": {
+        "futures_proxy_return": 0.3999901173982297,
+        "crypto_beta_return": 0.25530569599625996,
+        "fx_risk_sentiment_return": -0.4097909383430183
+      },
+      "n_days_total": 89,
+      "n_days_in_sample": 59,
+      "n_days_out_of_sample": 30,
+      "full_window_report": {
+        "sharpe": 0.8605782492620881,
+        "sortino": 1.235937732880867,
+        "max_drawdown": -0.0730787627569065,
+        "turnover": 0.3092673875069528,
+        "win_rate": 0.5238095238095238,
+        "total_return": 0.04147126000447754,
+        "n_periods": 84
+      },
+      "out_of_sample_report": {
+        "sharpe": 0.8424327222280888,
+        "sortino": 1.6753749586390987,
+        "max_drawdown": -0.032001522047380826,
+        "turnover": 0.22606489003073402,
+        "win_rate": 0.4,
+        "total_return": 0.013679156314837515,
+        "n_periods": 30
+      }
+    },
+    "MSFT": {
+      "underlying": "MSFT",
+      "rtoken_symbol": "RMSFTUSDT",
+      "calibrated_weights": {
+        "futures_proxy_return": -0.18439147753428273,
+        "crypto_beta_return": 0.3097053269749863,
+        "fx_risk_sentiment_return": 4.000210235111295
+      },
+      "n_days_total": 89,
+      "n_days_in_sample": 59,
+      "n_days_out_of_sample": 30,
+      "full_window_report": {
+        "sharpe": -0.35692415403822964,
+        "sortino": -0.31867381213695756,
+        "max_drawdown": -0.16575069564217315,
+        "turnover": 0.28658233094435115,
+        "win_rate": 0.5595238095238095,
+        "total_return": -0.028926346656313995,
+        "n_periods": 84
+      },
+      "out_of_sample_report": {
+        "sharpe": 3.5967189625663445,
+        "sortino": 5.004908220236092,
+        "max_drawdown": -0.01642849542891278,
+        "turnover": 0.18040743036399642,
+        "win_rate": 0.5333333333333333,
+        "total_return": 0.03692446742937339,
+        "n_periods": 30
+      }
+    },
+    "QQQ": {
+      "underlying": "QQQ",
+      "rtoken_symbol": "RQQQUSDT",
+      "calibrated_weights": {
+        "futures_proxy_return": 0.08627758825786241,
+        "crypto_beta_return": 0.18185946758338117,
+        "fx_risk_sentiment_return": 0.2777093301163827
+      },
+      "n_days_total": 85,
+      "n_days_in_sample": 55,
+      "n_days_out_of_sample": 30,
+      "full_window_report": {
+        "sharpe": 0.05451000132082959,
+        "sortino": 0.0827160133238128,
+        "max_drawdown": -0.046938318561266845,
+        "turnover": 0.25077258540395975,
+        "win_rate": 0.45,
+        "total_return": -3.2425252403656124e-05,
+        "n_periods": 80
+      },
+      "out_of_sample_report": {
+        "sharpe": -1.1844780639285117,
+        "sortino": -1.734012309057003,
+        "max_drawdown": -0.012983271594074086,
+        "turnover": 0.18297978309333643,
+        "win_rate": 0.4,
+        "total_return": -0.006936219907735519,
+        "n_periods": 30
+      }
+    },
+    "SPY": {
+      "underlying": "SPY",
+      "rtoken_symbol": "RSPYUSDT",
+      "calibrated_weights": {
+        "futures_proxy_return": 0.15763918221948162,
+        "crypto_beta_return": 0.12864683858558923,
+        "fx_risk_sentiment_return": 0.21941361946092186
+      },
+      "n_days_total": 81,
+      "n_days_in_sample": 51,
+      "n_days_out_of_sample": 30,
+      "full_window_report": {
+        "sharpe": -1.0624019831867262,
+        "sortino": -1.1943391432105201,
+        "max_drawdown": -0.0360532386095932,
+        "turnover": 0.32136409048783,
+        "win_rate": 0.5131578947368421,
+        "total_return": -0.015120226363406708,
+        "n_periods": 76
+      },
+      "out_of_sample_report": {
+        "sharpe": -2.447774852205587,
+        "sortino": -2.78183077450488,
+        "max_drawdown": -0.010946390643868709,
+        "turnover": 0.23327828288510197,
+        "win_rate": 0.5,
+        "total_return": -0.008806215095263692,
+        "n_periods": 30
+      }
+    }
+  }
+}

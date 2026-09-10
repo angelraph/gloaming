@@ -28,6 +28,14 @@ def fetch_dxy_history(period: str = "90d", interval: str = "1h") -> pd.DataFrame
     return df[["Close"]].rename(columns={"Close": "dxy_close"})
 
 
+def get_fx_returns_daily(period: str = "6mo") -> pd.Series:
+    """Daily inverted DXY % returns for backtesting (positive == risk-on). period='6mo'
+    comfortably covers rToken's ~90-day live history."""
+    df = fetch_dxy_history(period=period, interval="1d")
+    ret = -df["dxy_close"].pct_change().dropna()
+    return ret.rename("fx_risk_sentiment_return")
+
+
 def fx_risk_sentiment_return(df: pd.DataFrame | None = None) -> float:
     """Inverted latest-vs-prior-bar DXY return: positive value == risk-on (dollar
     weakening), consistent sign convention with crypto_beta_return()."""

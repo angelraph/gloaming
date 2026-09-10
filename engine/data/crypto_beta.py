@@ -16,7 +16,7 @@ if __name__ == "__main__" and __package__ is None:
     # allow `python data/crypto_beta.py` in addition to `python -m data.crypto_beta`
     sys.path.insert(0, str(Path(__file__).resolve().parents[1]))
 
-from data.rtoken_client import run_bgc  # reuse the same CLI bridge
+from data.rtoken_client import get_candles_history, run_bgc  # reuse the same CLI bridge
 
 CRYPTO_BETA_SYMBOLS = ["BTCUSDT", "ETHUSDT"]
 
@@ -48,6 +48,23 @@ def crypto_beta_return(ticks: list[CryptoTick] | None = None) -> float:
     v1: equal-weighted average. Day 3 replaces with OLS-calibrated weights."""
     ticks = ticks or get_crypto_ticks()
     return sum(t.pcnt_change_24h for t in ticks) / len(ticks)
+
+
+def get_crypto_beta_history(symbols: list[str] = CRYPTO_BETA_SYMBOLS, interval: str = "1D",
+                             limit: str = "100"):
+    """Historical daily blended BTC/ETH return series for backtesting — equal-weighted
+    average of each symbol's close-to-close % return. Returns a pandas Series indexed
+    by UTC timestamp, named 'crypto_beta_return'."""
+    import pandas as pd
+
+    closes = {}
+    for symbol in symbols:
+        df = get_candles_history(symbol, interval=interval, limit=limit)
+        closes[symbol] = df["close"]
+    wide = pd.DataFrame(closes)
+    returns = wide.pct_change()
+    blended = returns.mean(axis=1).rename("crypto_beta_return")
+    return blended.dropna()
 
 
 if __name__ == "__main__":

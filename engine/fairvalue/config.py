@@ -41,5 +41,5 @@ RTOKEN_UNIVERSE = {
 FAIRVALUE_WEIGHTS = {
     "futures_proxy_return": 0.5,
     "crypto_beta_return": 0.3,   # BTC/ETH blended return as risk-sentiment proxy
-    "fx_risk_sentiment": 0.2,    # DXY inverse as risk-on/off proxy
+    "fx_risk_sentiment_return": 0.2,    # DXY inverse as risk-on/off proxy
 }

@@ -75,6 +75,33 @@ def get_candles(rtoken_symbol: str, interval: str = "1H", limit: str = "200") ->
     return payload["data"]
 
 
+def get_candles_history(rtoken_symbol: str, interval: str = "1D", limit: str = "100",
+                         start_time_ms: int | None = None, end_time_ms: int | None = None):
+    """Historical klines via the `candlesHistory` action (max 90-day range per
+    call, max 100 rows/page — sufficient for a single-page 90-day daily pull,
+    confirmed Day 3: rToken launch-to-date history is ~90 daily bars).
+
+    Returns a pandas DataFrame indexed by UTC timestamp with columns
+    open/high/low/close/volume/turnover. Bitget kline row format confirmed via
+    live probe: [ts_ms, open, high, low, close, baseVolume, quoteTurnover]."""
+    import pandas as pd  # lazy import — keep this module's CLI-bridge parts dependency-free
+
+    args = ["market", "--action", "candlesHistory", "--category", "SPOT",
+            "--symbol", rtoken_symbol, "--interval", interval, "--limit", limit]
+    if start_time_ms is not None:
+        args += ["--startTime", str(start_time_ms)]
+    if end_time_ms is not None:
+        args += ["--endTime", str(end_time_ms)]
+    payload = run_bgc(args)
+    rows = payload["data"]
+    df = pd.DataFrame(rows, columns=["ts", "open", "high", "low", "close", "volume", "turnover"])
+    df["ts"] = pd.to_datetime(df["ts"].astype("int64"), unit="ms", utc=True)
+    for col in ["open", "high", "low", "close", "volume", "turnover"]:
+        df[col] = df[col].astype(float)
+    df = df.set_index("ts").sort_index()
+    return df
+
+
 def list_stock_symbols() -> list[dict]:
     """Full live rToken universe (symbol, baseCoin, status, launchTime) —
     refetches from Bitget; prefer the Day-1 cache at
