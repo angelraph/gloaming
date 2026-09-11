@@ -25,13 +25,13 @@ export default function StatusPill() {
     <span
       className={
         status.agentActive
-          ? "inline-flex items-center gap-1.5 rounded-full bg-emerald-950/60 px-2.5 py-1 text-xs font-medium text-emerald-300"
-          : "inline-flex items-center gap-1.5 rounded-full bg-neutral-800 px-2.5 py-1 text-xs font-medium text-neutral-400"
+          ? "inline-flex items-center gap-1.5 rounded-full bg-positive-soft px-2.5 py-1 text-xs font-medium text-positive"
+          : "inline-flex items-center gap-1.5 rounded-full bg-layer-2 px-2.5 py-1 text-xs font-medium text-text-tertiary"
       }
     >
       <span
         className={
-          status.agentActive ? "h-1.5 w-1.5 rounded-full bg-emerald-400" : "h-1.5 w-1.5 rounded-full bg-neutral-500"
+          status.agentActive ? "h-1.5 w-1.5 animate-pulse rounded-full bg-positive" : "h-1.5 w-1.5 rounded-full bg-text-tertiary"
         }
       />
       {status.agentActive ? "Agent active - NYSE closed" : "Agent idle - NYSE open"}

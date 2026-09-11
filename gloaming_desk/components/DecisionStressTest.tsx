@@ -47,16 +47,16 @@ export default function DecisionStressTest() {
   }, []);
 
   if (!data) {
-    return <div className="text-sm text-neutral-500">Loading stress test data...</div>;
+    return <div className="text-sm text-text-tertiary">Loading stress test data...</div>;
   }
 
   if (!data.available || !data.scenarios || data.scenarios.length === 0) {
-    return <div className="text-sm text-neutral-500">{data.message ?? "No stress-test data available."}</div>;
+    return <div className="text-sm text-text-tertiary">{data.message ?? "No stress-test data available."}</div>;
   }
 
   if (data.scenarios.every((s) => s.positions.length === 0)) {
     return (
-      <div className="text-sm text-neutral-500">
+      <div className="text-sm text-text-tertiary">
         No open positions to stress-test right now - the Agent&apos;s current book is
         flat. Scenarios will populate once it holds a position.
       </div>
@@ -74,8 +74,8 @@ export default function DecisionStressTest() {
             onClick={() => setSelected(i)}
             className={
               i === selected
-                ? "rounded-md bg-indigo-600 px-3 py-1.5 text-xs font-medium text-white"
-                : "rounded-md border border-neutral-700 px-3 py-1.5 text-xs text-neutral-300 hover:border-neutral-500"
+                ? "rounded-md bg-brand px-3 py-1.5 text-xs font-medium text-white"
+                : "rounded-md border border-border px-3 py-1.5 text-xs text-text-secondary hover:border-text-tertiary"
             }
           >
             {s.label}
@@ -83,57 +83,59 @@ export default function DecisionStressTest() {
         ))}
       </div>
 
-      <p className="mb-3 text-xs text-neutral-500">{scenario.description}</p>
+      <p className="mb-3 text-xs text-text-tertiary">{scenario.description}</p>
 
-      <div className="mb-3 flex items-baseline gap-3">
-        <span className="text-xs text-neutral-500">If this happened tonight:</span>
+      <div className="mb-3 flex flex-wrap items-baseline gap-x-3 gap-y-1">
+        <span className="text-xs text-text-tertiary">If this happened tonight:</span>
         <span
           className={
             scenario.totalHypotheticalPnlUsd >= 0
-              ? "text-lg font-semibold text-emerald-400"
-              : "text-lg font-semibold text-rose-400"
+              ? "font-mono text-lg font-semibold tabular-nums text-positive"
+              : "font-mono text-lg font-semibold tabular-nums text-negative"
           }
         >
           {fmtUsd(scenario.totalHypotheticalPnlUsd)}
         </span>
-        <span className="text-xs text-neutral-500">
+        <span className="text-xs text-text-tertiary">
           equity would be {fmtUsd(scenario.hypotheticalEquityUsd)}
         </span>
       </div>
 
       {scenario.positions.length === 0 ? (
-        <p className="text-sm text-neutral-500">No held symbols have data for this scenario.</p>
+        <p className="text-sm text-text-tertiary">No held symbols have data for this scenario.</p>
       ) : (
-        <table className="w-full text-left text-xs">
-          <thead className="text-neutral-500">
-            <tr>
-              <th className="py-1 pr-3">Symbol</th>
-              <th className="py-1 pr-3">Position</th>
-              <th className="py-1 pr-3">Scenario move</th>
-              <th className="py-1 text-right">Hypothetical P&L</th>
-            </tr>
-          </thead>
-          <tbody>
-            {scenario.positions.map((p) => (
-              <tr key={p.symbol} className="border-t border-neutral-800">
-                <td className="py-1.5 pr-3 font-medium">{p.underlying}</td>
-                <td className="py-1.5 pr-3 text-neutral-400">
-                  {p.qty >= 0 ? "long" : "short"} {fmtUsd(Math.abs(p.currentNotional))}
-                </td>
-                <td className="py-1.5 pr-3 text-neutral-400">{fmtPct(p.scenarioReturn)}</td>
-                <td
-                  className={
-                    p.hypotheticalPnlUsd >= 0
-                      ? "py-1.5 text-right text-emerald-400"
-                      : "py-1.5 text-right text-rose-400"
-                  }
-                >
-                  {fmtUsd(p.hypotheticalPnlUsd)}
-                </td>
+        <div className="-mx-1 overflow-x-auto px-1">
+          <table className="w-full min-w-[420px] text-left text-xs">
+            <thead className="text-text-tertiary">
+              <tr>
+                <th className="py-1 pr-3 font-medium">Symbol</th>
+                <th className="py-1 pr-3 font-medium">Position</th>
+                <th className="py-1 pr-3 font-medium">Scenario move</th>
+                <th className="py-1 text-right font-medium">Hypothetical P&amp;L</th>
               </tr>
-            ))}
-          </tbody>
-        </table>
+            </thead>
+            <tbody>
+              {scenario.positions.map((p) => (
+                <tr key={p.symbol} className="border-t border-border-subtle">
+                  <td className="py-1.5 pr-3 font-medium">{p.underlying}</td>
+                  <td className="py-1.5 pr-3 font-mono text-text-secondary tabular-nums">
+                    {p.qty >= 0 ? "long" : "short"} {fmtUsd(Math.abs(p.currentNotional))}
+                  </td>
+                  <td className="py-1.5 pr-3 font-mono text-text-secondary tabular-nums">{fmtPct(p.scenarioReturn)}</td>
+                  <td
+                    className={
+                      p.hypotheticalPnlUsd >= 0
+                        ? "py-1.5 text-right font-mono tabular-nums text-positive"
+                        : "py-1.5 text-right font-mono tabular-nums text-negative"
+                    }
+                  >
+                    {fmtUsd(p.hypotheticalPnlUsd)}
+                  </td>
+                </tr>
+              ))}
+            </tbody>
+          </table>
+        </div>
       )}
     </div>
   );

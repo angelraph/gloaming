@@ -39,7 +39,7 @@ export default function OvernightTimeline({ events }: { events: TimelineEvent[] 
 
   if (withSignals.length === 0) {
     return (
-      <div className="text-sm text-neutral-500">
+      <div className="rounded-lg border border-border-subtle bg-layer-1 p-4 text-sm text-text-tertiary">
         No decisions yet in the recent window - the Agent only trades while NYSE is
         closed, and needs at least one cycle with an actionable spread to show
         anything here.
@@ -48,45 +48,51 @@ export default function OvernightTimeline({ events }: { events: TimelineEvent[] 
   }
 
   return (
-    <ul className="flex flex-col gap-3">
-      {withSignals.map((e, i) => (
-        <li
-          key={`${e.timestamp}-${e.underlying}-${i}`}
-          className="rounded-lg border border-neutral-800 bg-neutral-900/50 p-4"
-        >
-          <div className="flex items-center justify-between gap-2 text-xs text-neutral-400">
-            <span>{fmtTime(e.timestamp)}</span>
-            <span className="rounded bg-neutral-800 px-2 py-0.5 font-mono">
-              {e.decision_source ?? "unknown"}
-            </span>
-          </div>
+    <ul className="flex max-h-[520px] flex-col gap-2.5 overflow-y-auto pr-1">
+      {withSignals.map((e, i) => {
+        const isBuy = e.decision?.side === "buy";
+        return (
+          <li
+            key={`${e.timestamp}-${e.underlying}-${i}`}
+            className="rounded-lg border border-border-subtle bg-layer-1 p-3.5"
+            style={{
+              borderLeft: `3px solid ${e.error ? "var(--warning)" : isBuy ? "var(--positive)" : "var(--negative)"}`,
+            }}
+          >
+            <div className="flex items-center justify-between gap-2 text-xs text-text-tertiary">
+              <span className="tabular-nums">{fmtTime(e.timestamp)}</span>
+              <span className="rounded bg-layer-2 px-2 py-0.5 font-mono text-[11px]">
+                {e.decision_source ?? "unknown"}
+              </span>
+            </div>
 
-          {e.error ? (
-            <p className="mt-2 text-sm text-red-400">Error: {e.error}</p>
-          ) : e.decision ? (
-            <>
-              <div className="mt-1 flex items-baseline gap-2">
-                <span className="text-lg font-semibold">{e.underlying}</span>
-                <span
-                  className={
-                    e.decision.side === "buy"
-                      ? "rounded bg-emerald-900/60 px-2 py-0.5 text-xs font-medium text-emerald-300"
-                      : "rounded bg-rose-900/60 px-2 py-0.5 text-xs font-medium text-rose-300"
-                  }
-                >
-                  {e.decision.side.toUpperCase()} ${e.decision.notional_usd.toFixed(0)}
-                </span>
-                {e.snapshot && (
-                  <span className="text-xs text-neutral-500">
-                    spread {fmtPct(e.snapshot.spread)}
+            {e.error ? (
+              <p className="mt-2 text-sm text-warning">Error: {e.error}</p>
+            ) : e.decision ? (
+              <>
+                <div className="mt-1.5 flex flex-wrap items-baseline gap-2">
+                  <span className="font-semibold tracking-tight">{e.underlying}</span>
+                  <span
+                    className={
+                      isBuy
+                        ? "rounded bg-positive-soft px-2 py-0.5 font-mono text-xs font-medium text-positive"
+                        : "rounded bg-negative-soft px-2 py-0.5 font-mono text-xs font-medium text-negative"
+                    }
+                  >
+                    {e.decision.side.toUpperCase()} ${e.decision.notional_usd.toFixed(0)}
                   </span>
-                )}
-              </div>
-              <p className="mt-2 text-sm text-neutral-300">{e.decision.rationale}</p>
-            </>
-          ) : null}
-        </li>
-      ))}
+                  {e.snapshot && (
+                    <span className="font-mono text-xs text-text-tertiary">
+                      spread {fmtPct(e.snapshot.spread)}
+                    </span>
+                  )}
+                </div>
+                <p className="mt-2 text-sm leading-relaxed text-text-secondary">{e.decision.rationale}</p>
+              </>
+            ) : null}
+          </li>
+        );
+      })}
     </ul>
   );
 }

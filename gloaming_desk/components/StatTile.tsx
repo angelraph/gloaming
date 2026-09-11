@@ -10,13 +10,15 @@ export default function StatTile({
   tone?: "neutral" | "positive" | "negative";
 }) {
   const valueColor =
-    tone === "positive" ? "text-emerald-400" : tone === "negative" ? "text-rose-400" : "text-neutral-100";
+    tone === "positive" ? "text-positive" : tone === "negative" ? "text-negative" : "text-text-primary";
 
   return (
-    <div className="rounded-lg border border-neutral-800 bg-neutral-900/50 p-4">
-      <div className="text-xs uppercase tracking-wide text-neutral-500">{label}</div>
-      <div className={`mt-1 text-2xl font-semibold ${valueColor}`}>{value}</div>
-      {sub && <div className="mt-1 text-xs text-neutral-500">{sub}</div>}
+    <div className="rounded-lg border border-border-subtle bg-layer-1 p-3.5 sm:p-4">
+      <div className="text-[11px] uppercase tracking-wide text-text-tertiary">{label}</div>
+      <div className={`mt-1 truncate font-mono text-xl font-medium tabular-nums sm:text-2xl ${valueColor}`}>
+        {value}
+      </div>
+      {sub && <div className="mt-1 text-xs text-text-tertiary">{sub}</div>}
     </div>
   );
 }

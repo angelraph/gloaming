@@ -36,7 +36,7 @@ export default function ChatPanel() {
     <div className="flex h-full flex-col">
       <div className="flex-1 space-y-3 overflow-y-auto">
         {messages.length === 0 && (
-          <p className="text-sm text-neutral-500">
+          <p className="text-sm text-text-tertiary">
             Ask about the overnight book - e.g. &quot;why did AAPL trade rich overnight?&quot;
             The answer is grounded in the real portfolio and decision data on this page,
             never invented. This never places a trade - you stay in control.
@@ -47,14 +47,23 @@ export default function ChatPanel() {
             key={i}
             className={
               m.role === "user"
-                ? "ml-auto max-w-[85%] rounded-lg bg-indigo-600 px-3 py-2 text-sm text-white"
-                : "mr-auto max-w-[85%] rounded-lg bg-neutral-800 px-3 py-2 text-sm text-neutral-100"
+                ? "ml-auto max-w-[85%] rounded-lg bg-brand px-3 py-2 text-sm text-white"
+                : "mr-auto max-w-[85%] rounded-lg bg-layer-2 px-3 py-2 text-sm text-text-primary"
             }
           >
             {m.content}
           </div>
         ))}
-        {loading && <div className="text-xs text-neutral-500">Thinking...</div>}
+        {loading && (
+          <div className="flex items-center gap-1.5 text-xs text-text-tertiary">
+            <span className="inline-flex gap-0.5">
+              <span className="h-1 w-1 animate-bounce rounded-full bg-text-tertiary [animation-delay:-0.3s]" />
+              <span className="h-1 w-1 animate-bounce rounded-full bg-text-tertiary [animation-delay:-0.15s]" />
+              <span className="h-1 w-1 animate-bounce rounded-full bg-text-tertiary" />
+            </span>
+            Thinking
+          </div>
+        )}
       </div>
       <div className="mt-3 flex gap-2">
         <input
@@ -62,12 +71,12 @@ export default function ChatPanel() {
           onChange={(e) => setInput(e.target.value)}
           onKeyDown={(e) => e.key === "Enter" && send()}
           placeholder="Ask about the overnight book"
-          className="flex-1 rounded-md border border-neutral-700 bg-neutral-900 px-3 py-2 text-sm text-neutral-100 placeholder:text-neutral-500 focus:outline-none focus:ring-1 focus:ring-indigo-500"
+          className="flex-1 rounded-md border border-border bg-background px-3 py-2 text-sm text-text-primary placeholder:text-text-tertiary focus:outline-none focus:ring-1 focus:ring-brand"
         />
         <button
           onClick={send}
           disabled={loading}
-          className="rounded-md bg-indigo-600 px-4 py-2 text-sm font-medium text-white disabled:opacity-50"
+          className="rounded-md bg-brand px-4 py-2 text-sm font-medium text-white transition-colors hover:bg-brand-hover disabled:opacity-50"
         >
           Send
         </button>

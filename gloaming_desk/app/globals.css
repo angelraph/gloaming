@@ -1,19 +1,81 @@
 @import "tailwindcss";
 
+/*
+  Color system: researched from Bitget's own live CSS custom properties
+  (bitget.com, checked directly via getComputedStyle - not guessed), adapted
+  into a distinct "Gloaming" identity rather than copied wholesale.
+
+  Kept from Bitget's real tokens (recognizable, exchange-native, why reinvent
+  what traders already read correctly at a glance):
+    - buy/positive  #01bc8d, sell/negative #f1493f
+    - dark-mode neutral scale is close to their --ds-color-neutral-* ramp
+
+  Changed deliberately, so this doesn't read as a clone of Bitget's own site:
+    - a cool near-black base (#09090b) instead of their true-neutral black,
+      giving every surface a faint dusk-purple undertone - "gloaming" is
+      literally the dim light between color and dark, so the palette should
+      feel like that, not like a generic dashboard
+    - brand accent is a narrower, slightly deeper teal (#0ea5b7) than
+      Bitget's brighter #03aac7 - present in the same hue family (exchange
+      brand-teal is a legible, intentional nod) without matching it exactly
+    - typography carries the rest of the distinction: see app/layout.tsx
+*/
+
 :root {
-  --background: #0a0a0a;
-  --foreground: #ededed;
+  --background: #09090b;
+  --foreground: #f4f5f7;
+
+  --layer-1: #131318;
+  --layer-2: #1c1c23;
+  --border: #26262e;
+  --border-subtle: #1c1c23;
+
+  --text-primary: #f4f5f7;
+  --text-secondary: #9a9aa4;
+  --text-tertiary: #6b6b74;
+
+  --brand: #0ea5b7;
+  --brand-hover: #14b8cc;
+  --brand-soft: #0ea5b71a;
+
+  --positive: #01bc8d;
+  --positive-soft: #01bc8d1a;
+  --negative: #f1493f;
+  --negative-soft: #f1493f1a;
+  --warning: #ff9142;
+  --warning-soft: #ff91421a;
 }
 
 @theme inline {
   --color-background: var(--background);
   --color-foreground: var(--foreground);
-  --font-sans: var(--font-geist-sans);
-  --font-mono: var(--font-geist-mono);
+  --color-layer-1: var(--layer-1);
+  --color-layer-2: var(--layer-2);
+  --color-border: var(--border);
+  --color-border-subtle: var(--border-subtle);
+  --color-text-primary: var(--text-primary);
+  --color-text-secondary: var(--text-secondary);
+  --color-text-tertiary: var(--text-tertiary);
+  --color-brand: var(--brand);
+  --color-brand-hover: var(--brand-hover);
+  --color-brand-soft: var(--brand-soft);
+  --color-positive: var(--positive);
+  --color-positive-soft: var(--positive-soft);
+  --color-negative: var(--negative);
+  --color-negative-soft: var(--negative-soft);
+  --color-warning: var(--warning);
+  --color-warning-soft: var(--warning-soft);
+  --font-sans: var(--font-sans);
+  --font-mono: var(--font-mono);
 }
 
 body {
   background: var(--background);
   color: var(--foreground);
-  font-family: Arial, Helvetica, sans-serif;
+  font-family: var(--font-sans), Arial, Helvetica, sans-serif;
+}
+
+code, kbd, .tabular-nums {
+  font-family: var(--font-mono), ui-monospace, monospace;
+  font-variant-numeric: tabular-nums;
 }
