@@ -1,0 +1,112 @@
+"""
+Unit tests for gloaming_agent/paper_ledger.py. Every test monkeypatches LEDGER_PATH
+to an isolated tmp file so these never touch the real running ledger.
+"""
+import sys
+from pathlib import Path
+
+import pytest
+
+sys.path.insert(0, str(Path(__file__).resolve().parents[1] / "gloaming_agent"))
+
+import paper_ledger  # noqa: E402
+
+
+@pytest.fixture(autouse=True)
+def isolated_ledger(tmp_path, monkeypatch):
+    monkeypatch.setattr(paper_ledger, "LEDGER_PATH", tmp_path / "paper_ledger.json")
+    yield
+
+
+def test_fresh_ledger_starts_at_starting_equity():
+    state = paper_ledger.get_portfolio_state(mark_prices={})
+    assert state.equity_usd == pytest.approx(paper_ledger.STARTING_EQUITY_USD)
+    assert state.positions_notional_usd == {}
+
+
+def test_buy_fill_reduces_cash_and_opens_position():
+    paper_ledger.record_fill("RAAPLUSDT", "buy", qty=10, price=300.0, rationale="test")
+    state = paper_ledger._load()
+    assert state.cash_usd == pytest.approx(paper_ledger.STARTING_EQUITY_USD - 3000.0)
+    assert state.positions["RAAPLUSDT"] == pytest.approx(10.0)
+
+
+def test_sell_fill_increases_cash_and_opens_short():
+    paper_ledger.record_fill("RAAPLUSDT", "sell", qty=5, price=300.0, rationale="test")
+    state = paper_ledger._load()
+    assert state.cash_usd == pytest.approx(paper_ledger.STARTING_EQUITY_USD + 1500.0)
+    assert state.positions["RAAPLUSDT"] == pytest.approx(-5.0)
+
+
+def test_closing_a_position_removes_it():
+    paper_ledger.record_fill("RAAPLUSDT", "buy", qty=10, price=300.0, rationale="open")
+    paper_ledger.record_fill("RAAPLUSDT", "sell", qty=10, price=310.0, rationale="close")
+    state = paper_ledger._load()
+    assert "RAAPLUSDT" not in state.positions
+
+
+def test_closing_a_position_at_a_profit_increases_equity():
+    paper_ledger.record_fill("RAAPLUSDT", "buy", qty=10, price=300.0, rationale="open")
+    paper_ledger.record_fill("RAAPLUSDT", "sell", qty=10, price=310.0, rationale="close")
+    state = paper_ledger.get_portfolio_state(mark_prices={})
+    # bought 10 @ 300 (-3000 cash), sold 10 @ 310 (+3100 cash) -> net +100 vs starting
+    assert state.equity_usd == pytest.approx(paper_ledger.STARTING_EQUITY_USD + 100.0)
+
+
+def test_get_portfolio_state_marks_open_position_to_live_price():
+    paper_ledger.record_fill("RAAPLUSDT", "buy", qty=10, price=300.0, rationale="test")
+    state = paper_ledger.get_portfolio_state(mark_prices={"RAAPLUSDT": 320.0})
+    assert state.positions_notional_usd["RAAPLUSDT"] == pytest.approx(3200.0)
+    # cash after buy: 100,000 - 3,000 = 97,000; + mark-to-market 3,200 = 100,200
+    assert state.equity_usd == pytest.approx(97_000.0 + 3_200.0)
+
+
+def test_get_portfolio_state_falls_back_to_last_fill_price_when_no_mark_given():
+    paper_ledger.record_fill("RAAPLUSDT", "buy", qty=10, price=300.0, rationale="test")
+    state = paper_ledger.get_portfolio_state(mark_prices={})  # no live price supplied
+    assert state.positions_notional_usd["RAAPLUSDT"] == pytest.approx(3000.0)
+
+
+def test_invalid_side_raises():
+    with pytest.raises(ValueError):
+        paper_ledger.record_fill("RAAPLUSDT", "hold", qty=1, price=300.0, rationale="bad")
+
+
+def test_nonpositive_qty_or_price_raises():
+    with pytest.raises(ValueError):
+        paper_ledger.record_fill("RAAPLUSDT", "buy", qty=0, price=300.0, rationale="bad")
+    with pytest.raises(ValueError):
+        paper_ledger.record_fill("RAAPLUSDT", "buy", qty=1, price=0, rationale="bad")
+
+
+def test_daily_baseline_resets_on_new_day(monkeypatch):
+    import datetime as dt
+
+    paper_ledger.record_fill("RAAPLUSDT", "buy", qty=10, price=300.0, rationale="day1")
+
+    class FrozenDatetime(dt.datetime):
+        @classmethod
+        def now(cls, tz=None):
+            return dt.datetime(2026, 1, 1, tzinfo=tz)
+
+    monkeypatch.setattr(paper_ledger, "datetime", FrozenDatetime)
+    paper_ledger.get_portfolio_state(mark_prices={"RAAPLUSDT": 300.0})
+    assert paper_ledger._load().day_start_date == "2026-01-01"
+
+    class FrozenDatetimeNextDay(dt.datetime):
+        @classmethod
+        def now(cls, tz=None):
+            return dt.datetime(2026, 1, 2, tzinfo=tz)
+
+    monkeypatch.setattr(paper_ledger, "datetime", FrozenDatetimeNextDay)
+    # First call of the new day establishes the new baseline — daily P&L is
+    # correctly 0 at that exact instant, same as it was at day1's own start.
+    state2_at_open = paper_ledger.get_portfolio_state(mark_prices={"RAAPLUSDT": 300.0})
+    day2_state = paper_ledger._load()
+    assert day2_state.day_start_date == "2026-01-02"  # the rollover actually happened
+    assert state2_at_open.daily_realized_pnl_usd == pytest.approx(0.0)
+
+    # A price move later the SAME day should move daily P&L away from zero,
+    # measured against day2's own baseline — not day1's.
+    state2_after_move = paper_ledger.get_portfolio_state(mark_prices={"RAAPLUSDT": 350.0})
+    assert state2_after_move.daily_realized_pnl_usd == pytest.approx(10 * (350.0 - 300.0))

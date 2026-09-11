@@ -8,9 +8,16 @@ stays as-is, since that separation is the point of this architecture.
 
 Runs ONLY while NYSE is closed (see is_nyse_closed) — that off-hours window is the
 entire thesis this project is built on. Every cycle is appended to
-decision_log/*.jsonl as a full event->decision->execution record, regardless of
-whether execution actually fired (it's skipped, not silently dropped, if Bitget
-credentials aren't configured yet — see execution.NotConfiguredError).
+decision_log/*.jsonl as a full event->decision->execution record.
+
+Execution note (confirmed live Sept 11): Bitget's demo/paper trading environment
+does not list rToken symbols at all — only standard crypto pairs. Order execution
+here therefore goes through gloaming_agent/paper_ledger.py's self-maintained
+virtual ledger, marked to real live rToken prices from the SAME public market-data
+feed used everywhere else in this file (not synthetic data), rather than Bitget's
+own demo order-matching engine. See paper_ledger.py's docstring for the full
+reasoning. execution.py (the Bitget CLI wrapper) is kept for account-level reads/
+future crypto-side execution but is no longer in the rToken decision path.
 """
 from __future__ import annotations
 
@@ -31,8 +38,8 @@ from data.fx import fx_risk_sentiment_return  # noqa: E402
 from data.rtoken_client import run_bgc  # noqa: E402
 from fairvalue.config import FAIRVALUE_WEIGHTS, RTOKEN_UNIVERSE  # noqa: E402
 
-import execution  # noqa: E402
-from risk_controls import PortfolioState, RiskConfig, TradeDecision, evaluate_decision  # noqa: E402
+import paper_ledger  # noqa: E402
+from risk_controls import TradeDecision, evaluate_decision  # noqa: E402
 
 DECISION_LOG_DIR = Path(__file__).resolve().parent / "decision_log"
 NYSE_TZ = ZoneInfo("America/New_York")
@@ -138,31 +145,19 @@ def decide(snapshot: dict) -> TradeDecision | None:
     )
 
 
-def _get_portfolio_state() -> PortfolioState | None:
-    """Returns None (not a crash) if Bitget credentials aren't configured yet —
-    callers must treat that as 'skip execution, keep logging' rather than fatal."""
-    try:
-        overview = execution.get_account_overview(coin="USDT")
-    except execution.NotConfiguredError:
-        return None
-    # Defensive parsing — exact schema unverified until a real account is wired up
-    # (Day 4 was blocked on OAuth; see docs/risk_controls.md and repo history).
-    assets = overview.get("data", {}).get("assets", []) if isinstance(overview.get("data"), dict) else []
-    equity = 0.0
-    for row in assets:
-        if row.get("coin") == "USDT":
-            equity = float(row.get("available", 0)) + float(row.get("frozen", 0))
-            break
-    return PortfolioState(equity_usd=equity, positions_notional_usd={})
-
-
 def run_once(dry_run: bool = False) -> list[dict]:
     """One full pass over the universe: snapshot -> decide -> risk-gate -> execute
-    (or skip) -> log. Returns the list of log records written this cycle."""
+    (or skip) -> log. Returns the list of log records written this cycle.
+
+    Two passes over RTOKEN_UNIVERSE: the first builds every symbol's live snapshot
+    (needed regardless of whether a signal fires, both for the decision and to
+    have a real mark price for paper_ledger's portfolio valuation); the second
+    applies decide() -> risk-gate -> execute using ONE portfolio_state snapshot
+    computed after pass one. Risk caps this cycle are therefore evaluated against
+    the book as it stood at the start of the cycle, not updated fill-by-fill within
+    the same cycle — a disclosed simplification, not a bug (see docs/risk_controls.md)."""
     DECISION_LOG_DIR.mkdir(parents=True, exist_ok=True)
     log_path = DECISION_LOG_DIR / f"{datetime.now(timezone.utc):%Y-%m-%d}.jsonl"
-
-    portfolio_state = _get_portfolio_state()
 
     # Fetch the shared, symbol-independent proxies exactly once per cycle.
     crypto_pcnt = crypto_beta_return(get_crypto_ticks())
@@ -170,17 +165,30 @@ def run_once(dry_run: bool = False) -> list[dict]:
     distinct_futures_tickers = {cfg["futures_proxy"] for cfg in RTOKEN_UNIVERSE.values()}
     futures_pcnt_by_ticker = {t: _futures_proxy_pcnt_24h(t) for t in distinct_futures_tickers}
 
-    records = []
-
+    snapshots: dict[str, dict] = {}
+    snapshot_errors: dict[str, str] = {}
+    mark_prices: dict[str, float] = {}
     for underlying in RTOKEN_UNIVERSE:
-        record = {"timestamp": datetime.now(timezone.utc).isoformat(), "underlying": underlying}
         try:
             snapshot = build_snapshot(underlying, crypto_pcnt, fx_pcnt, futures_pcnt_by_ticker)
-            record["snapshot"] = snapshot
+            snapshots[underlying] = snapshot
+            mark_prices[snapshot["rtoken_symbol"]] = snapshot["rtoken_last_price"]
         except Exception as e:  # noqa: BLE001 - one symbol's data failure shouldn't kill the cycle
-            record["error"] = f"snapshot failed: {e}"
+            snapshot_errors[underlying] = f"snapshot failed: {e}"
+
+    portfolio_state = paper_ledger.get_portfolio_state(mark_prices)
+
+    records = []
+    for underlying in RTOKEN_UNIVERSE:
+        record = {"timestamp": datetime.now(timezone.utc).isoformat(), "underlying": underlying}
+
+        if underlying in snapshot_errors:
+            record["error"] = snapshot_errors[underlying]
             records.append(record)
             continue
+
+        snapshot = snapshots[underlying]
+        record["snapshot"] = snapshot
 
         decision = decide(snapshot)
         if decision is None:
@@ -188,12 +196,6 @@ def run_once(dry_run: bool = False) -> list[dict]:
             records.append(record)
             continue
         record["decision"] = asdict(decision)
-
-        if portfolio_state is None:
-            record["risk_result"] = None
-            record["execution"] = "SKIPPED: Bitget credentials not configured (see .env.example)"
-            records.append(record)
-            continue
 
         risk_result = evaluate_decision(decision, portfolio_state, recent_volatility=abs(snapshot["spread"]))
         record["risk_result"] = asdict(risk_result)
@@ -209,12 +211,12 @@ def run_once(dry_run: bool = False) -> list[dict]:
             continue
 
         try:
-            qty = execution.notional_to_qty(
-                decision.symbol, risk_result.adjusted_notional_usd, snapshot["rtoken_last_price"]
+            qty = round(risk_result.adjusted_notional_usd / snapshot["rtoken_last_price"], 4)
+            fill = paper_ledger.record_fill(
+                decision.symbol, decision.side, qty, snapshot["rtoken_last_price"], decision.rationale
             )
-            order = execution.place_market_order(decision.symbol, decision.side, qty)
-            record["execution"] = asdict(order)
-        except Exception as e:  # noqa: BLE001 - log and move on, never crash the loop over one order
+            record["execution"] = asdict(fill)
+        except Exception as e:  # noqa: BLE001 - log and move on, never crash the loop over one fill
             record["execution"] = f"FAILED: {e}"
 
         records.append(record)

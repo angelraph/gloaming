@@ -21,8 +21,12 @@ import subprocess
 from dataclasses import dataclass
 from pathlib import Path
 
+from dotenv import load_dotenv
+
 REPO_ROOT = Path(__file__).resolve().parents[1]  # .../gloaming
 CLI_ENTRY = REPO_ROOT / "node_modules" / "@bitget-ai" / "bitget-agent-cli" / "lib" / "index.js"
+
+load_dotenv(REPO_ROOT / ".env")  # no-op if the file doesn't exist yet
 
 
 class ExecutionError(RuntimeError):
@@ -74,10 +78,18 @@ def _run_bgc_write(args: list[str]) -> dict:
 
 def _run_bgc_read(args: list[str]) -> dict:
     """Read-only calls also need credentials for account-scoped data (positions,
-    balances) but never touch --paper-trading/--confirm since nothing is written."""
+    balances). --confirm is never added (nothing is written), but --paper-trading
+    IS added here too — confirmed live Sept 11: Bitget's demo/paper trading isn't a
+    header trick on your live key, it requires a genuinely separate Demo API Key
+    (https://www.bitget.com/api-doc/classic/demotrading/restapi), and once BITGET_*
+    in .env holds Demo credentials (see .env.example), EVERY call against this
+    account — reads included — must carry the paptrading header or Bitget rejects
+    it with 'exchange environment is incorrect'. Since this whole module is
+    permanently paper-trading-only by design, there's no scenario where a read
+    here should ever hit the live account instead."""
     _require_credentials()
     proc = subprocess.run(
-        ["node", str(CLI_ENTRY), *args, "--pretty"],
+        ["node", str(CLI_ENTRY), *args, "--paper-trading", "--pretty"],
         cwd=str(REPO_ROOT),
         capture_output=True,
         text=True,
@@ -121,8 +133,14 @@ def place_market_order(symbol: str, side: str, qty: float) -> OrderResult:
 
 def get_account_overview(coin: str = "USDT") -> dict:
     """Raw account_overview payload — see risk_controls.PortfolioState for the
-    normalized shape agent_loop.py actually consumes."""
-    return _run_bgc_read(["account_overview", "--coin", coin, "--category", "SPOT"])
+    normalized shape agent_loop.py actually consumes.
+
+    Deliberately omits --category: passing category=SPOT here also triggers the
+    composite call's positions sub-fetch, which errors under UTA ("Parameter SPOT
+    does not exist" — positions apply to futures categories, not spot, confirmed
+    live Sept 11). We don't need positions from this call anyway; Gloaming tracks
+    its own book from the decision log."""
+    return _run_bgc_read(["account_overview", "--coin", coin])
 
 
 def notional_to_qty(rtoken_symbol: str, notional_usd: float, last_price: float) -> float:

@@ -16,9 +16,9 @@
         GLOAMING AGENT (loop, submits:      GLOAMING DESK (web, submits:
         Agentic Trading)                    AI Trading Desk)
         Qwen3.8-max reasoning +             Next.js dashboard + chat,
-        rule-based risk controls →          reads engine API + Agent's
-        paper trades via Bitget Agent       decision log; narrates,
-        SDK --paper-trading                 never auto-executes
+        non-LLM risk controls →             reads engine API + Agent's
+        fills via paper_ledger.py,          decision log; narrates,
+        marked to live rToken prices        never auto-executes
 ```
 
 ## Why this mechanic, not a generic trading bot
@@ -43,12 +43,39 @@ works, not a generic sentiment- or news-trading bot.
 3. `engine/events/macro_store.py` ingests `bitget-signal` output (news-briefing,
    macro-analyst, sentiment-analyst) into a timeline table.
 4. `gloaming_agent/agent_loop.py` runs only while NYSE is closed, reads engine state,
-   calls Qwen3.8-max for event interpretation/decision, passes every decision through
-   `risk_controls.py`, and executes via `execution.py` (`--paper-trading` only),
-   logging each event→decision→execution cycle to `decision_log/`.
-5. `gloaming_desk/` (Next.js) reads the engine API and the Agent's decision log to
-   render the overnight timeline, fair-value-vs-actual charts, chat narration, and
-   the decision-stress-test replay — read-only, no execution path.
+   calls Qwen3.8-max for event interpretation/decision, and passes every decision
+   through `risk_controls.py`. Approved decisions execute via
+   `gloaming_agent/paper_ledger.py` — a self-maintained virtual ledger marked to
+   real, live rToken prices (see "Execution model" below for why, not
+   `execution.py`'s Bitget CLI wrapper). Every cycle logs a full
+   event→decision→execution record to `decision_log/`.
+5. `gloaming_desk/` (Next.js) reads the engine API, the Agent's decision log, and
+   `paper_ledger.json` to render the overnight timeline, fair-value-vs-actual
+   charts, chat narration, and the decision-stress-test replay — read-only, no
+   execution path.
+
+## Execution model: why a self-maintained ledger, not Bitget's demo trading
+
+Bitget's Agent Hub ships a `--paper-trading` flag intended to route order writes to
+their demo/sandbox environment. Confirmed live Sept 11 while wiring this up: that
+demo environment **does not list rToken symbols at all** — placing a demo order for
+`RAAPLUSDT` returns `"Parameter RAAPLUSDT does not exist"`, while the identical call
+against `BTCUSDT` succeeds up to a normal minimum-order-size check, isolating this
+as an rToken-specific gap in Bitget's demo environment rather than a general
+paper-trading failure or a bug in this codebase.
+
+Since Gloaming's whole thesis is rToken execution during NYSE-closed hours, and
+waiting on Bitget to add rToken coverage to their demo environment isn't viable on
+a hackathon deadline, `gloaming_agent/paper_ledger.py` implements the standard
+approach used by essentially every paper-trading system when a broker's own sandbox
+doesn't cover an instrument: maintain a local ledger (cash, positions, fills) and
+mark every fill to a REAL, LIVE price pulled from the same public Bitget market-data
+feed used for every other part of this project — not synthetic or estimated data.
+The only thing simulated is the "exchange accepting the order" step; the price, the
+timing, the decision logic, and the risk gating are all real. `execution.py` (the
+Bitget CLI wrapper, including live account reads and `--paper-trading` order calls)
+is kept in the repo and still works correctly against tradable symbols like
+`BTCUSDT` — it's simply no longer in the rToken decision path.
 
 ## Alpha Factory (stretch, not a formal 3rd submission)
 

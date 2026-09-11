@@ -9,6 +9,7 @@ engine/db/*.db
 engine/data/cache/*
 !engine/data/cache/.gitkeep
 gloaming_agent/decision_log/*.jsonl
+gloaming_agent/paper_ledger.json
 *.log
 engine/data/cache/rtoken_universe.json
 instruments_spot.json
