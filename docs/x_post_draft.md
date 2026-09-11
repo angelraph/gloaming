@@ -41,6 +41,82 @@ with its own written reasoning you can read in the live timeline.
 Code: https://github.com/angelraph/gloaming
 ```
 
+## Long-form explainer thread (for pairing with the demo video)
+
+Use the short post above (the one that ships with the video) as the intro
+post, then post this as a 10-post reply thread underneath it for anyone who
+wants the full explanation. Each post below is individually verified under
+280 characters as X counts them (any link counts as a flat 23 characters).
+
+```
+1/10
+Tokenized US stocks trade 24/7. The real shares they track only trade on NYSE/Nasdaq about 6.5 hours a day, weekdays only.
+
+Outside that window, nothing forces the tokenized price back to the real price. It still trades though.
+
+That gap is what Gloaming is built around.
+```
+
+```
+2/10
+Bitget calls these tokenized shares rTokens (AAPL, TSLA, SPY and more, 1:1 backed via Reality Protocol). They trade nights, weekends, holidays. NYSE does not.
+
+Every closed hour, an rToken can quietly drift from what the real stock is worth, unwatched.
+```
+
+```
+3/10
+Gloaming Agent runs only during those closed hours. It builds a synthetic fair value per rToken from signals that stay live overnight: an index-futures proxy, BTC/ETH crypto sentiment, and FX risk sentiment.
+
+Then it compares that to the rToken's real onchain price.
+```
+
+```
+4/10
+The reasoning is done by Qwen3.8-max, not a hardcoded formula. It reads the live spread and proxy data, decides direction, size, stop-loss, and writes its own rationale for every single decision. Logged, readable, never hidden.
+```
+
+```
+5/10
+Qwen is never the last word. A separate, deterministic, non-LLM module can reject or resize any decision it makes: position caps, circuit breakers, volatility-scaled sizing, no leverage, ever.
+
+Every logged decision records exactly which path actually produced it.
+```
+
+```
+6/10
+Honest technical note: Bitget's demo trading doesn't support rToken symbols yet, confirmed live. Fills post to a self-maintained paper ledger marked to real live rToken prices.
+
+Only "the exchange accepts the order" is simulated. Everything else is real.
+```
+
+```
+7/10
+Gloaming Desk is the companion piece: a read-only dashboard over that same live data. A fair-value-vs-actual chart, a full overnight timeline, a chat panel grounded only in real data, never invented numbers.
+
+It never places a trade. The human makes the final call.
+```
+
+```
+8/10
+It also has a decision stress test: replay a real historical overnight move against the current book and see the hypothetical outcome before anything happens for real.
+```
+
+```
+9/10
+Backtest on 84 real days across a 9-symbol rToken universe: Sharpe 2.09, Sortino 2.29, max drawdown -3.51%, win rate 57%. The live paper log is younger and still growing, disclosed exactly that way, nothing dressed up.
+```
+
+```
+10/10
+Live: https://gloamingdesk.vercel.app
+Code: https://github.com/angelraph/gloaming
+
+Built solo for Bitget's AI and Crypto Hackathon, Genesis Season 2.
+
+#BitgetHackathon @Bitget_AI
+```
+
 ## What to attach to the main post
 
 A short screen recording or GIF of the live dashboard (the fair-value chart,
