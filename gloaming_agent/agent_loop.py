@@ -1,17 +1,17 @@
 """
-Gloaming Agent — the off-hours-only autonomous loop (Agentic Trading track).
+Gloaming Agent - the off-hours-only autonomous loop (Agentic Trading track).
 
 Day 4 status: rule-based decision-making (fixed spread threshold, no LLM yet).
 Day 5 swaps the decide() step for Qwen3.8-max reasoning over the same snapshot +
-bitget-signal event data — everything else here (risk gating, execution, logging)
+bitget-signal event data - everything else here (risk gating, execution, logging)
 stays as-is, since that separation is the point of this architecture.
 
-Runs ONLY while NYSE is closed (see is_nyse_closed) — that off-hours window is the
+Runs ONLY while NYSE is closed (see is_nyse_closed) - that off-hours window is the
 entire thesis this project is built on. Every cycle is appended to
 decision_log/*.jsonl as a full event->decision->execution record.
 
 Execution note (confirmed live Sept 11): Bitget's demo/paper trading environment
-does not list rToken symbols at all — only standard crypto pairs. Order execution
+does not list rToken symbols at all - only standard crypto pairs. Order execution
 here therefore goes through gloaming_agent/paper_ledger.py's self-maintained
 virtual ledger, marked to real live rToken prices from the SAME public market-data
 feed used everywhere else in this file (not synthetic data), rather than Bitget's
@@ -43,12 +43,12 @@ from risk_controls import TradeDecision, evaluate_decision  # noqa: E402
 
 DECISION_LOG_DIR = Path(__file__).resolve().parent / "decision_log"
 NYSE_TZ = ZoneInfo("America/New_York")
-SPREAD_THRESHOLD = 0.015  # 1.5% — crude Day 4 fixed threshold; Day 5's Qwen replaces this
+SPREAD_THRESHOLD = 0.015  # 1.5% - crude Day 4 fixed threshold; Day 5's Qwen replaces this
 
 
 def is_nyse_closed(now_utc: datetime | None = None) -> bool:
     """True outside 9:30-16:00 America/New_York on weekdays, and all day on
-    Sat/Sun. Does NOT account for US market holidays yet (flagged as a known gap —
+    Sat/Sun. Does NOT account for US market holidays yet (flagged as a known gap -
     worst case the Agent stays idle on a trading day it could have run, which is
     the safe direction for a risk-gated system to be wrong in)."""
     now_utc = now_utc or datetime.now(timezone.utc)
@@ -62,7 +62,7 @@ def is_nyse_closed(now_utc: datetime | None = None) -> bool:
 
 def _get_rtoken_tick_with_pcnt(rtoken_symbol: str) -> dict:
     """rtoken_client.get_ticker() doesn't carry price24hPcnt (Day 1 design only
-    needed last/bid/ask) — fetched directly here since the live rule-based signal
+    needed last/bid/ask) - fetched directly here since the live rule-based signal
     needs a 24h-change proxy, unlike the backtest which uses full daily history."""
     payload = run_bgc(["market", "--action", "tickers", "--category", "SPOT", "--symbol", rtoken_symbol])
     row = payload["data"][0]
@@ -76,7 +76,7 @@ def _get_rtoken_tick_with_pcnt(rtoken_symbol: str) -> dict:
 def _futures_proxy_pcnt_24h(futures_ticker: str) -> float:
     """Live 24h-ish proxy return: latest close vs. close ~24h/1-trading-day back.
     Falls back to 0.0 (treated as 'no new information') if the feed is unavailable
-    — matches the weekend zero-fill convention from the Day 3 backtest."""
+    - matches the weekend zero-fill convention from the Day 3 backtest."""
     sys.path.insert(0, str(ENGINE_DIR / "data"))
     from futures_proxy import fetch_futures_history  # local import: yfinance is a soft dependency
 
@@ -93,7 +93,7 @@ def _futures_proxy_pcnt_24h(futures_ticker: str) -> float:
 def build_snapshot(underlying: str, crypto_pcnt: float, fx_pcnt: float,
                      futures_pcnt_by_ticker: dict) -> dict:
     """crypto_pcnt/fx_pcnt/futures_pcnt_by_ticker are fetched ONCE per run_once()
-    cycle by the caller and shared across all symbols — these proxies don't vary
+    cycle by the caller and shared across all symbols - these proxies don't vary
     per-underlying (only the futures ticker choice does, and even that's shared
     across the handful of symbols using the same index), so refetching them per
     symbol was pure waste (9 symbols x redundant yfinance/bgc calls each cycle)."""
@@ -150,10 +150,10 @@ def run_once(dry_run: bool = False, force: bool = False) -> list[dict]:
     (or skip) -> log. Returns the list of log records written this cycle.
 
     Enforces is_nyse_closed() itself (not just as an informational check in the
-    smoke-test print) — this is the actual safety guarantee behind "runs only
+    smoke-test print) - this is the actual safety guarantee behind "runs only
     off-hours," not merely documentation. If the market is open, logs one record
     and returns immediately without touching any data source. `force=True` bypasses
-    this for manual debugging only (e.g. inspecting the pipeline mid-day) — never
+    this for manual debugging only (e.g. inspecting the pipeline mid-day) - never
     pass it from the scheduled entry point (see scheduled_run() below).
 
     Two passes over RTOKEN_UNIVERSE: the first builds every symbol's live snapshot
@@ -162,7 +162,7 @@ def run_once(dry_run: bool = False, force: bool = False) -> list[dict]:
     applies decide() -> risk-gate -> execute using ONE portfolio_state snapshot
     computed after pass one. Risk caps this cycle are therefore evaluated against
     the book as it stood at the start of the cycle, not updated fill-by-fill within
-    the same cycle — a disclosed simplification, not a bug (see docs/risk_controls.md)."""
+    the same cycle - a disclosed simplification, not a bug (see docs/risk_controls.md)."""
     DECISION_LOG_DIR.mkdir(parents=True, exist_ok=True)
     log_path = DECISION_LOG_DIR / f"{datetime.now(timezone.utc):%Y-%m-%d}.jsonl"
 
@@ -171,7 +171,7 @@ def run_once(dry_run: bool = False, force: bool = False) -> list[dict]:
             "timestamp": datetime.now(timezone.utc).isoformat(),
             "underlying": None,
             "decision": None,
-            "execution": "SKIPPED: NYSE is open — Agent only trades off-hours",
+            "execution": "SKIPPED: NYSE is open - Agent only trades off-hours",
         }
         with open(log_path, "a") as f:
             f.write(json.dumps(record) + "\n")
@@ -252,7 +252,7 @@ SCHEDULER_LOG_PATH = Path(__file__).resolve().parent / "scheduler.log"
 def scheduled_run() -> None:
     """The actual entry point Windows Task Scheduler invokes on a recurring
     interval (see scripts/setup_scheduled_task.ps1). Deliberately does NOT pass
-    force=True — every invocation re-checks is_nyse_closed() itself and silently
+    force=True - every invocation re-checks is_nyse_closed() itself and silently
     no-ops the ~26/168 hours a week the market is open, which is exactly the
     intended behavior for a timer that fires every 15 minutes around the clock.
     Appends one line to scheduler.log per invocation for operational visibility
@@ -266,28 +266,28 @@ def scheduled_run() -> None:
         else f"{len(records)} symbols checked, {n_decisions} signals, {n_fills} fills"
     )
     with open(SCHEDULER_LOG_PATH, "a") as f:
-        f.write(f"{datetime.now(timezone.utc).isoformat()} — {summary}\n")
+        f.write(f"{datetime.now(timezone.utc).isoformat()} - {summary}\n")
 
 
 if __name__ == "__main__":
     if "--smoke-test" in sys.argv:
         print(f"is_nyse_closed() right now: {is_nyse_closed()}")
-        print("Running one cycle (dry_run=True, force=True — no orders will be "
+        print("Running one cycle (dry_run=True, force=True - no orders will be "
               "placed, and this runs regardless of market hours for demo purposes)...")
         records = run_once(dry_run=True, force=True)
         for r in records:
             u = r["underlying"]
             if r.get("error"):
-                print(f"  {u}: ERROR — {r['error']}")
+                print(f"  {u}: ERROR - {r['error']}")
             elif r["decision"] is None:
                 spread = r.get("snapshot", {}).get("spread")
                 print(f"  {u}: no signal" + (f" (spread {spread:.2%})" if spread is not None else ""))
             else:
                 print(f"  {u}: {r['decision']['side']} ${r['decision']['notional_usd']:.0f} "
-                      f"— {r['execution']}")
+                      f"- {r['execution']}")
         print(f"\nLogged to {DECISION_LOG_DIR}")
     elif "--run" in sys.argv:
-        # The scheduled-task entry point — quiet on purpose (no stdout expected
+        # The scheduled-task entry point - quiet on purpose (no stdout expected
         # under Task Scheduler), all output goes to scheduler.log.
         scheduled_run()
     else:

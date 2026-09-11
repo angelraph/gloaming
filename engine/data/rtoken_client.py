@@ -25,7 +25,7 @@ class BgcError(RuntimeError):
 def run_bgc(args: list[str]) -> dict:
     """Run `npx bgc <args>` from the repo root and parse its JSON stdout.
 
-    Public — other data loaders (crypto_beta.py, etc.) reuse this instead of
+    Public - other data loaders (crypto_beta.py, etc.) reuse this instead of
     each shelling out independently."""
     proc = subprocess.run(
         ["npx", "bgc", *args, "--pretty"],
@@ -78,13 +78,13 @@ def get_candles(rtoken_symbol: str, interval: str = "1H", limit: str = "200") ->
 def get_candles_history(rtoken_symbol: str, interval: str = "1D", limit: str = "100",
                          start_time_ms: int | None = None, end_time_ms: int | None = None):
     """Historical klines via the `candlesHistory` action (max 90-day range per
-    call, max 100 rows/page — sufficient for a single-page 90-day daily pull,
+    call, max 100 rows/page - sufficient for a single-page 90-day daily pull,
     confirmed Day 3: rToken launch-to-date history is ~90 daily bars).
 
     Returns a pandas DataFrame indexed by UTC timestamp with columns
     open/high/low/close/volume/turnover. Bitget kline row format confirmed via
     live probe: [ts_ms, open, high, low, close, baseVolume, quoteTurnover]."""
-    import pandas as pd  # lazy import — keep this module's CLI-bridge parts dependency-free
+    import pandas as pd  # lazy import - keep this module's CLI-bridge parts dependency-free
 
     args = ["market", "--action", "candlesHistory", "--category", "SPOT",
             "--symbol", rtoken_symbol, "--interval", interval, "--limit", limit]
@@ -103,7 +103,7 @@ def get_candles_history(rtoken_symbol: str, interval: str = "1D", limit: str = "
 
 
 def list_stock_symbols() -> list[dict]:
-    """Full live rToken universe (symbol, baseCoin, status, launchTime) —
+    """Full live rToken universe (symbol, baseCoin, status, launchTime) -
     refetches from Bitget; prefer the Day-1 cache at
     engine/data/cache/rtoken_universe.json for a stable snapshot."""
     payload = run_bgc(["market", "--action", "instruments", "--category", "SPOT"])
@@ -117,6 +117,6 @@ if __name__ == "__main__":
         print("Fetching RAAPLUSDT ticker via bgc...")
         tick = get_ticker("RAAPLUSDT")
         print(tick)
-        print("OK — live rToken feed reachable.")
+        print("OK - live rToken feed reachable.")
     else:
         print("Usage: python rtoken_client.py --smoke-test")

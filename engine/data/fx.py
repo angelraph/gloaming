@@ -53,9 +53,9 @@ if __name__ == "__main__":
         df = fetch_dxy_history(period="5d", interval="1h")
         print(df.tail())
         if df["dxy_close"].dropna().empty:
-            print("WARNING: no DXY data returned — see docs/architecture.md fallback plan.")
+            print("WARNING: no DXY data returned - see docs/architecture.md fallback plan.")
         else:
             print(f"FX risk-sentiment signal: {fx_risk_sentiment_return(df):.4%}")
-            print("OK — FX proxy data reachable.")
+            print("OK - FX proxy data reachable.")
     else:
         print("Usage: python fx.py --smoke-test")

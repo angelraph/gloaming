@@ -3,14 +3,14 @@ Universe map and fair-value model weights for Gloaming.
 
 RTOKEN_UNIVERSE maps each underlying ticker to:
   - rtoken_symbol: the live Bitget SPOT symbol (confirmed Day 1 via `bgc market
-    --action instruments --category SPOT` — rTokens are regular SPOT pairs with
+    --action instruments --category SPOT` - rTokens are regular SPOT pairs with
     symbolType == "stock", baseCoin prefixed "r", isReality == "yes"; naming
     convention is R<TICKER>USDT, e.g. AAPL -> RAAPLUSDT).
   - futures_proxy: nearest CME index-futures proxy (Yahoo ticker) for overnight signal
   - sector_beta_hint: rough crypto/risk-sentiment sensitivity, used only as an
     initial prior before OLS calibration (Day 3) replaces it.
 
-Day 1 finding: the live universe is far larger than the ~36-name announcement —
+Day 1 finding: the live universe is far larger than the ~36-name announcement -
 `instruments_spot.json` (fetched Sept 10) shows **1,175** rToken symbols online.
 The full list is cached at engine/data/cache/rtoken_universe.json (symbol, baseCoin,
 status, launchTime) for later expansion; RTOKEN_UNIVERSE below starts with a

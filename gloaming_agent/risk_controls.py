@@ -1,5 +1,5 @@
 """
-Gloaming Agent's hard, deterministic, non-LLM risk layer — see
+Gloaming Agent's hard, deterministic, non-LLM risk layer - see
 docs/risk_controls.md. Every trade decision (rule-based today, Qwen-generated from
 Day 5 onward) passes through evaluate_decision() before execution.py ever sees it.
 This module knows nothing about LLMs and never will; that separation is the point.
@@ -28,7 +28,7 @@ class TradeDecision:
     notional_usd: float
     rationale: str
     stop_loss_pct: float = 0.02  # distance to stop, as a fraction of entry price
-    confidence: float = 0.5      # 0-1, informational only — never used to bypass a hard cap
+    confidence: float = 0.5      # 0-1, informational only - never used to bypass a hard cap
 
 
 @dataclass
@@ -63,13 +63,13 @@ def evaluate_decision(
     reasons: list[str] = []
 
     if state.equity_usd <= 0 or decision.notional_usd <= 0:
-        return RiskResult(False, 0.0, ["invalid equity or notional — rejected"])
+        return RiskResult(False, 0.0, ["invalid equity or notional - rejected"])
 
     # --- Control: no leverage. Spot/paper exposure only. ---
     if decision.notional_usd > state.equity_usd:
         reasons.append(
             f"requested notional {decision.notional_usd:.2f} exceeds account equity "
-            f"{state.equity_usd:.2f} — no-leverage control rejects (spot only)"
+            f"{state.equity_usd:.2f} - no-leverage control rejects (spot only)"
         )
         return RiskResult(False, 0.0, reasons)
 
@@ -78,7 +78,7 @@ def evaluate_decision(
     if daily_pnl_pct <= -config.max_daily_loss_pct:
         reasons.append(
             f"daily P&L {daily_pnl_pct:.2%} breached -{config.max_daily_loss_pct:.2%} circuit "
-            f"breaker — new positions halted for the remainder of this window"
+            f"breaker - new positions halted for the remainder of this window"
         )
         return RiskResult(False, 0.0, reasons)
 
@@ -87,7 +87,7 @@ def evaluate_decision(
     if implied_loss_pct > config.max_trade_loss_pct:
         reasons.append(
             f"stop-loss-implied loss {implied_loss_pct:.2%} of equity exceeds "
-            f"{config.max_trade_loss_pct:.2%} per-trade cap — rejected outright"
+            f"{config.max_trade_loss_pct:.2%} per-trade cap - rejected outright"
         )
         return RiskResult(False, 0.0, reasons)
 
@@ -100,7 +100,7 @@ def evaluate_decision(
         if scale < 1.0:
             reasons.append(
                 f"recent volatility {recent_volatility:.2%} > reference "
-                f"{config.vol_scaling_reference:.2%} — sizing scaled by {scale:.2f}x"
+                f"{config.vol_scaling_reference:.2%} - sizing scaled by {scale:.2f}x"
             )
             notional *= scale
 
@@ -126,10 +126,10 @@ def evaluate_decision(
         notional = room_left_aggregate
 
     if notional <= 0:
-        reasons.append("resized to zero by position/aggregate caps — effectively rejected")
+        reasons.append("resized to zero by position/aggregate caps - effectively rejected")
         return RiskResult(False, 0.0, reasons)
 
     if not reasons:
-        reasons.append("approved at full requested size — no controls binding")
+        reasons.append("approved at full requested size - no controls binding")
 
     return RiskResult(True, notional, reasons)

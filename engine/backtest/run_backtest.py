@@ -1,5 +1,5 @@
 """
-Gloaming Alpha Factory backtest — orchestrates real historical data into the
+Gloaming Alpha Factory backtest - orchestrates real historical data into the
 fair-value model + backtest engine and writes a report.
 
 Usage (from engine/, with the venv active):
@@ -37,7 +37,7 @@ OUT_OF_SAMPLE_DAYS = 30
 def _to_date_index(series: pd.Series) -> pd.Series:
     """Normalize any tz-aware/naive daily-timestamp index down to a plain calendar
     date so rToken (Bitget), futures-proxy/FX (yfinance) and crypto (Bitget) series
-    — each with their own timestamp convention — align on the join."""
+    - each with their own timestamp convention - align on the join."""
     out = series.copy()
     out.index = pd.to_datetime(out.index).tz_localize(None).normalize()
     return out
@@ -50,10 +50,10 @@ def build_symbol_dataset(underlying: str, futures_daily: pd.DataFrame,
     actual_price = _to_date_index(rtoken_df["close"])
     rtoken_return = actual_price.pct_change().rename("rtoken_return")
 
-    # rTokens trade all 7 days/week (confirmed Day 3: bars land evenly Mon-Sun) —
+    # rTokens trade all 7 days/week (confirmed Day 3: bars land evenly Mon-Sun) -
     # that IS the project's whole thesis. The free futures/FX proxies only carry
     # weekday bars, because CME index futures and most FX venues are themselves
-    # genuinely closed over the weekend — an inner join would silently drop every
+    # genuinely closed over the weekend - an inner join would silently drop every
     # weekend day, which is exactly the window this project is about. Reindexing
     # to the rToken's full daily calendar and filling weekend gaps with 0 ("no new
     # proxy information since Friday's close") is a deliberate modeling choice, not
@@ -132,7 +132,7 @@ def main() -> None:
             print(f"  SKIPPED {underlying}: {e}")
 
     if not per_symbol:
-        print("No symbols produced usable backtest data — aborting report.")
+        print("No symbols produced usable backtest data - aborting report.")
         return
 
     portfolio = run_portfolio_backtest({u: r["_full_result"] for u, r in per_symbol.items()})

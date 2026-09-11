@@ -3,30 +3,30 @@
 **Gloaming trades the hours the market can't.**
 
 Bitget rTokens (tokenized US stocks) trade 24/7, but the real NYSE/Nasdaq they're
-pegged to closes every night and all weekend. In that gap — 16:00–09:30 ET on
+pegged to closes every night and all weekend. In that gap - 16:00–09:30 ET on
 weekdays, and all weekend/holiday hours, "gloaming": the dim in-between light after
-sunset before full dark — there is no direct arbitrage pressure holding the on-chain
+sunset before full dark - there is no direct arbitrage pressure holding the on-chain
 rToken price to the real share price. Gloaming is one shared "overnight fair-value"
 engine, surfaced as two coordinated products, built for Bitget's AI & Crypto
-Hackathon — Genesis Season 2 (submission deadline Sept 21, 2026).
+Hackathon - Genesis Season 2 (submission deadline Sept 21, 2026).
 
 ## Modules
 
-- **`gloaming_agent/`** — autonomous LLM agent (Qwen3.8-max) that runs *only* while
+- **`gloaming_agent/`** - autonomous LLM agent (Qwen3.8-max) that runs *only* while
   NYSE is closed: estimates a synthetic fair value per rToken from proxies that stay
   live overnight (index-futures proxy, crypto beta, FX), trades the spread expecting
   convergence at the next open, watches for weekend macro shocks, and is gated by
   hard non-LLM risk controls. Runs in Bitget `--paper-trading` mode.
   → submits to the **Agentic Trading** track.
-- **`gloaming_desk/`** — natural-language research dashboard over the same data: an
+- **`gloaming_desk/`** - natural-language research dashboard over the same data: an
   overnight event timeline, fair-value-vs-actual charts, plain-English narration, and
-  a decision-stress-test replay tool. Never auto-executes — human makes the call.
+  a decision-stress-test replay tool. Never auto-executes - human makes the call.
   → submits to the **AI Trading Desk** track.
-- **`engine/`** — the shared Python core (data ingestion, fair-value model, backtest,
+- **`engine/`** - the shared Python core (data ingestion, fair-value model, backtest,
   FastAPI) both modules are built on.
-- **`alpha_factory/`** — optional stretch: reuses the engine's backtest core as
+- **`alpha_factory/`** - optional stretch: reuses the engine's backtest core as
   supplementary quant validation embedded in the other two write-ups (not a formal
-  3rd submission — see [docs/architecture.md](docs/architecture.md)).
+  3rd submission - see [docs/architecture.md](docs/architecture.md)).
 
 ## Status
 
@@ -51,10 +51,10 @@ powershell -File scripts/setup_scheduled_task.ps1
 ```
 
 The Agent's schedule survives sleep (configured to wake the machine) but **not a
-shutdown** — this machine needs to stay powered on for the paper-trading log to
+shutdown** - this machine needs to stay powered on for the paper-trading log to
 stay continuous. See the script's header comment for details.
 
-Copy `.env.example` to `.env` and fill in credentials — **never commit `.env`**.
+Copy `.env.example` to `.env` and fill in credentials - **never commit `.env`**.
 
 ## Safety
 

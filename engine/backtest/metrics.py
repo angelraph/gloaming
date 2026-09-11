@@ -1,11 +1,11 @@
 """
-Backtest performance metrics for Gloaming — shared by the Agentic Trading paper-log
+Backtest performance metrics for Gloaming - shared by the Agentic Trading paper-log
 report and any Alpha Factory stretch backtest.
 
 All functions take a pandas Series of periodic (typically daily) strategy returns,
 except max_drawdown (takes an equity curve) and turnover (takes a position series).
 Deliberately hand-rolled and dependency-light (numpy/pandas only) rather than pulling
-in a backtesting framework — the hackathon judges need runnable code + numbers, not a
+in a backtesting framework - the hackathon judges need runnable code + numbers, not a
 specific library.
 """
 from __future__ import annotations
@@ -26,7 +26,7 @@ def sharpe_ratio(returns: pd.Series, periods_per_year: int = 365, risk_free: flo
 
 
 def sortino_ratio(returns: pd.Series, periods_per_year: int = 365, risk_free: float = 0.0) -> float:
-    """Annualized Sortino ratio — like Sharpe but only penalizes downside deviation."""
+    """Annualized Sortino ratio - like Sharpe but only penalizes downside deviation."""
     excess = returns - risk_free / periods_per_year
     downside = excess[excess < 0]
     downside_std = downside.std(ddof=1)
@@ -47,7 +47,7 @@ def max_drawdown(equity_curve: pd.Series) -> float:
 
 
 def turnover(positions: pd.Series) -> float:
-    """Average absolute period-over-period change in position size — a proxy for
+    """Average absolute period-over-period change in position size - a proxy for
     trading activity/cost sensitivity, not a dollar turnover figure."""
     return float(positions.diff().abs().mean())
 

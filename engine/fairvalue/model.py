@@ -1,8 +1,8 @@
 """
 Gloaming's core thesis, as code: while NYSE is closed there is no direct arbitrage
 pressure holding an rToken's on-chain price to its real-share value. This module
-estimates what that value *should* be from proxies that stay live overnight —
-index-futures proxy, crypto beta, FX risk sentiment — and measures the spread
+estimates what that value *should* be from proxies that stay live overnight -
+index-futures proxy, crypto beta, FX risk sentiment - and measures the spread
 between that synthetic fair value and the rToken's actual traded price.
 
 Design: everything here works on daily return series (pandas Series, aligned by
@@ -25,7 +25,7 @@ def blended_fair_value_return(
 ) -> pd.Series:
     """Weighted blend of the three overnight-live proxy return series into a single
     synthetic 'what the rToken should have returned' series. Inputs are aligned on
-    their shared index (inner join) — callers should already have same-frequency
+    their shared index (inner join) - callers should already have same-frequency
     (typically daily) series before calling this."""
     df = pd.DataFrame({
         "futures_proxy_return": futures_proxy_return,
@@ -54,7 +54,7 @@ def spread_pct(actual_price: pd.Series, fair_value_price: pd.Series) -> pd.Serie
 
 
 def rolling_zscore(series: pd.Series, window: int = 14, min_periods: int = 5) -> pd.Series:
-    """Rolling z-score of a series — used to turn the raw spread into a bounded,
+    """Rolling z-score of a series - used to turn the raw spread into a bounded,
     comparable-across-symbols mean-reversion signal."""
     mean = series.rolling(window, min_periods=min_periods).mean()
     std = series.rolling(window, min_periods=min_periods).std(ddof=1)
@@ -69,12 +69,12 @@ def calibrate_weights(
     fx_risk_sentiment_return: pd.Series,
 ) -> dict:
     """OLS-calibrate the three proxy weights against realized rToken returns over
-    an in-sample window (unconstrained least squares — no sum-to-1 or non-negativity
+    an in-sample window (unconstrained least squares - no sum-to-1 or non-negativity
     constraint, so a negative or >1 weight is a legitimate, disclosed output, not a
     bug). Falls back to the heuristic FAIRVALUE_WEIGHTS prior if there isn't enough
     overlapping history to regress (needs at least 10 aligned observations).
 
-    This is intentionally a plain numpy.linalg.lstsq regression, not sklearn —
+    This is intentionally a plain numpy.linalg.lstsq regression, not sklearn -
     one dependency less, and the hackathon judges just need transparent, reproducible
     signal logic, not a specific ML library."""
     df = pd.DataFrame({

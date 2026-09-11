@@ -59,9 +59,9 @@ if __name__ == "__main__":
         print(df.tail())
         missing = [c for c in FUTURES_TICKERS if df[c].isna().all()]
         if missing:
-            print(f"WARNING: no data returned for {missing} — proxy unavailable, "
+            print(f"WARNING: no data returned for {missing} - proxy unavailable, "
                   f"see docs/architecture.md fallback plan.")
         else:
-            print("OK — futures proxy data reachable.")
+            print("OK - futures proxy data reachable.")
     else:
         print("Usage: python futures_proxy.py --smoke-test")

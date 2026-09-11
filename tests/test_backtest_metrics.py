@@ -1,4 +1,4 @@
-"""Unit tests for engine/backtest/metrics.py — deterministic, known-value checks."""
+"""Unit tests for engine/backtest/metrics.py - deterministic, known-value checks."""
 import sys
 from pathlib import Path
 

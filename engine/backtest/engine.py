@@ -12,8 +12,8 @@ Strategy (v1, deliberately simple and disclosed as such):
   1. Each day t, compute the rolling z-score of the actual-vs-fair-value spread.
   2. Form a position for day t+1 sized inversely to that z-score, clipped to
      [-1, 1]: short when the rToken trades rich (positive spread), long when it
-     trades cheap (negative spread) — betting on reversion toward fair value.
-  3. Realize strategy_return[t+1] = position[t] * rtoken_return[t+1] — the signal
+     trades cheap (negative spread) - betting on reversion toward fair value.
+  3. Realize strategy_return[t+1] = position[t] * rtoken_return[t+1] - the signal
      is fully known before the return it trades is realized (no lookahead).
 """
 from __future__ import annotations
@@ -58,7 +58,7 @@ def run_backtest(
     df = signal_df.join(rtoken_return, how="inner").dropna(subset=["position"])
 
     # Position formed at close of day t (using that day's signal) trades day t+1's
-    # realized return — shift(1) enforces no lookahead.
+    # realized return - shift(1) enforces no lookahead.
     df["position_lagged"] = df["position"].shift(1)
     df["strategy_return"] = df["position_lagged"] * df["rtoken_return"]
     df = df.dropna(subset=["strategy_return"])
@@ -71,7 +71,7 @@ def run_backtest(
 
 def run_portfolio_backtest(per_symbol_results: dict[str, dict], periods_per_year: int = 365) -> dict:
     """Equal-weight combine several run_backtest() outputs (keyed by rToken symbol)
-    into one portfolio-level return series + report — the number that actually goes
+    into one portfolio-level return series + report - the number that actually goes
     in the submission write-up, with per-symbol figures as supporting detail."""
     returns = pd.DataFrame({
         sym: res["data"]["strategy_return"] for sym, res in per_symbol_results.items()
@@ -88,7 +88,7 @@ def run_portfolio_backtest(per_symbol_results: dict[str, dict], periods_per_year
 
 
 def split_in_out_sample(df: pd.DataFrame, out_of_sample_days: int = 30) -> tuple[pd.DataFrame, pd.DataFrame]:
-    """Chronological split — the LAST `out_of_sample_days` rows are out-of-sample,
+    """Chronological split - the LAST `out_of_sample_days` rows are out-of-sample,
     matching the hackathon's '>=30 days out-of-sample' requirement."""
     if len(df) <= out_of_sample_days:
         return df.iloc[0:0], df

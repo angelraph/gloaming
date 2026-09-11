@@ -3,7 +3,7 @@ Crypto market-beta loader for Gloaming's overnight fair-value model.
 
 BTC/ETH are the truest 24/7 signal available (unlike futures proxies, they never
 close), used as a risk-sentiment leading indicator for rToken fair value while
-NYSE is shut. Pulled straight from Bitget's own public market data via `bgc` —
+NYSE is shut. Pulled straight from Bitget's own public market data via `bgc` -
 same client used for rToken data, so no second exchange integration is needed.
 """
 from __future__ import annotations
@@ -52,7 +52,7 @@ def crypto_beta_return(ticks: list[CryptoTick] | None = None) -> float:
 
 def get_crypto_beta_history(symbols: list[str] = CRYPTO_BETA_SYMBOLS, interval: str = "1D",
                              limit: str = "100"):
-    """Historical daily blended BTC/ETH return series for backtesting — equal-weighted
+    """Historical daily blended BTC/ETH return series for backtesting - equal-weighted
     average of each symbol's close-to-close % return. Returns a pandas Series indexed
     by UTC timestamp, named 'crypto_beta_return'."""
     import pandas as pd
@@ -76,6 +76,6 @@ if __name__ == "__main__":
         for t in ticks:
             print(t)
         print(f"Blended crypto-beta 24h return: {crypto_beta_return(ticks):.4%}")
-        print("OK — crypto beta feed reachable.")
+        print("OK - crypto beta feed reachable.")
     else:
         print("Usage: python crypto_beta.py --smoke-test")

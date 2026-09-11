@@ -99,7 +99,7 @@ def test_daily_baseline_resets_on_new_day(monkeypatch):
             return dt.datetime(2026, 1, 2, tzinfo=tz)
 
     monkeypatch.setattr(paper_ledger, "datetime", FrozenDatetimeNextDay)
-    # First call of the new day establishes the new baseline — daily P&L is
+    # First call of the new day establishes the new baseline - daily P&L is
     # correctly 0 at that exact instant, same as it was at day1's own start.
     state2_at_open = paper_ledger.get_portfolio_state(mark_prices={"RAAPLUSDT": 300.0})
     day2_state = paper_ledger._load()
@@ -107,6 +107,6 @@ def test_daily_baseline_resets_on_new_day(monkeypatch):
     assert state2_at_open.daily_realized_pnl_usd == pytest.approx(0.0)
 
     # A price move later the SAME day should move daily P&L away from zero,
-    # measured against day2's own baseline — not day1's.
+    # measured against day2's own baseline - not day1's.
     state2_after_move = paper_ledger.get_portfolio_state(mark_prices={"RAAPLUSDT": 350.0})
     assert state2_after_move.daily_realized_pnl_usd == pytest.approx(10 * (350.0 - 300.0))

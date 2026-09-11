@@ -2,13 +2,13 @@
 Bitget Agent CLI execution wrapper for Gloaming Agent.
 
 Hardcodes --paper-trading on every write call, regardless of any config passed in
-— per docs/risk_controls.md control #6, this is not an env toggle an LLM output
+- per docs/risk_controls.md control #6, this is not an env toggle an LLM output
 could ever influence. Needs BITGET_API_KEY / BITGET_SECRET_KEY / BITGET_PASSPHRASE
 in the environment (see .env.example); everything here fails loudly, not silently,
 if those aren't set.
 
 Calls the CLI's real entry file directly with `node` rather than through `npx bgc`
-— npx's per-invocation resolution overhead (multiple seconds) is a non-issue for
+- npx's per-invocation resolution overhead (multiple seconds) is a non-issue for
 market-data reads, but the Bitget Agentic OAuth session flow (authorize_start /
 authorize_wait) proved to expire within that overhead during Day 4 setup, so the
 faster direct-node path is used everywhere in this module on general principle.
@@ -34,7 +34,7 @@ class ExecutionError(RuntimeError):
 
 
 class NotConfiguredError(ExecutionError):
-    """Raised when BITGET_API_KEY/SECRET/PASSPHRASE aren't set — distinct from a
+    """Raised when BITGET_API_KEY/SECRET/PASSPHRASE aren't set - distinct from a
     generic ExecutionError so callers (agent_loop) can log a clear, specific reason
     rather than a raw CLI failure."""
 
@@ -46,7 +46,7 @@ def _require_credentials() -> None:
     ]
     if missing:
         raise NotConfiguredError(
-            f"Missing {', '.join(missing)} — copy .env.example to .env and fill in your "
+            f"Missing {', '.join(missing)} - copy .env.example to .env and fill in your "
             f"Bitget API credentials (spot-trading-only, withdrawals disabled) before the "
             f"Agent can execute paper trades."
         )
@@ -79,11 +79,11 @@ def _run_bgc_write(args: list[str]) -> dict:
 def _run_bgc_read(args: list[str]) -> dict:
     """Read-only calls also need credentials for account-scoped data (positions,
     balances). --confirm is never added (nothing is written), but --paper-trading
-    IS added here too — confirmed live Sept 11: Bitget's demo/paper trading isn't a
+    IS added here too - confirmed live Sept 11: Bitget's demo/paper trading isn't a
     header trick on your live key, it requires a genuinely separate Demo API Key
     (https://www.bitget.com/api-doc/classic/demotrading/restapi), and once BITGET_*
     in .env holds Demo credentials (see .env.example), EVERY call against this
-    account — reads included — must carry the paptrading header or Bitget rejects
+    account - reads included - must carry the paptrading header or Bitget rejects
     it with 'exchange environment is incorrect'. Since this whole module is
     permanently paper-trading-only by design, there's no scenario where a read
     here should ever hit the live account instead."""
@@ -117,7 +117,7 @@ class OrderResult:
 
 def place_market_order(symbol: str, side: str, qty: float) -> OrderResult:
     """Places a market SPOT order. ALWAYS routed to Bitget's paper-trading/demo
-    environment (see _run_bgc_write) — there is no code path in this module that
+    environment (see _run_bgc_write) - there is no code path in this module that
     can send a live order."""
     if side not in ("buy", "sell"):
         raise ValueError(f"side must be 'buy' or 'sell', got {side!r}")
@@ -132,12 +132,12 @@ def place_market_order(symbol: str, side: str, qty: float) -> OrderResult:
 
 
 def get_account_overview(coin: str = "USDT") -> dict:
-    """Raw account_overview payload — see risk_controls.PortfolioState for the
+    """Raw account_overview payload - see risk_controls.PortfolioState for the
     normalized shape agent_loop.py actually consumes.
 
     Deliberately omits --category: passing category=SPOT here also triggers the
     composite call's positions sub-fetch, which errors under UTA ("Parameter SPOT
-    does not exist" — positions apply to futures categories, not spot, confirmed
+    does not exist" - positions apply to futures categories, not spot, confirmed
     live Sept 11). We don't need positions from this call anyway; Gloaming tracks
     its own book from the decision log."""
     return _run_bgc_read(["account_overview", "--coin", coin])
@@ -161,7 +161,7 @@ if __name__ == "__main__":
         except NotConfiguredError as e:
             print(f"NOT CONFIGURED (expected until .env is set up): {e}")
             sys.exit(0)
-        print("Credentials found — fetching account overview...")
+        print("Credentials found - fetching account overview...")
         print(get_account_overview())
     else:
         print("Usage: python execution.py --smoke-test")

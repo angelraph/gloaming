@@ -1,5 +1,5 @@
 """
-Unit tests for gloaming_agent/risk_controls.py — one forced test case per control
+Unit tests for gloaming_agent/risk_controls.py - one forced test case per control
 in docs/risk_controls.md, asserting an over-cap/over-loss decision is blocked
 before it could ever reach execution.py.
 """

@@ -3,7 +3,7 @@ Gloaming's self-maintained paper-trading ledger for rTokens.
 
 Confirmed live Sept 11: Bitget's demo/paper trading environment does not list
 rToken symbols at all (`RAAPLUSDT` -> "Parameter RAAPLUSDT does not exist", while
-`BTCUSDT` works fine and fails only on minimum-order-size — isolating this as an
+`BTCUSDT` works fine and fails only on minimum-order-size - isolating this as an
 rToken-specific gap in Bitget's demo environment, not a general paper-trading
 problem, and not anything wrong in this codebase). Since the whole point of
 Gloaming's Agentic Trading track submission is rToken execution during the hours
@@ -13,14 +13,14 @@ isn't an option on a hackathon deadline.
 The fix used here is the standard, legitimate way paper-trading systems work when
 a broker's own demo/sandbox doesn't cover an instrument: track a virtual ledger
 ourselves and mark fills to REAL, LIVE market prices (via rtoken_client.get_ticker
-— genuine public Bitget market data, not synthetic), rather than routing orders
+- genuine public Bitget market data, not synthetic), rather than routing orders
 through a demo matching engine that can't accept them. Every number here is a real
 price at the real time of the decision; only the "execution" step (crediting/
-debiting a local ledger instead of an exchange accepting an order) is simulated —
+debiting a local ledger instead of an exchange accepting an order) is simulated -
 exactly what "paper trading" means in every quant/trading-system context, Bitget's
 own demo environment included.
 
-Storage: a single JSON file (gloaming_agent/paper_ledger.json) — enough durability
+Storage: a single JSON file (gloaming_agent/paper_ledger.json) - enough durability
 for the hackathon's ~2-week log requirement without pulling in SQLite for state
 this small; engine/db (SQLite) remains reserved for the shared engine's own data
 per docs/architecture.md, not required for this loop to function correctly.
@@ -52,7 +52,7 @@ class LedgerState:
     cash_usd: float = STARTING_EQUITY_USD
     positions: dict = field(default_factory=dict)  # symbol -> qty (signed: + long, - short)
     fills: list = field(default_factory=list)  # list of Fill dicts, newest last
-    # Baseline for the daily max-loss circuit breaker (risk_controls.py) — reset to
+    # Baseline for the daily max-loss circuit breaker (risk_controls.py) - reset to
     # the current equity the first time the ledger is touched on a new UTC date, so
     # "daily P&L" means since-today's-open, not since-ledger-inception.
     equity_at_day_start_usd: float = STARTING_EQUITY_USD
@@ -78,7 +78,7 @@ def _save(state: LedgerState) -> None:
 
 def record_fill(symbol: str, side: str, qty: float, price: float, rationale: str) -> Fill:
     """Simulates an immediate full fill at `price` (the real live price fetched by
-    the caller moments earlier) — no slippage/partial-fill modeling in v1, disclosed
+    the caller moments earlier) - no slippage/partial-fill modeling in v1, disclosed
     as a simplification alongside everything else in docs/architecture.md."""
     if side not in ("buy", "sell"):
         raise ValueError(f"side must be 'buy' or 'sell', got {side!r}")
@@ -97,7 +97,7 @@ def record_fill(symbol: str, side: str, qty: float, price: float, rationale: str
     else:
         state.cash_usd += notional
     # Realized P&L only accrues when a fill reduces/closes an existing position in
-    # the opposite direction — v1 keeps this simple (no per-lot cost basis tracking
+    # the opposite direction - v1 keeps this simple (no per-lot cost basis tracking
     # beyond net position size), which is a disclosed simplification, not a bug:
     # a strategy that never nets down a position never touches this path at all.
     state.positions[symbol] = new_qty
@@ -119,7 +119,7 @@ def get_portfolio_state(mark_prices: dict) -> "PortfolioState":  # noqa: F821 - 
     supplied by the caller from this cycle's live snapshots) to compute equity_usd
     and positions_notional_usd for risk_controls.evaluate_decision(). A position in
     a symbol missing from mark_prices is valued at its last fill price as a
-    fallback — logged, not silently ignored. Also rolls the daily circuit-breaker
+    fallback - logged, not silently ignored. Also rolls the daily circuit-breaker
     baseline forward on a new UTC date, matching a fresh 24h risk budget each day
     the Agent runs (it only runs off-hours, so 'day' here means calendar date, not
     a trading session)."""
