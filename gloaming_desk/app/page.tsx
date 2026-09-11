@@ -94,7 +94,7 @@ export default function Home() {
       </header>
 
       {loading ? (
-        <section className="grid grid-cols-2 gap-3 sm:gap-4 sm:grid-cols-4">
+        <section className="grid grid-cols-2 gap-3 sm:gap-4 lg:grid-cols-4">
           {Array.from({ length: 4 }).map((_, i) => (
             <div key={i} className="h-[74px] animate-pulse rounded-lg border border-border-subtle bg-layer-1" />
           ))}
@@ -104,7 +104,7 @@ export default function Home() {
           {portfolio?.message ?? "Portfolio data not available yet."}
         </div>
       ) : (
-        <section className="grid grid-cols-2 gap-3 sm:gap-4 sm:grid-cols-4">
+        <section className="grid grid-cols-2 gap-3 sm:gap-4 lg:grid-cols-4">
           <StatTile label="Equity" value={fmtUsd(portfolio.equityUsd ?? 0)} />
           <StatTile label="Cash" value={fmtUsd(portfolio.cashUsd ?? 0)} />
           <StatTile
