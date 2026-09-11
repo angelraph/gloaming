@@ -13,8 +13,12 @@ data you were given.`;
 export async function POST(request: Request) {
   const apiKey = process.env.QWEN_API_KEY;
   if (!apiKey) {
+    // Locally this comes from the repo-root .env (see next.config.ts); on Vercel
+    // it has to be set as a project environment variable instead, since only this
+    // subdirectory gets deployed - one message covers both without guessing which
+    // environment is asking.
     return NextResponse.json(
-      { error: "QWEN_API_KEY is not configured in the repo-root .env yet." },
+      { error: "QWEN_API_KEY is not configured for this environment yet." },
       { status: 503 }
     );
   }
