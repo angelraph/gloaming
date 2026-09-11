@@ -1,10 +1,13 @@
 """
 Gloaming Agent - the off-hours-only autonomous loop (Agentic Trading track).
 
-Day 4 status: rule-based decision-making (fixed spread threshold, no LLM yet).
-Day 5 swaps the decide() step for Qwen3.8-max reasoning over the same snapshot +
-bitget-signal event data - everything else here (risk gating, execution, logging)
-stays as-is, since that separation is the point of this architecture.
+Decision-making: Qwen3.8-max reasons over each symbol's live snapshot
+(decide_llm) and is the primary decision-maker whenever QWEN_API_KEY is
+configured (see llm_client.py). decide_rule_based's fixed-threshold logic from
+Day 4 is kept as an automatic fallback, used only when the LLM call fails or
+isn't configured yet - every decision record says which path produced it (see
+"decision_source" in run_once's output), which is the disclosure the Agentic
+Trading track's LLM-role requirement asks for.
 
 Runs ONLY while NYSE is closed (see is_nyse_closed) - that off-hours window is the
 entire thesis this project is built on. Every cycle is appended to
@@ -38,6 +41,7 @@ from data.fx import fx_risk_sentiment_return  # noqa: E402
 from data.rtoken_client import run_bgc  # noqa: E402
 from fairvalue.config import FAIRVALUE_WEIGHTS, RTOKEN_UNIVERSE  # noqa: E402
 
+import llm_client  # noqa: E402
 import paper_ledger  # noqa: E402
 from risk_controls import TradeDecision, evaluate_decision  # noqa: E402
 
@@ -121,11 +125,12 @@ def build_snapshot(underlying: str, crypto_pcnt: float, fx_pcnt: float,
     }
 
 
-def decide(snapshot: dict) -> TradeDecision | None:
-    """Crude Day 4 rule: rToken trading meaningfully rich vs. the blended proxy
-    signal -> sell/reduce; meaningfully cheap -> buy. No position otherwise. This
-    is intentionally simple and disclosed as a placeholder for Day 5's Qwen-driven
-    reasoning, which sees this same snapshot dict plus bitget-signal event context."""
+def decide_rule_based(snapshot: dict) -> TradeDecision | None:
+    """Day 4's fixed-threshold rule: rToken trading meaningfully rich vs. the
+    blended proxy signal -> sell/reduce; meaningfully cheap -> buy. No position
+    otherwise. Kept as the automatic fallback for when Qwen isn't configured or
+    its call fails - never the primary path once QWEN_API_KEY is set (see
+    decide() below)."""
     spread = snapshot["spread"]
     if abs(spread) < SPREAD_THRESHOLD:
         return None
@@ -143,6 +148,78 @@ def decide(snapshot: dict) -> TradeDecision | None:
         symbol=snapshot["rtoken_symbol"], side=side, notional_usd=250.0,  # fixed size, Day 4 placeholder
         rationale=rationale, stop_loss_pct=0.03, confidence=min(abs(spread) / (2 * SPREAD_THRESHOLD), 1.0),
     )
+
+
+def build_user_prompt(snapshot: dict) -> str:
+    """Turns one symbol's live snapshot into the user message Qwen reasons over.
+    Every number here is real and live, fetched moments earlier in build_snapshot -
+    nothing in this prompt is synthetic or estimated on the LLM's behalf."""
+    return (
+        f"rToken: {snapshot['rtoken_symbol']}\n"
+        f"Last price: ${snapshot['rtoken_last_price']:.2f}\n"
+        f"24h return: {snapshot['rtoken_pcnt_24h']:.2%}\n"
+        f"\n"
+        f"Overnight proxy signals (live, while NYSE is closed):\n"
+        f"- Futures proxy 24h return: {snapshot['futures_proxy_pcnt_24h']:.2%}\n"
+        f"- Crypto beta 24h return: {snapshot['crypto_beta_pcnt_24h']:.2%}\n"
+        f"- FX risk sentiment 24h return: {snapshot['fx_risk_sentiment_pcnt_24h']:.2%}\n"
+        f"- Blended synthetic fair-value return: {snapshot['fair_value_return_24h']:.2%}\n"
+        f"\n"
+        f"Spread (actual vs. fair value): {snapshot['spread']:.2%}\n"
+        f"\n"
+        f"Decide whether this spread is an actionable mispricing."
+    )
+
+
+def decide_llm(snapshot: dict) -> TradeDecision | None:
+    """Qwen3.8-max reasons over the same snapshot decide_rule_based uses and
+    returns a structured decision per prompts/system_prompt.md's output contract.
+    Raises llm_client.LLMError on any failure (API, parsing, invalid schema) -
+    callers must catch that and fall back, never let it crash the cycle."""
+    system_prompt = llm_client.load_prompt("system_prompt.md")
+    user_prompt = build_user_prompt(snapshot)
+    result = llm_client.get_decision_json(system_prompt, user_prompt)
+
+    action = result.get("action")
+    if action not in ("buy", "sell", "hold"):
+        raise llm_client.LLMError(f"Qwen returned an invalid action: {action!r}")
+    if action == "hold":
+        return None
+
+    try:
+        notional = float(result.get("notional_usd", 0))
+        stop_loss_pct = float(result.get("stop_loss_pct", 0.02))
+        confidence = float(result.get("confidence", 0.5))
+    except (TypeError, ValueError) as e:
+        raise llm_client.LLMError(f"Qwen returned non-numeric fields: {result}") from e
+
+    if notional <= 0:
+        return None
+
+    rationale = str(result.get("rationale") or "Qwen provided no rationale.")
+    return TradeDecision(
+        symbol=snapshot["rtoken_symbol"], side=action,
+        notional_usd=min(notional, 1000.0),  # hard ceiling regardless of what Qwen suggests
+        rationale=f"[Qwen3.8-max] {rationale}",
+        stop_loss_pct=max(stop_loss_pct, 0.001),
+        confidence=min(max(confidence, 0.0), 1.0),
+    )
+
+
+def decide(snapshot: dict) -> tuple[TradeDecision | None, str]:
+    """The actual dispatcher run_once() calls. Qwen is the primary decision-maker
+    whenever QWEN_API_KEY is configured; decide_rule_based is the disclosed,
+    automatic fallback for when it isn't configured yet or a call fails - this
+    mirrors the credential-guard pattern used throughout this project (Bitget
+    creds in execution.py, Qwen creds here) rather than crashing the cycle.
+    Returns (decision, source) so run_once() can log which path produced it, which
+    is exactly what the Agentic Trading track's LLM-role disclosure asks for."""
+    if not llm_client.is_configured():
+        return decide_rule_based(snapshot), "rule_based (Qwen not configured)"
+    try:
+        return decide_llm(snapshot), "qwen3.8-max"
+    except llm_client.LLMError as e:
+        return decide_rule_based(snapshot), f"rule_based (Qwen call failed: {e})"
 
 
 def run_once(dry_run: bool = False, force: bool = False) -> list[dict]:
@@ -208,7 +285,8 @@ def run_once(dry_run: bool = False, force: bool = False) -> list[dict]:
         snapshot = snapshots[underlying]
         record["snapshot"] = snapshot
 
-        decision = decide(snapshot)
+        decision, decision_source = decide(snapshot)
+        record["decision_source"] = decision_source
         if decision is None:
             record["decision"] = None
             records.append(record)
@@ -284,7 +362,7 @@ if __name__ == "__main__":
                 print(f"  {u}: no signal" + (f" (spread {spread:.2%})" if spread is not None else ""))
             else:
                 print(f"  {u}: {r['decision']['side']} ${r['decision']['notional_usd']:.0f} "
-                      f"- {r['execution']}")
+                      f"[{r.get('decision_source', '?')}] - {r['execution']}")
         print(f"\nLogged to {DECISION_LOG_DIR}")
     elif "--run" in sys.argv:
         # The scheduled-task entry point - quiet on purpose (no stdout expected

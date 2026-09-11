@@ -5,7 +5,7 @@ numpy==2.5.3
 sqlalchemy==2.0.34
 yfinance==1.7.0
 python-dotenv==1.0.1
-openai==1.51.0
+openai==3.13.0
 apscheduler==3.10.4
 pydantic==2.9.2
 pytest==9.1.1
