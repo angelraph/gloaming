@@ -1,6 +1,8 @@
 """
 Unit tests for gloaming_agent/paper_ledger.py. Every test monkeypatches LEDGER_PATH
-to an isolated tmp file so these never touch the real running ledger.
+to an isolated tmp file so these never touch the real running ledger, and stubs out
+kv_sync so a real KV_REST_API_URL/TOKEN in the environment (once configured) never
+causes a test run to fire live network calls at production Redis.
 """
 import sys
 from pathlib import Path
@@ -15,6 +17,7 @@ import paper_ledger  # noqa: E402
 @pytest.fixture(autouse=True)
 def isolated_ledger(tmp_path, monkeypatch):
     monkeypatch.setattr(paper_ledger, "LEDGER_PATH", tmp_path / "paper_ledger.json")
+    monkeypatch.setattr(paper_ledger.kv_sync, "push_ledger_state", lambda *a, **kw: None)
     yield
 
 

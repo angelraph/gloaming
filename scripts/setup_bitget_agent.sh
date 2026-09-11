@@ -1,6 +1,6 @@
 #!/usr/bin/env bash
 # Day 1 setup spike for Gloaming.
-# Run manually and review output at each step before proceeding — this is meant to
+# Run manually and review output at each step before proceeding - this is meant to
 # be read and adapted, not blindly executed unattended.
 set -euo pipefail
 
@@ -8,7 +8,7 @@ echo "== 1. Install Bitget Agent Hub (SDK, CLI, MCP, research skills) =="
 npx @bitget-ai/bitget-agent-installer upgrade-all --target all
 
 echo "== 2. Verify CLI is available =="
-bgc --version || echo "bgc not on PATH yet — check installer output above"
+bgc --version || echo "bgc not on PATH yet - check installer output above"
 
 echo "== 3. Reminder: configure the Agentic Account =="
 echo "   - Create/confirm an isolated Agentic Account with withdrawals disabled"

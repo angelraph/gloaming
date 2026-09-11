@@ -5,7 +5,7 @@ export async function GET(request: Request) {
   const { searchParams } = new URL(request.url);
   const days = Number(searchParams.get("days") ?? "3");
 
-  const records = readDecisionLog(days);
+  const records = await readDecisionLog(days);
 
   // Newest first, and skip the empty "market open, skipped" placeholder records
   // that run_once() writes every 15 minutes during NYSE hours - real content only.

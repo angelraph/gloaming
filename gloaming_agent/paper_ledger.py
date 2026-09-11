@@ -28,9 +28,15 @@ per docs/architecture.md, not required for this loop to function correctly.
 from __future__ import annotations
 
 import json
+import sys
 from dataclasses import asdict, dataclass, field
 from datetime import datetime, timezone
 from pathlib import Path
+
+if __name__ == "__main__" and __package__ is None:
+    sys.path.insert(0, str(Path(__file__).resolve().parent))
+
+import kv_sync  # local import - see kv_sync.py; no-ops if KV isn't configured
 
 LEDGER_PATH = Path(__file__).resolve().parent / "paper_ledger.json"
 STARTING_EQUITY_USD = 100_000.0  # matches the scale Bitget's own demo seeding used
@@ -73,7 +79,9 @@ def _load() -> LedgerState:
 
 
 def _save(state: LedgerState) -> None:
-    LEDGER_PATH.write_text(json.dumps(asdict(state), indent=2, default=str))
+    state_dict = asdict(state)
+    LEDGER_PATH.write_text(json.dumps(state_dict, indent=2, default=str))
+    kv_sync.push_ledger_state(state_dict)  # best-effort mirror for the deployed Desk; no-ops if unconfigured
 
 
 def record_fill(symbol: str, side: str, qty: float, price: float, rationale: str) -> Fill:

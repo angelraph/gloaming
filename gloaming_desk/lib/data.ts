@@ -1,12 +1,15 @@
 import fs from "fs";
 import path from "path";
+import { redis, KEYS } from "@/lib/redis";
 
-// Reads directly from the same files gloaming_agent/agent_loop.py writes -
-// decision_log/*.jsonl (the event -> decision -> execution trail) and
-// paper_ledger.json (current portfolio state). No separate FastAPI/SQLite layer:
-// the data already exists in real, verified form on disk, so re-serving it
-// through another service would just be an extra moving part with nothing to
-// show for it. See docs/architecture.md for the full reasoning.
+// Reads Redis first (gloaming_agent/kv_sync.py mirrors the same data there,
+// added Sept 11, so the deployed Vercel site - which cannot see this machine's
+// local files - shows real live data too), falling back to the local files
+// gloaming_agent/agent_loop.py writes directly (decision_log/*.jsonl,
+// paper_ledger.json) when Redis isn't configured or a call fails. Local files
+// stay the ultimate source of truth; Redis is a best-effort live mirror on top.
+// See docs/architecture.md for the full reasoning on why there's no separate
+// FastAPI/SQLite layer underneath either path.
 
 const REPO_ROOT = path.resolve(process.cwd(), "..");
 const DECISION_LOG_DIR = path.join(REPO_ROOT, "gloaming_agent", "decision_log");
@@ -62,7 +65,7 @@ export type LedgerState = {
   day_start_date: string;
 };
 
-export function readLedger(): LedgerState | null {
+function readLedgerFromFile(): LedgerState | null {
   try {
     const raw = fs.readFileSync(LEDGER_PATH, "utf-8");
     return JSON.parse(raw) as LedgerState;
@@ -71,7 +74,19 @@ export function readLedger(): LedgerState | null {
   }
 }
 
-export function readDecisionLog(days: number = 3): DecisionRecord[] {
+export async function readLedger(): Promise<LedgerState | null> {
+  if (redis) {
+    try {
+      const value = await redis.get<LedgerState>(KEYS.ledger);
+      if (value) return value;
+    } catch {
+      // fall through to local file - a Redis hiccup should never break the Desk
+    }
+  }
+  return readLedgerFromFile();
+}
+
+function readDecisionLogFromFiles(days: number): DecisionRecord[] {
   if (!fs.existsSync(DECISION_LOG_DIR)) return [];
 
   const files = fs
@@ -93,6 +108,22 @@ export function readDecisionLog(days: number = 3): DecisionRecord[] {
     }
   }
   return records;
+}
+
+export async function readDecisionLog(days: number = 3): Promise<DecisionRecord[]> {
+  if (redis) {
+    try {
+      // gloaming_agent/kv_sync.py RPUSHes here and LTRIMs to the last 500 -
+      // pull the whole bounded list rather than trying to reconstruct a "days"
+      // window from Redis (that's a local-file-only concept, since the list has
+      // no per-day file boundaries).
+      const raw = await redis.lrange<DecisionRecord>(KEYS.decisionLog, 0, -1);
+      if (raw && raw.length > 0) return raw;
+    } catch {
+      // fall through to local files
+    }
+  }
+  return readDecisionLogFromFiles(days);
 }
 
 // Most recent live price per symbol from the decision log's snapshots - fresher
@@ -136,7 +167,15 @@ export function computeEquityUsd(ledger: LedgerState, markPrices: Record<string,
 export type HistoricalDay = { date: string; rtoken_return: number; spread_pct: number };
 export type HistoricalScenarios = Record<string, { rtoken_symbol: string; history: HistoricalDay[] }>;
 
-export function readHistoricalScenarios(): HistoricalScenarios | null {
+export async function readHistoricalScenarios(): Promise<HistoricalScenarios | null> {
+  if (redis) {
+    try {
+      const value = await redis.get<HistoricalScenarios>(KEYS.historicalScenarios);
+      if (value) return value;
+    } catch {
+      // fall through to local file
+    }
+  }
   try {
     const raw = fs.readFileSync(HISTORICAL_SCENARIOS_PATH, "utf-8");
     return JSON.parse(raw) as HistoricalScenarios;

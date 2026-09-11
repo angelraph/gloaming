@@ -41,6 +41,7 @@ from data.fx import fx_risk_sentiment_return  # noqa: E402
 from data.rtoken_client import run_bgc  # noqa: E402
 from fairvalue.config import FAIRVALUE_WEIGHTS, RTOKEN_UNIVERSE  # noqa: E402
 
+import kv_sync  # noqa: E402
 import llm_client  # noqa: E402
 import paper_ledger  # noqa: E402
 from risk_controls import TradeDecision, evaluate_decision  # noqa: E402
@@ -320,6 +321,8 @@ def run_once(dry_run: bool = False, force: bool = False) -> list[dict]:
     with open(log_path, "a") as f:
         for record in records:
             f.write(json.dumps(record, default=str) + "\n")
+
+    kv_sync.push_decision_records(records)  # best-effort mirror for the deployed Desk; no-ops if unconfigured
 
     return records
 

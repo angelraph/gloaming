@@ -2,7 +2,7 @@ import { NextResponse } from "next/server";
 import { computeEquityUsd, latestSnapshotPrices, readDecisionLog, readLedger } from "@/lib/data";
 
 export async function GET() {
-  const ledger = readLedger();
+  const ledger = await readLedger();
   if (!ledger) {
     return NextResponse.json({
       configured: false,
@@ -10,7 +10,7 @@ export async function GET() {
     });
   }
 
-  const records = readDecisionLog(3);
+  const records = await readDecisionLog(3);
   const markPrices = latestSnapshotPrices(records);
   const equityUsd = computeEquityUsd(ledger, markPrices);
 

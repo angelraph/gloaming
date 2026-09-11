@@ -28,8 +28,8 @@ export async function POST(request: Request) {
     return NextResponse.json({ error: "message is required" }, { status: 400 });
   }
 
-  const ledger = readLedger();
-  const records = readDecisionLog(3);
+  const ledger = await readLedger();
+  const records = await readDecisionLog(3);
   const markPrices = latestSnapshotPrices(records);
   const equityUsd = ledger ? computeEquityUsd(ledger, markPrices) : null;
 

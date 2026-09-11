@@ -21,6 +21,7 @@ import pandas as pd
 
 if __name__ == "__main__" and __package__ is None:
     sys.path.insert(0, str(Path(__file__).resolve().parents[1]))
+sys.path.insert(0, str(Path(__file__).resolve().parents[2] / "gloaming_agent"))  # for kv_sync
 
 from backtest.engine import run_backtest, run_portfolio_backtest, split_in_out_sample
 from data.crypto_beta import get_crypto_beta_history
@@ -29,6 +30,8 @@ from data.fx import get_fx_returns_daily
 from data.rtoken_client import get_candles_history
 from fairvalue.config import RTOKEN_UNIVERSE
 from fairvalue.model import blended_fair_value_return, calibrate_weights, fair_value_price_path
+
+import kv_sync  # noqa: E402 - best-effort sync of the Alpha Factory export to Redis
 
 RESULTS_DIR = Path(__file__).resolve().parents[2] / "alpha_factory" / "results"
 OUT_OF_SAMPLE_DAYS = 30
@@ -182,6 +185,7 @@ def export_historical_scenarios(per_symbol: dict[str, dict]) -> None:
         }
     with open(RESULTS_DIR / "historical_scenarios.json", "w") as f:
         json.dump(scenarios, f, indent=2)
+    kv_sync.push_historical_scenarios(scenarios)  # best-effort mirror for the deployed Desk; no-ops if unconfigured
 
 
 if __name__ == "__main__":

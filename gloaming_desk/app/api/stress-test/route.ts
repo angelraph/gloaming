@@ -28,8 +28,8 @@ type Scenario = {
 };
 
 export async function GET() {
-  const ledger = readLedger();
-  const scenarios = readHistoricalScenarios();
+  const ledger = await readLedger();
+  const scenarios = await readHistoricalScenarios();
 
   if (!ledger) {
     return NextResponse.json({ available: false, message: "No paper ledger yet - the Agent hasn't run a cycle." });
@@ -41,7 +41,7 @@ export async function GET() {
     });
   }
 
-  const records = readDecisionLog(3);
+  const records = await readDecisionLog(3);
   const markPrices = latestSnapshotPrices(records);
   const currentEquity = computeEquityUsd(ledger, markPrices);
 
