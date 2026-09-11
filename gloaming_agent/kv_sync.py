@@ -18,6 +18,7 @@ from __future__ import annotations
 
 import json
 import os
+import sys
 from pathlib import Path
 
 import requests
@@ -38,7 +39,15 @@ def is_configured() -> bool:
 
 def _command(*args) -> dict | None:
     """Runs one Upstash REST command. Returns None (never raises) on any
-    failure - network issues here must never break the Agent's trading loop."""
+    failure - network issues here must never break the Agent's trading loop.
+
+    Confirmed live Sept 11: a silent failure here (the original version of this
+    function had no logging at all) let a real push failure go completely
+    unnoticed - the local file and the "Saved" print both looked fine, so
+    nothing suggested the Redis write hadn't actually happened. "Never raise"
+    and "never log" are not the same requirement; this prints to stderr on
+    failure so a broken sync is visible in the Agent's own console/scheduler
+    output without ever interrupting the trading loop itself."""
     if not is_configured():
         return None
     url = os.environ["KV_REST_API_URL"]
@@ -49,7 +58,8 @@ def _command(*args) -> dict | None:
         )
         resp.raise_for_status()
         return resp.json()
-    except Exception:  # noqa: BLE001 - deliberately broad: this is a best-effort mirror
+    except Exception as e:  # noqa: BLE001 - deliberately broad: this is a best-effort mirror
+        print(f"kv_sync: command {list(args)[:2]}... failed: {e}", file=sys.stderr)
         return None
 
 
