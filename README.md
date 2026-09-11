@@ -2,62 +2,96 @@
 
 **Gloaming trades the hours the market can't.**
 
+Built for Bitget's AI & Crypto Hackathon, Genesis Season 2 (submission deadline
+Sept 21, 2026) - submitting to the **Agentic Trading** and **AI Trading Desk**
+tracks.
+
 Bitget rTokens (tokenized US stocks) trade 24/7, but the real NYSE/Nasdaq they're
-pegged to closes every night and all weekend. In that gap - 16:00–09:30 ET on
+pegged to closes every night and all weekend. In that gap - 16:00-09:30 ET on
 weekdays, and all weekend/holiday hours, "gloaming": the dim in-between light after
 sunset before full dark - there is no direct arbitrage pressure holding the on-chain
-rToken price to the real share price. Gloaming is one shared "overnight fair-value"
-engine, surfaced as two coordinated products, built for Bitget's AI & Crypto
-Hackathon - Genesis Season 2 (submission deadline Sept 21, 2026).
+rToken price to the real share price. Gloaming estimates a synthetic fair value from
+proxies that stay live overnight (an index-futures proxy, crypto beta, FX risk
+sentiment), and trades and reports on the resulting spread. See
+[docs/architecture.md](docs/architecture.md) for the full system, and
+[docs/event_decision_execution_flow.md](docs/event_decision_execution_flow.md) for
+exactly how one decision moves from a live market snapshot to a filled paper trade.
 
 ## Modules
 
-- **`gloaming_agent/`** - autonomous LLM agent (Qwen3.8-max) that runs *only* while
-  NYSE is closed: estimates a synthetic fair value per rToken from proxies that stay
-  live overnight (index-futures proxy, crypto beta, FX), trades the spread expecting
-  convergence at the next open, watches for weekend macro shocks, and is gated by
-  hard non-LLM risk controls. Runs in Bitget `--paper-trading` mode.
-  → submits to the **Agentic Trading** track.
-- **`gloaming_desk/`** - natural-language research dashboard over the same data: an
-  overnight event timeline, fair-value-vs-actual charts, plain-English narration, and
-  a decision-stress-test replay tool. Never auto-executes - human makes the call.
-  → submits to the **AI Trading Desk** track.
-- **`engine/`** - the shared Python core (data ingestion, fair-value model, backtest,
-  FastAPI) both modules are built on.
-- **`alpha_factory/`** - optional stretch: reuses the engine's backtest core as
-  supplementary quant validation embedded in the other two write-ups (not a formal
-  3rd submission - see [docs/architecture.md](docs/architecture.md)).
-
-## Status
-
-Day 1 of an ~11-day build (Sept 10 → Sept 21, 2026). See the full build plan at
-`C:\Users\Admin\.claude\plans\read-carefully-and-make-twinkling-marshmallow.md`.
+- **[`gloaming_agent/`](gloaming_agent)** - autonomous agent that runs *only* while
+  NYSE is closed. Qwen3.8-max is the primary decision-maker over a live snapshot per
+  symbol (a deterministic fixed-threshold rule is the disclosed fallback when Qwen
+  isn't configured or a call fails), every decision is gated by a separate non-LLM
+  risk layer, and approved fills post to a self-maintained virtual ledger marked to
+  real live rToken prices. Runs unattended every 15 minutes via a scheduled task.
+  -> submits to **Agentic Trading**.
+- **[`gloaming_desk/`](gloaming_desk)** - a Next.js research dashboard over the same
+  real data: an overnight decision timeline, a fair-value-vs-actual spread chart, a
+  decision-stress-test that replays real historical overnight moves against the
+  current book, and a chat panel that answers questions grounded only in that real
+  data. Never auto-executes - the human stays in control.
+  -> submits to **AI Trading Desk**.
+- **[`engine/`](engine)** - the shared Python core: market-data loaders, the
+  fair-value model, and the backtest used both to calibrate that model and to
+  produce Alpha Factory's supplementary validation report.
+- **[`alpha_factory/`](alpha_factory)** - supplementary quantitative validation
+  (Sharpe/Sortino/max-drawdown over real ~90-day history), embedded as evidence in
+  the other two submissions rather than a formal third entry.
 
 ## Setup
 
 ```bash
-# 1. Bitget Agent Hub (SDK, CLI, MCP, research skills)
-npx @bitget-ai/bitget-agent-installer upgrade-all --target all
+# 1. Bitget Agent Hub (SDK, CLI, MCP, research skills) - the official installer has
+#    a Windows bug (spawn npm ENOENT), so install the packages directly instead:
+npm install --save-dev @bitget-ai/bitget-agent-sdk @bitget-ai/bitget-agent-cli \
+  @bitget-ai/bitget-agent-mcp @bitget-ai/bitget-agent-skill @bitget-ai/bitget-signal
 
 # 2. Python engine
 cd engine && python -m venv .venv && .venv/Scripts/activate && pip install -r requirements.txt
 
 # 3. Desk frontend
 cd gloaming_desk && npm install
+```
 
-# 4. Run the Agent unattended (Windows Task Scheduler, every 15 min, 24/7 -
-#    agent_loop.py itself checks NYSE hours and no-ops when the market is open)
+Copy `.env.example` to `.env` and fill in your own credentials - **never commit
+`.env`**. Needs a Bitget **Demo Trading** API key (not a live-account key - see
+[docs/architecture.md](docs/architecture.md)'s "Execution model" section for why)
+and a Qwen API key.
+
+Run the Agent unattended (Windows Task Scheduler, every 15 minutes, 24/7 -
+`agent_loop.py` itself checks NYSE hours and no-ops while the market is open):
+
+```powershell
 powershell -File scripts/setup_scheduled_task.ps1
 ```
 
-The Agent's schedule survives sleep (configured to wake the machine) but **not a
-shutdown** - this machine needs to stay powered on for the paper-trading log to
-stay continuous. See the script's header comment for details.
+This survives sleep (configured to wake the machine) but **not a shutdown** - the
+machine needs to stay powered on for the paper-trading log to stay continuous.
 
-Copy `.env.example` to `.env` and fill in credentials - **never commit `.env`**.
+Run the Desk locally:
+
+```bash
+cd gloaming_desk && npm run dev
+```
 
 ## Safety
 
-Every execution path runs with `--paper-trading` (and `--read-only` where
-applicable) hardcoded. The Bitget Agentic Account used has withdrawals disabled.
-No real funds are ever at risk. See [docs/risk_controls.md](docs/risk_controls.md).
+Every rToken fill goes through a self-maintained paper ledger, not a live or demo
+exchange order - see [docs/architecture.md](docs/architecture.md)'s "Execution
+model" section. `execution.py` (the Bitget CLI wrapper used for account reads)
+hardcodes `--paper-trading` on every write path regardless of config, and the
+Bitget account used has withdrawals disabled at the account level. No real funds
+are ever at risk. Full control inventory in
+[docs/risk_controls.md](docs/risk_controls.md).
+
+## Tests
+
+```bash
+cd engine && .venv/Scripts/activate && cd .. && python -m pytest tests/
+cd gloaming_desk && npm run build && npm run lint
+```
+
+## License
+
+MIT - see [LICENSE](LICENSE).
