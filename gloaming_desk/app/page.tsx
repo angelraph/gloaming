@@ -6,6 +6,7 @@ import FairValueChart from "@/components/FairValueChart";
 import OvernightTimeline from "@/components/OvernightTimeline";
 import ChatPanel from "@/components/ChatPanel";
 import DecisionStressTest from "@/components/DecisionStressTest";
+import StatusPill from "@/components/StatusPill";
 
 type Portfolio = {
   configured: boolean;
@@ -43,6 +44,7 @@ export default function Home() {
   const [portfolio, setPortfolio] = useState<Portfolio | null>(null);
   const [timeline, setTimeline] = useState<TimelineResponse | null>(null);
   const [loading, setLoading] = useState(true);
+  const [lastUpdated, setLastUpdated] = useState<Date | null>(null);
 
   useEffect(() => {
     async function load() {
@@ -53,6 +55,7 @@ export default function Home() {
       setPortfolio(p);
       setTimeline(t);
       setLoading(false);
+      setLastUpdated(new Date());
     }
     load();
     const interval = setInterval(load, 30_000); // real data refreshes as the Agent trades
@@ -61,12 +64,22 @@ export default function Home() {
 
   return (
     <main className="mx-auto flex min-h-screen max-w-6xl flex-col gap-8 p-6 sm:p-10">
-      <header>
-        <h1 className="text-2xl font-semibold">Gloaming Desk</h1>
-        <p className="mt-1 text-sm text-neutral-400">
-          Overnight research desk for Bitget rTokens, while the real NYSE/Nasdaq is
-          closed. Read-only - this page never places a trade.
-        </p>
+      <header className="flex flex-wrap items-start justify-between gap-3">
+        <div>
+          <h1 className="text-2xl font-semibold">Gloaming Desk</h1>
+          <p className="mt-1 text-sm text-neutral-400">
+            Overnight research desk for Bitget rTokens, while the real NYSE/Nasdaq is
+            closed. Read-only - this page never places a trade.
+          </p>
+        </div>
+        <div className="flex flex-col items-end gap-1.5">
+          <StatusPill />
+          {lastUpdated && (
+            <span className="text-xs text-neutral-600">
+              Updated {lastUpdated.toLocaleTimeString()}
+            </span>
+          )}
+        </div>
       </header>
 
       {loading ? (
