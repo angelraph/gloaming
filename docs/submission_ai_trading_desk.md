@@ -5,9 +5,16 @@ Copy each section into the corresponding field on the submission form
 
 ## Track + Sub-theme
 
-**AI Trading Desk** - Personalized Research Workbench (closest named
-sub-theme; the Desk is a purpose-built overnight-gap workbench for rToken
-holders, not a generic multi-asset research tool).
+**AI Trading Desk** - **Decision Stress Testing** (its own description is
+"historical scenario retrieval" - an exact match to the Desk's stress-test
+panel, which replays real historical overnight moves, retrieved from the same
+~90-day price history the backtest uses, against the current live book).
+
+This is a stronger categorical fit than the "Personalized Research Workbench"
+framing an earlier draft of this doc used - that undersold the one feature
+that maps onto a named sub-theme almost by name. The chat/narrative and
+overnight-timeline features still support the submission narrative even
+though they don't drive the sub-theme choice.
 
 ## Project description
 

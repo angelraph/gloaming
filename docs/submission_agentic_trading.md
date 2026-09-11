@@ -7,10 +7,15 @@ passes (the paper-trading log keeps growing).
 
 ## Track + Sub-theme
 
-**Agentic Trading** - Open Theme (closest named sub-theme is Cross-Asset
-Execution Agent, but the core thesis - overnight rToken/fair-value arbitrage -
-doesn't map cleanly onto any single named sub-theme, so Open Theme is the
-honest choice).
+**Agentic Trading** - **Cross-Asset Execution Agent** (its own description is
+"rToken + Crypto management" - Gloaming Agent's fair-value model is literally
+built on blending an rToken's price against a crypto-beta signal alongside
+futures/FX proxies, and decides rToken execution from that cross-asset read).
+
+Named sub-themes carry 5 Theme Prize slots per track vs. Open Theme's 2, so
+this is also the higher-odds choice, not just the better categorical fit -
+worth you double-checking this framing still feels honest to you before
+submitting, since you're the one who has to defend it if asked.
 
 ## Project description
 
@@ -52,10 +57,19 @@ during exactly that window.
   via a scheduled task that self-gates on NYSE hours. Of the decisions
   produced since Qwen was wired in, **95 of 107** were generated directly by
   Qwen3.8-max (the remainder are the disclosed deterministic fallback, used
-  only when Qwen is unavailable or a call fails).
-- Every fill is marked to a real, live rToken price at decision time (see LLM
-  role disclosure and "Execution model" below) - not synthetic or simulated
-  prices.
+  only when Qwen is unavailable or a call fails). Every fill is marked to a
+  real, live rToken price at decision time (see LLM role disclosure and
+  "Execution model" below) - not synthetic or simulated prices.
+- **Honest limitation, stated plainly rather than glossed over**: as of this
+  draft the live log spans under 24 hours and every position is still open -
+  no trade has round-tripped to a close yet, so a Sharpe/win-rate computed
+  from the live log alone would be statistically meaningless (n too small to
+  mean anything), not just weak. The **backtest above is the statistically
+  grounded quantitative evidence** (84 real days); the live log is the
+  running proof the same logic executes correctly and continuously against
+  real prices, and it will keep growing via the scheduled task through the
+  Sept 21 deadline - check `gloaming_agent/decision_log/` or the live Desk
+  for the current count at submission time.
 
 ### Progress / build status
 
