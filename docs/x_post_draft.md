@@ -8,53 +8,56 @@ Telegram (https://t.me/+o1tYqQ_lXxllYjgy) or the activity hub closer to
 submission for the actual link to retweet; I can't fill that in for you since
 it doesn't exist publicly yet.
 
-## Main post (278 characters, verified with an actual character count - my
-first draft came in at 308 and would not have fit, fixed before writing this
-down)
+## The post (one single post, hook + what it does + proof + tags, all in one)
+
+Character count verified with a script rather than eyeballed. X counts any
+link as a fixed 23 characters no matter how long the real URL is (its t.co
+link-wrapping rule), so the real character budget here is 258 out of 280,
+22 to spare:
 
 ```
 Tokenized US stocks trade 24/7. The real market doesn't.
 
-Gloaming trades that gap: an agent that estimates fair value overnight from live futures/crypto/FX signals, reasoning with Qwen3.8-max, under hard risk controls.
+Gloaming prices rTokens overnight from live futures, crypto and FX signals with Qwen3.8-max, under hard risk controls, then trades that gap.
 
-Real dashboard, real trades.
+Live: https://gloamingdesk.vercel.app
 
 #BitgetHackathon @Bitget_AI
 ```
 
-At 278/280 there's no room left in the main post for the live link - put it in
-the reply below, or trim a clause here yourself if you'd rather have the link
-up front.
+This replaces the old two-post version (a text-only post plus a separate
+reply carrying the link). One post now carries everything: the hook, what
+Gloaming actually does, the tech (Qwen3.8-max, real risk controls), a live
+link a reader can click immediately, and the required hashtag/tag. Nobody
+has to open a reply to find the proof it's real.
 
-## Suggested reply/thread (optional, for more depth)
+## Optional follow-up reply (only if you want a second post with more depth)
 
 ```
-Every rToken keeps trading nights and weekends, but nothing forces its price
-back to fair value while NYSE is closed - that's the gap Gloaming trades.
+Qwen3.8-max is the real decision-maker here, not a chatbot bolted on after
+the fact - 95 of the last 107 logged decisions came directly from it, each
+with its own written reasoning you can read in the live timeline.
 
-Live dashboard (real data, not a mockup): https://gloamingdesk.vercel.app
 Code: https://github.com/angelraph/gloaming
 ```
 
-```
-Qwen3.8-max is the real decision-maker, not a chatbot bolted on after the
-fact - 95 of the last 107 logged decisions came directly from it, each with
-its own written reasoning you can read in the live timeline.
-```
-
-## What to attach
+## What to attach to the main post
 
 A short screen recording or GIF of the live dashboard (the fair-value chart,
 the overnight timeline with real Qwen rationale text, and the chat panel
 answering a real question) does the most work here - it's the "interactive"
 element and the clearest way to show this is a real, working product rather
 than a screenshot of a mockup. A 15-30 second clip scrolling through
-https://gloamingdesk.vercel.app covers it.
+https://gloamingdesk.vercel.app covers it. Attach it directly to the post
+above; you do not need to wait for it to exist before posting the text if
+you'd rather post now and come back to attach the clip later.
 
 ## Before you post
 
-1. Find and retweet the actual official Bitget hackathon post (link still
-   TBD in the handbook - check Telegram/activity hub)
-2. Attach the demo clip
-3. Post this as your own genuine introduction, not just a retweet with no
-   text - the handbook explicitly flags bare retweets as invalid
+1. Post the text above as your own genuine introduction, not just a retweet
+   with no text - the handbook explicitly flags bare retweets as invalid
+2. Attach the demo clip (or post now, edit/attach later)
+3. Separately, find and retweet the actual official Bitget hackathon post
+   (link still TBD in the handbook - check Telegram/activity hub). This is
+   a second, separate action from step 1, not something the text post above
+   replaces.
