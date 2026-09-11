@@ -44,7 +44,15 @@ cd engine && python -m venv .venv && .venv/Scripts/activate && pip install -r re
 
 # 3. Desk frontend
 cd gloaming_desk && npm install
+
+# 4. Run the Agent unattended (Windows Task Scheduler, every 15 min, 24/7 -
+#    agent_loop.py itself checks NYSE hours and no-ops when the market is open)
+powershell -File scripts/setup_scheduled_task.ps1
 ```
+
+The Agent's schedule survives sleep (configured to wake the machine) but **not a
+shutdown** — this machine needs to stay powered on for the paper-trading log to
+stay continuous. See the script's header comment for details.
 
 Copy `.env.example` to `.env` and fill in credentials — **never commit `.env`**.
 

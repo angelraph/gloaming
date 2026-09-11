@@ -145,9 +145,16 @@ def decide(snapshot: dict) -> TradeDecision | None:
     )
 
 
-def run_once(dry_run: bool = False) -> list[dict]:
+def run_once(dry_run: bool = False, force: bool = False) -> list[dict]:
     """One full pass over the universe: snapshot -> decide -> risk-gate -> execute
     (or skip) -> log. Returns the list of log records written this cycle.
+
+    Enforces is_nyse_closed() itself (not just as an informational check in the
+    smoke-test print) — this is the actual safety guarantee behind "runs only
+    off-hours," not merely documentation. If the market is open, logs one record
+    and returns immediately without touching any data source. `force=True` bypasses
+    this for manual debugging only (e.g. inspecting the pipeline mid-day) — never
+    pass it from the scheduled entry point (see scheduled_run() below).
 
     Two passes over RTOKEN_UNIVERSE: the first builds every symbol's live snapshot
     (needed regardless of whether a signal fires, both for the decision and to
@@ -158,6 +165,17 @@ def run_once(dry_run: bool = False) -> list[dict]:
     the same cycle — a disclosed simplification, not a bug (see docs/risk_controls.md)."""
     DECISION_LOG_DIR.mkdir(parents=True, exist_ok=True)
     log_path = DECISION_LOG_DIR / f"{datetime.now(timezone.utc):%Y-%m-%d}.jsonl"
+
+    if not force and not is_nyse_closed():
+        record = {
+            "timestamp": datetime.now(timezone.utc).isoformat(),
+            "underlying": None,
+            "decision": None,
+            "execution": "SKIPPED: NYSE is open — Agent only trades off-hours",
+        }
+        with open(log_path, "a") as f:
+            f.write(json.dumps(record) + "\n")
+        return [record]
 
     # Fetch the shared, symbol-independent proxies exactly once per cycle.
     crypto_pcnt = crypto_beta_return(get_crypto_ticks())
@@ -228,21 +246,49 @@ def run_once(dry_run: bool = False) -> list[dict]:
     return records
 
 
+SCHEDULER_LOG_PATH = Path(__file__).resolve().parent / "scheduler.log"
+
+
+def scheduled_run() -> None:
+    """The actual entry point Windows Task Scheduler invokes on a recurring
+    interval (see scripts/setup_scheduled_task.ps1). Deliberately does NOT pass
+    force=True — every invocation re-checks is_nyse_closed() itself and silently
+    no-ops the ~26/168 hours a week the market is open, which is exactly the
+    intended behavior for a timer that fires every 15 minutes around the clock.
+    Appends one line to scheduler.log per invocation for operational visibility
+    (distinct from decision_log/, which is the structured per-decision record)."""
+    records = run_once(dry_run=False, force=False)
+    n_decisions = sum(1 for r in records if r.get("decision"))
+    n_fills = sum(1 for r in records if isinstance(r.get("execution"), dict) and "qty" in r["execution"])
+    skipped_market_open = len(records) == 1 and records[0].get("underlying") is None
+    summary = (
+        "market open, skipped" if skipped_market_open
+        else f"{len(records)} symbols checked, {n_decisions} signals, {n_fills} fills"
+    )
+    with open(SCHEDULER_LOG_PATH, "a") as f:
+        f.write(f"{datetime.now(timezone.utc).isoformat()} — {summary}\n")
+
+
 if __name__ == "__main__":
     if "--smoke-test" in sys.argv:
         print(f"is_nyse_closed() right now: {is_nyse_closed()}")
-        print("Running one cycle (dry_run=True — no orders will be placed)...")
-        records = run_once(dry_run=True)
+        print("Running one cycle (dry_run=True, force=True — no orders will be "
+              "placed, and this runs regardless of market hours for demo purposes)...")
+        records = run_once(dry_run=True, force=True)
         for r in records:
             u = r["underlying"]
             if r.get("error"):
                 print(f"  {u}: ERROR — {r['error']}")
             elif r["decision"] is None:
-                spread = r["snapshot"]["spread"]
-                print(f"  {u}: no signal (spread {spread:.2%} within threshold)")
+                spread = r.get("snapshot", {}).get("spread")
+                print(f"  {u}: no signal" + (f" (spread {spread:.2%})" if spread is not None else ""))
             else:
                 print(f"  {u}: {r['decision']['side']} ${r['decision']['notional_usd']:.0f} "
                       f"— {r['execution']}")
         print(f"\nLogged to {DECISION_LOG_DIR}")
+    elif "--run" in sys.argv:
+        # The scheduled-task entry point — quiet on purpose (no stdout expected
+        # under Task Scheduler), all output goes to scheduler.log.
+        scheduled_run()
     else:
-        print("Usage: python agent_loop.py --smoke-test")
+        print("Usage: python agent_loop.py --smoke-test | --run")
