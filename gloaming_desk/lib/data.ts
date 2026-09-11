@@ -11,6 +11,9 @@ import path from "path";
 const REPO_ROOT = path.resolve(process.cwd(), "..");
 const DECISION_LOG_DIR = path.join(REPO_ROOT, "gloaming_agent", "decision_log");
 const LEDGER_PATH = path.join(REPO_ROOT, "gloaming_agent", "paper_ledger.json");
+const HISTORICAL_SCENARIOS_PATH = path.join(
+  REPO_ROOT, "alpha_factory", "results", "historical_scenarios.json"
+);
 
 export type DecisionRecord = {
   timestamp: string;
@@ -124,4 +127,47 @@ export function computeEquityUsd(ledger: LedgerState, markPrices: Record<string,
     if (price !== undefined) positionsValue += qty * price;
   }
   return ledger.cash_usd + positionsValue;
+}
+
+// Real per-day (return, spread) history per underlying, exported by
+// engine/backtest/run_backtest.py from the SAME ~90-day live rToken history the
+// Alpha Factory backtest uses - not invented or synthetic scenarios. Regenerate
+// with `python -m backtest.run_backtest` from engine/.
+export type HistoricalDay = { date: string; rtoken_return: number; spread_pct: number };
+export type HistoricalScenarios = Record<string, { rtoken_symbol: string; history: HistoricalDay[] }>;
+
+export function readHistoricalScenarios(): HistoricalScenarios | null {
+  try {
+    const raw = fs.readFileSync(HISTORICAL_SCENARIOS_PATH, "utf-8");
+    return JSON.parse(raw) as HistoricalScenarios;
+  } catch {
+    return null; // hasn't been generated yet - not an error state, just not run
+  }
+}
+
+// The single historical date with the worst AVERAGE return across the whole
+// universe - found from the data itself, not hardcoded, so it stays correct as
+// the backtest is regenerated with fresh history. This is a genuine correlated
+// overnight event (several symbols independently show it as their own worst day),
+// not a cherry-picked one-symbol move.
+export function findMarketWideWorstDate(scenarios: HistoricalScenarios): string | null {
+  const returnsByDate = new Map<string, number[]>();
+  for (const { history } of Object.values(scenarios)) {
+    for (const day of history) {
+      const arr = returnsByDate.get(day.date) ?? [];
+      arr.push(day.rtoken_return);
+      returnsByDate.set(day.date, arr);
+    }
+  }
+  let worstDate: string | null = null;
+  let worstAvg = Infinity;
+  for (const [date, returns] of returnsByDate) {
+    if (returns.length < 2) continue; // need at least 2 symbols for "market-wide"
+    const avg = returns.reduce((a, b) => a + b, 0) / returns.length;
+    if (avg < worstAvg) {
+      worstAvg = avg;
+      worstDate = date;
+    }
+  }
+  return worstDate;
 }

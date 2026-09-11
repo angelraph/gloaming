@@ -5,6 +5,7 @@ import StatTile from "@/components/StatTile";
 import FairValueChart from "@/components/FairValueChart";
 import OvernightTimeline from "@/components/OvernightTimeline";
 import ChatPanel from "@/components/ChatPanel";
+import DecisionStressTest from "@/components/DecisionStressTest";
 
 type Portfolio = {
   configured: boolean;
@@ -109,6 +110,13 @@ export default function Home() {
           </div>
         </section>
       </div>
+
+      <section>
+        <h2 className="mb-3 text-sm font-medium text-neutral-300">Decision stress test</h2>
+        <div className="rounded-lg border border-neutral-800 bg-neutral-900/30 p-4">
+          <DecisionStressTest />
+        </div>
+      </section>
     </main>
   );
 }

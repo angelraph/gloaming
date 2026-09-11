@@ -148,12 +148,40 @@ def main() -> None:
     with open(RESULTS_DIR / "backtest_summary.json", "w") as f:
         json.dump(summary, f, indent=2, default=float)
     portfolio["equity"].to_csv(RESULTS_DIR / "portfolio_equity.csv")
+    export_historical_scenarios(per_symbol)
 
     print("\n=== Portfolio report (equal-weight, full window) ===")
     for k, v in portfolio["report"].items():
         print(f"  {k}: {v}")
     print(f"\nSaved: {RESULTS_DIR / 'backtest_summary.json'}")
     print(f"Saved: {RESULTS_DIR / 'portfolio_equity.csv'}")
+    print(f"Saved: {RESULTS_DIR / 'historical_scenarios.json'}")
+
+
+def export_historical_scenarios(per_symbol: dict[str, dict]) -> None:
+    """Real per-day (return, spread) history per symbol, for the Gloaming Desk's
+    Decision Stress Test feature - it replays an actual historical overnight move
+    against the CURRENT paper portfolio rather than a synthetic/invented shock.
+    Reuses full_result['data'] (rtoken_return, spread_pct), already computed by
+    run_backtest() above - no separate data pull needed."""
+    scenarios: dict[str, list[dict]] = {}
+    for underlying, result in per_symbol.items():
+        df = result["_full_result"]["data"]
+        rows = []
+        for date, row in df.iterrows():
+            if pd.isna(row.get("rtoken_return")) or pd.isna(row.get("spread_pct")):
+                continue
+            rows.append({
+                "date": date.strftime("%Y-%m-%d"),
+                "rtoken_return": float(row["rtoken_return"]),
+                "spread_pct": float(row["spread_pct"]),
+            })
+        scenarios[underlying] = {
+            "rtoken_symbol": RTOKEN_UNIVERSE[underlying]["rtoken_symbol"],
+            "history": rows,
+        }
+    with open(RESULTS_DIR / "historical_scenarios.json", "w") as f:
+        json.dump(scenarios, f, indent=2)
 
 
 if __name__ == "__main__":
