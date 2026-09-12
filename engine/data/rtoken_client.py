@@ -11,11 +11,13 @@ per the build plan's stated approach (call the CLI via subprocess from Python).
 from __future__ import annotations
 
 import json
+import platform
 import subprocess
 from dataclasses import dataclass
 from pathlib import Path
 
 REPO_ROOT = Path(__file__).resolve().parents[2]  # .../gloaming
+_IS_WINDOWS = platform.system() == "Windows"
 
 
 class BgcError(RuntimeError):
@@ -32,7 +34,13 @@ def run_bgc(args: list[str]) -> dict:
         cwd=str(REPO_ROOT),
         capture_output=True,
         text=True,
-        shell=True,  # Windows: npx resolves via npx.cmd, needs a shell
+        # Windows: npx resolves via npx.cmd, which needs a shell to run directly.
+        # POSIX (Linux/macOS, e.g. the GitHub Actions runner): shell=True with a
+        # list of args is a documented footgun - only args[0] becomes the shell's
+        # command and everything else becomes an argument to the shell itself, not
+        # to npx, silently breaking every call. shell=False is correct there and
+        # npx is resolved from PATH normally, same as any other subprocess call.
+        shell=_IS_WINDOWS,
         timeout=30,
     )
     if proc.returncode != 0:

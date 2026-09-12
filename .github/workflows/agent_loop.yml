@@ -1,0 +1,77 @@
+name: Gloaming Agent loop
+
+# Runs the same "python agent_loop.py --run" cycle that used to run only on a
+# local laptop via Windows Task Scheduler. Moved here Sept 12 after confirming
+# live that the laptop's Modern Standby power state was stalling runs for
+# hours whenever the lid closed, correlating exactly with every gap found in
+# the decision log. GitHub Actions runs on GitHub's own servers, independent
+# of any local machine being on, closed, asleep, or off - this is the actual
+# fix for continuous, unattended operation, not a laptop setting.
+#
+# The Agent's own is_nyse_closed() check still gates every cycle (see
+# gloaming_agent/agent_loop.py) - this workflow simply fires every 15 minutes
+# around the clock and the Agent itself decides whether to act.
+
+on:
+  schedule:
+    - cron: "*/15 * * * *"
+  workflow_dispatch: {}
+
+permissions:
+  contents: write
+
+concurrency:
+  group: gloaming-agent-loop
+  cancel-in-progress: false
+
+jobs:
+  run-agent-cycle:
+    runs-on: ubuntu-latest
+    timeout-minutes: 10
+    steps:
+      - name: Check out repo
+        uses: actions/checkout@v4
+        with:
+          fetch-depth: 1
+
+      - name: Set up Python
+        uses: actions/setup-python@v5
+        with:
+          python-version: "3.13"
+
+      - name: Set up Node
+        uses: actions/setup-node@v4
+        with:
+          node-version: "24"
+
+      - name: Install Python dependencies
+        run: pip install -r engine/requirements.txt
+
+      - name: Install Node dependencies (bgc CLI)
+        run: npm ci
+
+      - name: Run one Agent cycle
+        env:
+          BITGET_API_KEY: ${{ secrets.BITGET_API_KEY }}
+          BITGET_SECRET_KEY: ${{ secrets.BITGET_SECRET_KEY }}
+          BITGET_PASSPHRASE: ${{ secrets.BITGET_PASSPHRASE }}
+          QWEN_API_KEY: ${{ secrets.QWEN_API_KEY }}
+          KV_REST_API_URL: ${{ secrets.KV_REST_API_URL }}
+          KV_REST_API_TOKEN: ${{ secrets.KV_REST_API_TOKEN }}
+        run: python gloaming_agent/agent_loop.py --run
+
+      - name: Commit updated ledger and decision log
+        run: |
+          git config user.name "gloaming-agent[bot]"
+          git config user.email "actions@users.noreply.github.com"
+          git add gloaming_agent/paper_ledger.json gloaming_agent/decision_log/*.jsonl
+          if git diff --staged --quiet; then
+            echo "No ledger/log changes this cycle (market open, or no fills) - nothing to commit."
+            exit 0
+          fi
+          git commit -m "Agent cycle: $(date -u +%Y-%m-%dT%H:%M:%SZ)"
+          # A manual push to master while this cycle was running would make a plain
+          # push fail (non-fast-forward). Rebase onto the latest master first so a
+          # code change landing in between never blocks the ledger/log from saving.
+          git pull --rebase origin master
+          git push

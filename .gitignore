@@ -8,8 +8,6 @@ node_modules/
 engine/db/*.db
 engine/data/cache/*
 !engine/data/cache/.gitkeep
-gloaming_agent/decision_log/*.jsonl
-gloaming_agent/paper_ledger.json
 gloaming_agent/scheduler.log
 *.log
 engine/data/cache/rtoken_universe.json
