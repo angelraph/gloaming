@@ -240,9 +240,24 @@ def run_once(dry_run: bool = False, force: bool = False) -> list[dict]:
     applies decide() -> risk-gate -> execute using ONE portfolio_state snapshot
     computed after pass one. Risk caps this cycle are therefore evaluated against
     the book as it stood at the start of the cycle, not updated fill-by-fill within
-    the same cycle - a disclosed simplification, not a bug (see docs/risk_controls.md)."""
+    the same cycle - a disclosed simplification, not a bug (see docs/risk_controls.md).
+
+    Each record is written to the local log and pushed to Redis the moment it is
+    finalized, not batched until the whole cycle finishes. Confirmed live Sept 12:
+    this machine can stall for a long stretch mid-cycle (Windows power management
+    suspending the process, observed correlating with lid-close events in the
+    system power log), and the old batch-at-the-end write meant a cycle cut short
+    lost every record it had already computed, even ones from minutes earlier.
+    Writing incrementally bounds the loss to at most the one record in flight."""
     DECISION_LOG_DIR.mkdir(parents=True, exist_ok=True)
     log_path = DECISION_LOG_DIR / f"{datetime.now(timezone.utc):%Y-%m-%d}.jsonl"
+
+    def _emit(record: dict) -> None:
+        """Writes one record to disk and mirrors it to Redis immediately, so a
+        record is durable the moment it exists rather than at the end of the cycle."""
+        with open(log_path, "a") as f:
+            f.write(json.dumps(record, default=str) + "\n")
+        kv_sync.push_decision_records([record])  # best-effort; no-ops if unconfigured
 
     if not force and not is_nyse_closed():
         record = {
@@ -251,8 +266,7 @@ def run_once(dry_run: bool = False, force: bool = False) -> list[dict]:
             "decision": None,
             "execution": "SKIPPED: NYSE is open - Agent only trades off-hours",
         }
-        with open(log_path, "a") as f:
-            f.write(json.dumps(record) + "\n")
+        _emit(record)
         return [record]
 
     # Fetch the shared, symbol-independent proxies exactly once per cycle.
@@ -281,6 +295,7 @@ def run_once(dry_run: bool = False, force: bool = False) -> list[dict]:
         if underlying in snapshot_errors:
             record["error"] = snapshot_errors[underlying]
             records.append(record)
+            _emit(record)
             continue
 
         snapshot = snapshots[underlying]
@@ -291,6 +306,7 @@ def run_once(dry_run: bool = False, force: bool = False) -> list[dict]:
         if decision is None:
             record["decision"] = None
             records.append(record)
+            _emit(record)
             continue
         record["decision"] = asdict(decision)
 
@@ -300,11 +316,13 @@ def run_once(dry_run: bool = False, force: bool = False) -> list[dict]:
         if not risk_result.approved:
             record["execution"] = "SKIPPED: rejected by risk controls"
             records.append(record)
+            _emit(record)
             continue
 
         if dry_run:
             record["execution"] = "SKIPPED: dry_run=True"
             records.append(record)
+            _emit(record)
             continue
 
         try:
@@ -317,12 +335,7 @@ def run_once(dry_run: bool = False, force: bool = False) -> list[dict]:
             record["execution"] = f"FAILED: {e}"
 
         records.append(record)
-
-    with open(log_path, "a") as f:
-        for record in records:
-            f.write(json.dumps(record, default=str) + "\n")
-
-    kv_sync.push_decision_records(records)  # best-effort mirror for the deployed Desk; no-ops if unconfigured
+        _emit(record)
 
     return records
 
