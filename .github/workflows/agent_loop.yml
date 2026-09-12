@@ -11,10 +11,19 @@ name: Gloaming Agent loop
 # The Agent's own is_nyse_closed() check still gates every cycle (see
 # gloaming_agent/agent_loop.py) - this workflow simply fires every 15 minutes
 # around the clock and the Agent itself decides whether to act.
+#
+# Cron minutes are offset to :07/:22/:37/:52 rather than the exact quarter-hour
+# marks. Confirmed live Sept 12: a schedule of "*/15 * * * *" produced zero
+# triggered runs across three consecutive marks (over 45 minutes) after being
+# added - GitHub's own docs explain why: "the start of every hour" (and by
+# extension every exact quarter-hour) is a documented high-load point for
+# Actions' scheduler, and jobs scheduled exactly on it are the most likely to
+# be delayed or dropped. Offsetting a few minutes off the mark is GitHub's own
+# recommended workaround, not a guess.
 
 on:
   schedule:
-    - cron: "*/15 * * * *"
+    - cron: "7,22,37,52 * * * *"
   workflow_dispatch: {}
 
 permissions:
