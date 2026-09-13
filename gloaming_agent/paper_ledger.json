@@ -1,11 +1,11 @@
 {
-  "cash_usd": 159588.31702599995,
+  "cash_usd": 160171.96727499994,
   "positions": {
-    "RAAPLUSDT": -34.36339999999999,
+    "RAAPLUSDT": -34.95119999999999,
     "RGOOGLUSDT": -44.119499999999995,
     "RAMZNUSDT": -55.811000000000014,
-    "RMSFTUSDT": -18.7145,
-    "RSPYUSDT": -5.5223,
+    "RMSFTUSDT": -19.1093,
+    "RSPYUSDT": -5.776400000000001,
     "RQQQUSDT": -6.436,
     "RMETAUSDT": -1.8792,
     "RTSLAUSDT": -0.19940000000000002
@@ -1594,6 +1594,33 @@
       "price": 765.93,
       "notional_usd": 56.908599,
       "rationale": "[Qwen3.8-max] RSPYUSDT is up 0.04% while the blended overnight fair-value proxy is down 0.79%, leaving it about 0.83% rich; futures -0.83% and crypto beta -1.27% support a lower fair value, but the edge is modest so I use a small size."
+    },
+    {
+      "timestamp": "2026-09-13T23:15:57.796601+00:00",
+      "symbol": "RAAPLUSDT",
+      "side": "sell",
+      "qty": 0.5878,
+      "price": 330.96,
+      "notional_usd": 194.538288,
+      "rationale": "[Qwen3.8-max] RAAPLUSDT fell only -0.33% while the blended overnight fair-value proxy fell -1.53%, leaving the token 1.20% rich versus synthetic fair value. That is a modest but potentially mean-reverting overnight dislocation, so a small sell is reasonable while keeping a tight 2% stop against adverse re-rating."
+    },
+    {
+      "timestamp": "2026-09-13T23:19:17.166787+00:00",
+      "symbol": "RMSFTUSDT",
+      "side": "sell",
+      "qty": 0.3948,
+      "price": 492.73,
+      "notional_usd": 194.529804,
+      "rationale": "[Qwen3.8-max] RMSFTUSDT fell only -0.58% while the blended overnight fair-value proxy fell -1.53%, leaving the token about +0.95% rich versus synthetic fair value. With the futures proxy down -2.28%, the spread looks like lagging downside rather than strength, but the edge is modest after costs, so a small sell is preferred."
+    },
+    {
+      "timestamp": "2026-09-13T23:19:50.115262+00:00",
+      "symbol": "RSPYUSDT",
+      "side": "sell",
+      "qty": 0.2541,
+      "price": 765.77,
+      "notional_usd": 194.582157,
+      "rationale": "[Qwen3.8-max] RSPYUSDT is flat at +0.01% while the blended overnight fair-value proxy is -1.07%, leaving it about 1.08% rich versus the synthetic value. With futures -1.37% and crypto beta -1.31% pointing risk-off, a modest sell is warranted for convergence, but the edge is only moderate so sizing is conservative."
     }
   ],
   "equity_at_day_start_usd": 99404.50557099999,
