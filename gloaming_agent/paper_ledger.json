@@ -1,14 +1,14 @@
 {
-  "cash_usd": 159417.56954399997,
+  "cash_usd": 159588.31702599995,
   "positions": {
     "RAAPLUSDT": -34.36339999999999,
     "RGOOGLUSDT": -44.119499999999995,
     "RAMZNUSDT": -55.811000000000014,
-    "RMSFTUSDT": -18.599700000000002,
-    "RSPYUSDT": -5.448,
+    "RMSFTUSDT": -18.7145,
+    "RSPYUSDT": -5.5223,
     "RQQQUSDT": -6.436,
     "RMETAUSDT": -1.8792,
-    "RTSLAUSDT": -0.0437
+    "RTSLAUSDT": -0.19940000000000002
   },
   "fills": [
     {
@@ -1567,6 +1567,33 @@
       "price": 495.68,
       "notional_usd": 16.010464000000002,
       "rationale": "[Qwen3.8-max] RMSFTUSDT is +0.09% while the blended synthetic fair-value proxy is -1.03%, leaving the token about 1.13% rich versus the overnight signal. Negative futures (-1.18%) and crypto beta (-1.50%) support a short-term convergence sell, but the edge is moderate and possibly noise, so sizing is conservative."
+    },
+    {
+      "timestamp": "2026-09-13T10:03:21.029779+00:00",
+      "symbol": "RTSLAUSDT",
+      "side": "sell",
+      "qty": 0.1557,
+      "price": 365.67,
+      "notional_usd": 56.934819000000005,
+      "rationale": "[Qwen3.8-max] RTSLAUSDT is up 0.34% while the blended overnight fair-value proxy is down 0.97%, producing a 1.31% rich spread; with futures and crypto beta both negative (-1.18% and -1.27%), this looks like a modest overvaluation, but I size conservatively because the move could reflect unseen single-name news."
+    },
+    {
+      "timestamp": "2026-09-13T10:04:15.714780+00:00",
+      "symbol": "RMSFTUSDT",
+      "side": "sell",
+      "qty": 0.1148,
+      "price": 495.68,
+      "notional_usd": 56.904064,
+      "rationale": "[Qwen3.8-max] RMSFTUSDT is +0.09% while the blended overnight fair-value proxy is -0.97%, leaving a +1.06% rich spread; with futures and crypto beta both negative (-1.18%, -1.27%), the token appears overpriced relative to risk sentiment, but the edge is modest and possibly noise, so sizing is conservative."
+    },
+    {
+      "timestamp": "2026-09-13T10:05:02.689778+00:00",
+      "symbol": "RSPYUSDT",
+      "side": "sell",
+      "qty": 0.0743,
+      "price": 765.93,
+      "notional_usd": 56.908599,
+      "rationale": "[Qwen3.8-max] RSPYUSDT is up 0.04% while the blended overnight fair-value proxy is down 0.79%, leaving it about 0.83% rich; futures -0.83% and crypto beta -1.27% support a lower fair value, but the edge is modest so I use a small size."
     }
   ],
   "equity_at_day_start_usd": 99404.50557099999,
