@@ -43,6 +43,22 @@ jobs:
         with:
           fetch-depth: 1
 
+      - name: Sync to the true latest master
+        run: |
+          # GitHub resolves which commit actions/checkout fetches at the moment
+          # this run is TRIGGERED/queued, not when the job actually starts. Two
+          # triggers landing close together (proven live Sept 13: one queued
+          # behind the other by this workflow's own concurrency group, exactly
+          # as designed) means the second job can sit queued for minutes while
+          # the first one runs and pushes - so by the time it starts, its
+          # checkout is already stale relative to master, guaranteeing a
+          # conflict on push. Force a fetch and hard reset to the real current
+          # tip immediately before running anything, so the Agent always reads
+          # and writes against the actual latest state, not a pinned-at-trigger
+          # snapshot.
+          git fetch origin master
+          git reset --hard origin/master
+
       - name: Set up Python
         uses: actions/setup-python@v5
         with:

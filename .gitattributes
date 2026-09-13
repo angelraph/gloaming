@@ -1,0 +1,18 @@
+# The decision log is a pure append-only JSONL file - every write is a new
+# line, existing lines are never edited or removed. If two Agent runs ever
+# still manage to diverge from the same base despite the sync-to-latest-master
+# step in .github/workflows/agent_loop.yml (belt-and-suspenders, since that fix
+# should make this rare), git's built-in "union" merge driver is the actually
+# correct resolution here: keep every line from both sides rather than asking
+# a human (or a CI job with no human present) to pick one over the other.
+# Confirmed live Sept 13: a manual reconciliation of exactly this situation
+# (two real cycles' worth of decision-log lines, same base) was simply "take
+# both, sort by timestamp" - this makes that automatic.
+gloaming_agent/decision_log/*.jsonl merge=union
+
+# paper_ledger.json is a full state snapshot (cash/positions/fills), not an
+# append-only log - unioning it could produce invalid JSON or a nonsensical
+# merged state, so it deliberately keeps git's normal conflict behavior. A
+# real conflict there would mean two cycles computed genuinely different
+# ledger states from the same starting point, which needs a human to look at,
+# not an automatic merge.
