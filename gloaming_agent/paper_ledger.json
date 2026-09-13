@@ -1,13 +1,14 @@
 {
-  "cash_usd": 159353.588012,
+  "cash_usd": 159417.56954399997,
   "positions": {
     "RAAPLUSDT": -34.36339999999999,
     "RGOOGLUSDT": -44.119499999999995,
-    "RAMZNUSDT": -55.748700000000014,
-    "RMSFTUSDT": -18.567400000000003,
+    "RAMZNUSDT": -55.811000000000014,
+    "RMSFTUSDT": -18.599700000000002,
     "RSPYUSDT": -5.448,
     "RQQQUSDT": -6.436,
-    "RMETAUSDT": -1.8545
+    "RMETAUSDT": -1.8792,
+    "RTSLAUSDT": -0.0437
   },
   "fills": [
     {
@@ -1530,6 +1531,42 @@
       "price": 715.43,
       "notional_usd": 299.97979899999996,
       "rationale": "[Qwen3.8-max] RQQQUSDT is up 0.92% while the blended synthetic fair-value return is -0.05%, leaving it about 0.97% rich; with the futures proxy down -1.16%, that premium looks mildly stretched, but the positive crypto beta at 1.77% makes the signal noisy, so only a small conservative sell is warranted."
+    },
+    {
+      "timestamp": "2026-09-13T09:31:59.369032+00:00",
+      "symbol": "RAMZNUSDT",
+      "side": "sell",
+      "qty": 0.0623,
+      "price": 256.83,
+      "notional_usd": 16.000509,
+      "rationale": "[Qwen3.8-max] RAMZNUSDT is flat at 0.00% while the blended synthetic fair value fell -1.03%, making the rToken about 1.03% rich. Negative futures (-1.18%) and crypto beta (-1.50%) support a corrective sell, but the edge is modest, so sizing is conservative."
+    },
+    {
+      "timestamp": "2026-09-13T09:32:35.769938+00:00",
+      "symbol": "RMETAUSDT",
+      "side": "sell",
+      "qty": 0.0247,
+      "price": 647.4,
+      "notional_usd": 15.990779999999999,
+      "rationale": "[Qwen3.8-max] RMETAUSDT is up 0.09% while the blended overnight fair-value proxy is down 1.03%, leaving a +1.13% premium despite weak futures (-1.18%) and crypto beta (-1.50%). That suggests the rToken is relatively rich versus risk sentiment, but the spread is modest and may reflect token-specific noise, so sizing is conservative."
+    },
+    {
+      "timestamp": "2026-09-13T09:32:50.812205+00:00",
+      "symbol": "RTSLAUSDT",
+      "side": "sell",
+      "qty": 0.0437,
+      "price": 365.67,
+      "notional_usd": 15.979779000000002,
+      "rationale": "[Qwen3.8-max] RTSLAUSDT is up 0.34% while the blended overnight fair-value proxy is down 1.03%, leaving the rToken 1.37% rich versus synthetic fair value. With futures (-1.18%) and crypto beta (-1.50%) both risk-off, the positive rToken tape looks like a possible closed-market dislocation, but size is modest because the 1.37% gap may partly reflect liquidity or unseen TSLA-specific information."
+    },
+    {
+      "timestamp": "2026-09-13T09:35:16.325650+00:00",
+      "symbol": "RMSFTUSDT",
+      "side": "sell",
+      "qty": 0.0323,
+      "price": 495.68,
+      "notional_usd": 16.010464000000002,
+      "rationale": "[Qwen3.8-max] RMSFTUSDT is +0.09% while the blended synthetic fair-value proxy is -1.03%, leaving the token about 1.13% rich versus the overnight signal. Negative futures (-1.18%) and crypto beta (-1.50%) support a short-term convergence sell, but the edge is moderate and possibly noise, so sizing is conservative."
     }
   ],
   "equity_at_day_start_usd": 99404.50557099999,
