@@ -9,21 +9,22 @@ name: Gloaming Agent loop
 # fix for continuous, unattended operation, not a laptop setting.
 #
 # The Agent's own is_nyse_closed() check still gates every cycle (see
-# gloaming_agent/agent_loop.py) - this workflow simply fires every 15 minutes
-# around the clock and the Agent itself decides whether to act.
+# gloaming_agent/agent_loop.py) - this workflow itself just needs to fire
+# every 15 minutes around the clock and let the Agent decide whether to act.
 #
-# Cron minutes are offset to :07/:22/:37/:52 rather than the exact quarter-hour
-# marks. Confirmed live Sept 12: a schedule of "*/15 * * * *" produced zero
-# triggered runs across three consecutive marks (over 45 minutes) after being
-# added - GitHub's own docs explain why: "the start of every hour" (and by
-# extension every exact quarter-hour) is a documented high-load point for
-# Actions' scheduler, and jobs scheduled exactly on it are the most likely to
-# be delayed or dropped. Offsetting a few minutes off the mark is GitHub's own
-# recommended workaround, not a guess.
-
+# Triggered externally now (cron-job.org calling this workflow's dispatch API
+# every 15 minutes), not by GitHub's own `schedule:` trigger. Confirmed live
+# Sept 12-13, in order: (1) a schedule of "*/15 * * * *" produced zero
+# triggered runs for 45+ minutes after being added; (2) offsetting to
+# "7,22,37,52 * * * *" (GitHub's own documented workaround for the exact-mark
+# high-load problem) only partially helped, still firing every 1.5-3 hours in
+# practice instead of every 15 minutes; (3) running the offset schedule
+# alongside an external cron-job.org trigger at the same time caused runs to
+# pile up in the concurrency queue and get silently cancelled - one stuck
+# queued for nearly an hour with nothing else actually in progress. GitHub's
+# own scheduler is not reliable enough at this cadence, full stop - removed
+# entirely rather than run two independent trigger sources into one queue.
 on:
-  schedule:
-    - cron: "7,22,37,52 * * * *"
   workflow_dispatch: {}
 
 permissions:
