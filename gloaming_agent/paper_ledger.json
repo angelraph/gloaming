@@ -1,5 +1,5 @@
 {
-  "cash_usd": 160171.96727499994,
+  "cash_usd": 160060.23182499994,
   "positions": {
     "RAAPLUSDT": -34.95119999999999,
     "RGOOGLUSDT": -44.119499999999995,
@@ -8,7 +8,8 @@
     "RSPYUSDT": -5.776400000000001,
     "RQQQUSDT": -6.436,
     "RMETAUSDT": -1.8792,
-    "RTSLAUSDT": -0.19940000000000002
+    "RTSLAUSDT": -0.19940000000000002,
+    "RNVDAUSDT": 0.5283
   },
   "fills": [
     {
@@ -1621,6 +1622,15 @@
       "price": 765.77,
       "notional_usd": 194.582157,
       "rationale": "[Qwen3.8-max] RSPYUSDT is flat at +0.01% while the blended overnight fair-value proxy is -1.07%, leaving it about 1.08% rich versus the synthetic value. With futures -1.37% and crypto beta -1.31% pointing risk-off, a modest sell is warranted for convergence, but the edge is only moderate so sizing is conservative."
+    },
+    {
+      "timestamp": "2026-09-14T09:18:43.933574+00:00",
+      "symbol": "RNVDAUSDT",
+      "side": "buy",
+      "qty": 0.5283,
+      "price": 211.5,
+      "notional_usd": 111.73545,
+      "rationale": "RNVDAUSDT 24h return -3.03% vs. blended proxy fair-value estimate -0.92% (futures -2.46%, crypto 1.04%, fx 0.02%) -> spread -2.12%, below the 1.5% threshold -> buy (bet on reversion toward fair value)."
     }
   ],
   "equity_at_day_start_usd": 99772.25456299994,
