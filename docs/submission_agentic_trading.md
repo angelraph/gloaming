@@ -53,33 +53,42 @@ during exactly that window.
   - Win rate **57%**
   - Total return **+4.65%** over the 84-day window
 - **Live paper-trading log** (`gloaming_agent/decision_log/`, mirrored live to
-  Redis): **93 real fills** since Sept 11, running unattended every 15 minutes
-  via a scheduled task that self-gates on NYSE hours. Of the decisions
-  produced since Qwen was wired in, **95 of 107** were generated directly by
-  Qwen3.8-max (the remainder are the disclosed deterministic fallback, used
-  only when Qwen is unavailable or a call fails). Every fill is marked to a
-  real, live rToken price at decision time (see LLM role disclosure and
-  "Execution model" below) - not synthetic or simulated prices.
+  Redis): **180 real fills** since Sept 11, running unattended every 15
+  minutes on real cloud infrastructure (a GitHub Actions workflow, triggered
+  externally so it never depends on any one machine being on) that self-gates
+  on NYSE hours. Across the full decision history, **1,492 of 1,707 (87%)**
+  decisions were generated directly by Qwen3.8-max (the remainder are the
+  disclosed deterministic fallback, used only when a Qwen call is slow or
+  fails). Every fill is marked to a real, live rToken price at decision time
+  (see LLM role disclosure and "Execution model" below) - not synthetic or
+  simulated prices.
 - **Honest limitation, stated plainly rather than glossed over**: as of this
-  draft the live log spans under 24 hours and every position is still open -
-  no trade has round-tripped to a close yet, so a Sharpe/win-rate computed
-  from the live log alone would be statistically meaningless (n too small to
-  mean anything), not just weak. The **backtest above is the statistically
-  grounded quantitative evidence** (84 real days); the live log is the
-  running proof the same logic executes correctly and continuously against
-  real prices, and it will keep growing via the scheduled task through the
-  Sept 21 deadline - check `gloaming_agent/decision_log/` or the live Desk
-  for the current count at submission time.
+  draft, across several days of continuous real operation, no position has
+  round-tripped to a close yet - the overnight premium has stayed
+  one-directional long enough that risk controls capped total exposure at 60%
+  of equity and have correctly rejected every new signal past that cap rather
+  than let the book grow unbounded. A Sharpe/win-rate computed from the live
+  log alone would still be statistically meaningless (zero closed trades, not
+  just few), so the **backtest above remains the statistically grounded
+  quantitative evidence** (84 real days); the live log is the running proof
+  the same logic executes correctly and continuously against real prices,
+  and that the risk layer holds under real, sustained one-sided conditions
+  rather than only in a clean backtest. It keeps growing through the Sept 21
+  deadline - check `gloaming_agent/decision_log/` or the live Desk for the
+  current count at submission time.
 
 ### Progress / build status
 
 Fully built and running live, unattended, right now:
 - `engine/` - real market-data loaders, fair-value model, backtest
 - `gloaming_agent/` - the agent loop, non-LLM risk gate, self-maintained
-  paper ledger, Qwen integration, scheduled every 15 minutes
+  paper ledger, Qwen integration, scheduled every 15 minutes on real cloud
+  infrastructure (`.github/workflows/agent_loop.yml`), not a local machine
 - `gloaming_desk/` - the companion AI Trading Desk submission, live at
   https://gloamingdesk.vercel.app
-- Public repo: https://github.com/angelraph/gloaming
+- Public repo: https://github.com/angelraph/gloaming, with every real
+  15-minute cycle's decisions and ledger state committed straight into the
+  repo's own history
 
 ### Deliverables
 

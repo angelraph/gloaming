@@ -58,8 +58,9 @@ logged event.
 
 Fully built and deployed, live right now at https://gloamingdesk.vercel.app,
 reading real-time data from the same source the Agent writes to (Upstash
-Redis, synced from the local Agent's every cycle - see `docs/architecture.md`
-for why there is no separate FastAPI/SQLite layer underneath either side).
+Redis, synced from the Agent's every cycle, which now runs on real cloud
+infrastructure rather than a local machine - see `docs/architecture.md` for
+why there is no separate FastAPI/SQLite layer underneath either side).
 Public repo: https://github.com/angelraph/gloaming
 
 ### Deliverables
