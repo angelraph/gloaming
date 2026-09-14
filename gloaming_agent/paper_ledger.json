@@ -1623,6 +1623,6 @@
       "rationale": "[Qwen3.8-max] RSPYUSDT is flat at +0.01% while the blended overnight fair-value proxy is -1.07%, leaving it about 1.08% rich versus the synthetic value. With futures -1.37% and crypto beta -1.31% pointing risk-off, a modest sell is warranted for convergence, but the edge is only moderate so sizing is conservative."
     }
   ],
-  "equity_at_day_start_usd": 99404.50557099999,
-  "day_start_date": "2026-09-13"
+  "equity_at_day_start_usd": 99772.25456299994,
+  "day_start_date": "2026-09-14"
 }
