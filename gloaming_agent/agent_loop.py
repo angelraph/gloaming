@@ -41,6 +41,7 @@ from data.fx import fx_risk_sentiment_return  # noqa: E402
 from data.rtoken_client import run_bgc  # noqa: E402
 from fairvalue.config import FAIRVALUE_WEIGHTS, RTOKEN_UNIVERSE  # noqa: E402
 
+import bitget_signal  # noqa: E402
 import kv_sync  # noqa: E402
 import llm_client  # noqa: E402
 import paper_ledger  # noqa: E402
@@ -96,12 +97,20 @@ def _futures_proxy_pcnt_24h(futures_ticker: str) -> float:
 
 
 def build_snapshot(underlying: str, crypto_pcnt: float, fx_pcnt: float,
-                     futures_pcnt_by_ticker: dict) -> dict:
-    """crypto_pcnt/fx_pcnt/futures_pcnt_by_ticker are fetched ONCE per run_once()
-    cycle by the caller and shared across all symbols - these proxies don't vary
-    per-underlying (only the futures ticker choice does, and even that's shared
-    across the handful of symbols using the same index), so refetching them per
-    symbol was pure waste (9 symbols x redundant yfinance/bgc calls each cycle)."""
+                     futures_pcnt_by_ticker: dict, bitget_signal_context: dict | None = None) -> dict:
+    """crypto_pcnt/fx_pcnt/futures_pcnt_by_ticker/bitget_signal_context are fetched
+    ONCE per run_once() cycle by the caller and shared across all symbols - these
+    proxies don't vary per-underlying (only the futures ticker choice does, and
+    even that's shared across the handful of symbols using the same index), so
+    refetching them per symbol was pure waste (9 symbols x redundant yfinance/bgc
+    calls each cycle).
+
+    bitget_signal_context is real, additional macro/crypto context from Bitget's
+    own public bitget-signal MCP server (Fear & Greed sentiment, BTC derivatives
+    positioning) - genuinely optional enrichment, not a new hard dependency. It is
+    None whenever that server or its own upstream data sources have nothing to
+    give at call time (see bitget_signal.py); the fair-value model itself never
+    changes shape based on whether this is present."""
     cfg = RTOKEN_UNIVERSE[underlying]
     rtoken = _get_rtoken_tick_with_pcnt(cfg["rtoken_symbol"])
     futures_pcnt = futures_pcnt_by_ticker[cfg["futures_proxy"]]
@@ -123,6 +132,7 @@ def build_snapshot(underlying: str, crypto_pcnt: float, fx_pcnt: float,
         "fx_risk_sentiment_pcnt_24h": fx_pcnt,
         "fair_value_return_24h": fair_value_return,
         "spread": spread,
+        "bitget_signal_context": bitget_signal_context,
     }
 
 
@@ -155,6 +165,27 @@ def build_user_prompt(snapshot: dict) -> str:
     """Turns one symbol's live snapshot into the user message Qwen reasons over.
     Every number here is real and live, fetched moments earlier in build_snapshot -
     nothing in this prompt is synthetic or estimated on the LLM's behalf."""
+    signal_lines = ""
+    signal_context = snapshot.get("bitget_signal_context")
+    if signal_context:
+        # Passed through verbatim from Bitget's own bitget-signal MCP server (see
+        # bitget_signal.py) rather than mapped to guessed field names - the real
+        # response shape wasn't confirmed at integration time (the upstream
+        # source was returning empty results when this was built and tested), so
+        # showing Qwen the real keys/values as they actually come back is honest;
+        # inventing a specific schema before ever seeing a real payload would not be.
+        fear_greed = signal_context.get("fear_greed")
+        long_short = signal_context.get("long_short")
+        parts = []
+        if fear_greed:
+            parts.append(f"- Fear & Greed Index (raw data): {fear_greed}")
+        if long_short:
+            parts.append(f"- BTC long/short ratio (raw data): {long_short}")
+        if parts:
+            signal_lines = (
+                "\nAdditional real-time context (Bitget's own public bitget-signal "
+                "MCP server):\n" + "\n".join(parts) + "\n"
+            )
     return (
         f"rToken: {snapshot['rtoken_symbol']}\n"
         f"Last price: ${snapshot['rtoken_last_price']:.2f}\n"
@@ -165,6 +196,7 @@ def build_user_prompt(snapshot: dict) -> str:
         f"- Crypto beta 24h return: {snapshot['crypto_beta_pcnt_24h']:.2%}\n"
         f"- FX risk sentiment 24h return: {snapshot['fx_risk_sentiment_pcnt_24h']:.2%}\n"
         f"- Blended synthetic fair-value return: {snapshot['fair_value_return_24h']:.2%}\n"
+        f"{signal_lines}"
         f"\n"
         f"Spread (actual vs. fair value): {snapshot['spread']:.2%}\n"
         f"\n"
@@ -274,13 +306,20 @@ def run_once(dry_run: bool = False, force: bool = False) -> list[dict]:
     fx_pcnt = fx_risk_sentiment_return()
     distinct_futures_tickers = {cfg["futures_proxy"] for cfg in RTOKEN_UNIVERSE.values()}
     futures_pcnt_by_ticker = {t: _futures_proxy_pcnt_24h(t) for t in distinct_futures_tickers}
+    # Real, optional enrichment from Bitget's own public bitget-signal MCP server
+    # (see bitget_signal.py) - never fabricated, None whenever that source has
+    # nothing to give, and the fair-value model above never depends on it.
+    try:
+        bitget_signal_context = bitget_signal.get_signal_context()
+    except Exception:  # noqa: BLE001 - this is pure enrichment, never worth risking the cycle over
+        bitget_signal_context = None
 
     snapshots: dict[str, dict] = {}
     snapshot_errors: dict[str, str] = {}
     mark_prices: dict[str, float] = {}
     for underlying in RTOKEN_UNIVERSE:
         try:
-            snapshot = build_snapshot(underlying, crypto_pcnt, fx_pcnt, futures_pcnt_by_ticker)
+            snapshot = build_snapshot(underlying, crypto_pcnt, fx_pcnt, futures_pcnt_by_ticker, bitget_signal_context)
             snapshots[underlying] = snapshot
             mark_prices[snapshot["rtoken_symbol"]] = snapshot["rtoken_last_price"]
         except Exception as e:  # noqa: BLE001 - one symbol's data failure shouldn't kill the cycle

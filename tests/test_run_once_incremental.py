@@ -23,7 +23,7 @@ import paper_ledger  # noqa: E402
 from fairvalue.config import RTOKEN_UNIVERSE  # noqa: E402
 
 
-def _fake_snapshot(underlying, crypto_pcnt, fx_pcnt, futures_pcnt_by_ticker):
+def _fake_snapshot(underlying, crypto_pcnt, fx_pcnt, futures_pcnt_by_ticker, bitget_signal_context=None):
     cfg = RTOKEN_UNIVERSE[underlying]
     return {
         "underlying": underlying,
@@ -35,6 +35,7 @@ def _fake_snapshot(underlying, crypto_pcnt, fx_pcnt, futures_pcnt_by_ticker):
         "fx_risk_sentiment_pcnt_24h": 0.0,
         "fair_value_return_24h": 0.0,
         "spread": 0.0,  # below any threshold - every symbol resolves to no-decision
+        "bitget_signal_context": bitget_signal_context,
     }
 
 
@@ -56,6 +57,7 @@ def isolated(tmp_path, monkeypatch):
     monkeypatch.setattr(agent_loop, "crypto_beta_return", lambda ticks: 0.0)
     monkeypatch.setattr(agent_loop, "fx_risk_sentiment_return", lambda: 0.0)
     monkeypatch.setattr(agent_loop, "_futures_proxy_pcnt_24h", lambda ticker: 0.0)
+    monkeypatch.setattr(agent_loop.bitget_signal, "get_signal_context", lambda: None)
     monkeypatch.setattr(agent_loop, "build_snapshot", _fake_snapshot)
     yield
 
