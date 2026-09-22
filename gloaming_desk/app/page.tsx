@@ -7,6 +7,7 @@ import OvernightTimeline from "@/components/OvernightTimeline";
 import ChatPanel from "@/components/ChatPanel";
 import DecisionStressTest from "@/components/DecisionStressTest";
 import StatusPill from "@/components/StatusPill";
+import SignalContextCard from "@/components/SignalContextCard";
 
 type Portfolio = {
   configured: boolean;
@@ -29,6 +30,10 @@ type TimelineResponse = {
       spread: number;
       fair_value_return_24h: number;
       rtoken_pcnt_24h: number;
+      bitget_signal_context?: {
+        fear_greed?: Record<string, unknown>;
+        long_short?: Record<string, unknown>;
+      } | null;
     };
     decision?: { side: string; notional_usd: number; rationale: string } | null;
     error?: string;
@@ -115,6 +120,10 @@ export default function Home() {
           <StatTile label="Total fills" value={String(portfolio.totalFills ?? 0)} />
         </section>
       )}
+
+      <SignalContextCard
+        context={timeline?.events.find((e) => e.snapshot)?.snapshot?.bitget_signal_context}
+      />
 
       <section>
         <h2 className="mb-3 text-sm font-medium text-text-secondary">

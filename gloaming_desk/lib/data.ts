@@ -31,6 +31,15 @@ export type DecisionRecord = {
     fx_risk_sentiment_pcnt_24h: number;
     fair_value_return_24h: number;
     spread: number;
+    // Real, optional context from Bitget's own public bitget-signal MCP server
+    // (gloaming_agent/bitget_signal.py) - null whenever its upstream sources had
+    // nothing to return that cycle, never a fabricated placeholder. Raw keys are
+    // passed through unrenamed since no successful payload schema has been
+    // observed live yet - see docs/architecture.md, "Bitget-signal integration".
+    bitget_signal_context?: {
+      fear_greed?: Record<string, unknown>;
+      long_short?: Record<string, unknown>;
+    } | null;
   };
   decision?: {
     symbol: string;
