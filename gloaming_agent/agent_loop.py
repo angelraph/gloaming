@@ -176,11 +176,17 @@ def build_user_prompt(snapshot: dict) -> str:
         # inventing a specific schema before ever seeing a real payload would not be.
         fear_greed = signal_context.get("fear_greed")
         long_short = signal_context.get("long_short")
+        news = signal_context.get("news")
+        macro = signal_context.get("macro")
         parts = []
         if fear_greed:
             parts.append(f"- Fear & Greed Index (raw data): {fear_greed}")
         if long_short:
             parts.append(f"- BTC long/short ratio (raw data): {long_short}")
+        if news:
+            parts.append(f"- Recent crypto/market news (raw data): {news}")
+        if macro:
+            parts.append(f"- Treasury yield curve (raw data): {macro}")
         if parts:
             signal_lines = (
                 "\nAdditional real-time context (Bitget's own public bitget-signal "

@@ -80,14 +80,35 @@ def evaluate_decision(
         )
         return RiskResult(False, 0.0, reasons)
 
+    # Direction check, needed by the daily circuit breaker below as well as the
+    # per-symbol/aggregate caps further down - computed once, early, since a
+    # trade opposite in sign to an existing position reduces the book's risk
+    # rather than adding to it (see module docstring).
+    existing_notional = state.positions_notional_usd.get(decision.symbol, 0.0)
+    decision_sign = 1.0 if decision.side == "buy" else -1.0
+    existing_sign = 1.0 if existing_notional > 0 else -1.0
+    is_reducing = existing_notional != 0.0 and decision_sign != existing_sign
+
     # --- Control: daily max-loss circuit breaker. ---
+    # docs/risk_controls.md control #3 promises new positions halt but "existing
+    # positions may still be closed/hedged" - confirmed live Sept 22 the code did
+    # not actually honor that: it rejected every decision outright, including
+    # ones that would reduce risk. A de-risking decision is now still allowed
+    # through (sized down to zero risk-increasing notional below); a
+    # risk-increasing one is rejected outright exactly as before.
     daily_pnl_pct = (state.daily_realized_pnl_usd + state.daily_unrealized_pnl_usd) / state.equity_usd
-    if daily_pnl_pct <= -config.max_daily_loss_pct:
+    daily_breaker_triggered = daily_pnl_pct <= -config.max_daily_loss_pct
+    if daily_breaker_triggered and not is_reducing:
         reasons.append(
             f"daily P&L {daily_pnl_pct:.2%} breached -{config.max_daily_loss_pct:.2%} circuit "
             f"breaker - new positions halted for the remainder of this window"
         )
         return RiskResult(False, 0.0, reasons)
+    if daily_breaker_triggered:
+        reasons.append(
+            f"daily P&L {daily_pnl_pct:.2%} breached -{config.max_daily_loss_pct:.2%} circuit "
+            f"breaker - only the de-risking portion of this trade can proceed"
+        )
 
     # --- Control: per-trade max-loss circuit breaker. ---
     implied_loss_pct = (decision.notional_usd * decision.stop_loss_pct) / state.equity_usd
@@ -111,21 +132,24 @@ def evaluate_decision(
             )
             notional *= scale
 
-    # --- De-risk exemption: split off the portion of this trade that reduces an
-    # existing position (trades opposite to its sign) from the portion that would
-    # grow exposure. A cap that blocks a trade shrinking the book's own risk
-    # exactly like one growing it is a gap, not a safety feature - confirmed live
-    # Sept 22, the book sat over the aggregate cap for 8 straight days rejecting
-    # every decision, including ones proposing to cover the existing shorts. Only
-    # the de-risking amount, up to fully flattening the existing position, is
-    # exempt; anything beyond that (flipping to a new position on the other side)
-    # is still a normal new-risk trade and goes through the caps below unchanged.
-    existing_notional = state.positions_notional_usd.get(decision.symbol, 0.0)
-    decision_sign = 1.0 if decision.side == "buy" else -1.0
-    existing_sign = 1.0 if existing_notional > 0 else -1.0
-    is_reducing = existing_notional != 0.0 and decision_sign != existing_sign
+    # --- De-risk exemption: split off the portion of this trade that reduces the
+    # existing position (already known from is_reducing, computed above) from the
+    # portion that would grow exposure. A cap that blocks a trade shrinking the
+    # book's own risk exactly like one growing it is a gap, not a safety feature -
+    # confirmed live Sept 22, the book sat over the aggregate cap for 8 straight
+    # days rejecting every decision, including ones proposing to cover the
+    # existing shorts. Only the de-risking amount, up to fully flattening the
+    # existing position, is exempt; anything beyond that (flipping to a new
+    # position on the other side) is still a normal new-risk trade and goes
+    # through the caps below unchanged.
     reducing_notional = min(notional, abs(existing_notional)) if is_reducing else 0.0
     at_risk_notional = notional - reducing_notional
+    if daily_breaker_triggered and at_risk_notional > 0:
+        reasons.append(
+            f"daily circuit breaker also zeroes the risk-increasing portion "
+            f"({at_risk_notional:.2f}) of this trade - only de-risking can proceed"
+        )
+        at_risk_notional = 0.0
 
     # --- Control: per-symbol position cap (only the risk-increasing portion). ---
     max_symbol_notional = config.max_position_notional_pct * state.equity_usd

@@ -39,6 +39,8 @@ export type DecisionRecord = {
     bitget_signal_context?: {
       fear_greed?: Record<string, unknown>;
       long_short?: Record<string, unknown>;
+      news?: Array<{ feed?: string; error?: string; items?: unknown[] }>;
+      macro?: { yield_curve?: Record<string, unknown> } & Record<string, unknown>;
     } | null;
   };
   decision?: {

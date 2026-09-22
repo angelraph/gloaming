@@ -21,7 +21,10 @@ isn't, or a call fails, never a second vote alongside it.
    implies loss beyond a fixed threshold is rejected outright.
 3. **Daily max-loss circuit breaker** - once realized+unrealized daily loss crosses a
    threshold, the loop stops opening new positions for the remainder of that
-   overnight window (existing positions may still be closed/hedged).
+   overnight window (existing positions may still be closed/hedged). Confirmed
+   live Sept 22 that the code did not actually honor the "may still be
+   closed/hedged" part - it rejected every decision outright, the same gap as
+   control #1 above, fixed the same way and by the same commit.
 4. **Volatility-scaled sizing** - position size scales inversely with recent realized
    volatility of the fair-value/actual spread for that symbol.
 5. **No leverage** - spot/paper exposure only; no margin or leverage instructions are

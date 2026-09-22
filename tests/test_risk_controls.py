@@ -144,3 +144,36 @@ def test_trade_that_adds_to_existing_exposure_is_not_treated_as_derisking():
     result = evaluate_decision(decision, state, recent_volatility=0.01)
     assert not result.approved
     assert result.adjusted_notional_usd == 0.0
+
+
+def test_daily_circuit_breaker_still_allows_a_derisking_trade_through():
+    # docs/risk_controls.md control #3 promises existing positions may still be
+    # closed/hedged during a daily halt - confirmed live Sept 22 the code did
+    # not actually do that. A buy against an existing short must go through.
+    state = _state(equity=10_000.0, positions={"RAAPLUSDT": -1_000.0}, daily_realized=-600.0)  # -6% breached
+    decision = TradeDecision("RAAPLUSDT", "buy", notional_usd=300.0, rationale="test", stop_loss_pct=0.01)
+    result = evaluate_decision(decision, state, recent_volatility=0.01)
+    assert result.approved
+    assert result.adjusted_notional_usd == pytest.approx(300.0)
+
+
+def test_daily_circuit_breaker_still_blocks_the_risk_increasing_portion_of_a_flip():
+    # A trade larger than the existing position both de-risks (up to flat) and
+    # then adds new risk on the other side - only the de-risking part may
+    # proceed while the breaker is active, the flip portion is still blocked.
+    state = _state(equity=10_000.0, positions={"RAAPLUSDT": -1_000.0}, daily_realized=-600.0)
+    decision = TradeDecision("RAAPLUSDT", "buy", notional_usd=1_500.0, rationale="test", stop_loss_pct=0.01)
+    result = evaluate_decision(decision, state, recent_volatility=0.01)
+    assert result.approved
+    assert result.adjusted_notional_usd == pytest.approx(1_000.0)  # flattens, no further
+
+
+def test_daily_circuit_breaker_rejects_outright_when_theres_nothing_to_derisk():
+    # No existing position in this symbol to reduce - must still hard-reject,
+    # exactly like before this fix.
+    state = _state(equity=10_000.0, daily_realized=-600.0)
+    decision = TradeDecision("RAAPLUSDT", "buy", notional_usd=100.0, rationale="test")
+    result = evaluate_decision(decision, state, recent_volatility=0.01)
+    assert not result.approved
+    assert result.adjusted_notional_usd == 0.0
+    assert "circuit breaker" in result.reasons[0]
