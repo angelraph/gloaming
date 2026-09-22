@@ -99,3 +99,48 @@ def test_invalid_equity_is_rejected_not_crashed():
     result = evaluate_decision(decision, _state(equity=0.0), recent_volatility=0.01)
     assert not result.approved
     assert result.adjusted_notional_usd == 0.0
+
+
+def test_derisking_trade_is_exempt_from_aggregate_cap_when_book_is_over_it():
+    # Confirmed live Sept 22: a real book sitting over its own aggregate cap
+    # rejected every decision for 8 straight days, including ones that would have
+    # reduced its risk. A buy against an existing short must still go through.
+    state = _state(equity=10_000.0, positions={"RAAPLUSDT": -8_000.0})  # already over the 60% cap
+    decision = TradeDecision("RAAPLUSDT", "buy", notional_usd=500.0, rationale="test", stop_loss_pct=0.01)
+    result = evaluate_decision(decision, state, recent_volatility=0.01)
+    assert result.approved
+    assert result.adjusted_notional_usd == pytest.approx(500.0)
+    assert any("de-risking" in r for r in result.reasons)
+
+
+def test_derisking_trade_is_exempt_from_per_symbol_cap_when_already_full():
+    # Same idea at the per-symbol level: already "full" per the 15% cap, but a
+    # sell against an existing long must still be allowed to reduce it.
+    state = _state(equity=10_000.0, positions={"RAAPLUSDT": 1_500.0})  # at the per-symbol cap
+    decision = TradeDecision("RAAPLUSDT", "sell", notional_usd=300.0, rationale="test", stop_loss_pct=0.01)
+    result = evaluate_decision(decision, state, recent_volatility=0.01)
+    assert result.approved
+    assert result.adjusted_notional_usd == pytest.approx(300.0)
+
+
+def test_derisking_exemption_caps_out_at_fully_flattening_the_position():
+    # A trade larger than the existing position flips it to the other side -
+    # only the de-risking portion (up to flat) is exempt; the flip portion is a
+    # normal new-risk trade and goes through the caps like any other.
+    state = _state(equity=10_000.0, positions={"RAAPLUSDT": -400.0})
+    decision = TradeDecision("RAAPLUSDT", "buy", notional_usd=1_000.0, rationale="test", stop_loss_pct=0.01)
+    result = evaluate_decision(decision, state, recent_volatility=0.01)
+    assert result.approved
+    # 400 exempt (flattens the short) + up to 1,500 room left on the now-empty
+    # per-symbol cap for the remaining 600 - the full 1,000 goes through here.
+    assert result.adjusted_notional_usd == pytest.approx(1_000.0)
+
+
+def test_trade_that_adds_to_existing_exposure_is_not_treated_as_derisking():
+    # Same direction as the existing position - this must be capped exactly as
+    # before, not exempted.
+    state = _state(equity=10_000.0, positions={"RAAPLUSDT": -8_000.0})  # already over the 60% cap
+    decision = TradeDecision("RAAPLUSDT", "sell", notional_usd=500.0, rationale="test", stop_loss_pct=0.01)
+    result = evaluate_decision(decision, state, recent_volatility=0.01)
+    assert not result.approved
+    assert result.adjusted_notional_usd == 0.0

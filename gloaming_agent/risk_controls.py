@@ -3,6 +3,13 @@ Gloaming Agent's hard, deterministic, non-LLM risk layer - see
 docs/risk_controls.md. Every trade decision (rule-based today, Qwen-generated from
 Day 5 onward) passes through evaluate_decision() before execution.py ever sees it.
 This module knows nothing about LLMs and never will; that separation is the point.
+
+The per-symbol and aggregate notional caps are net-exposure aware: a trade that
+reduces an existing position's size is exempt from those caps up to the point of
+fully flattening it, since a cap that can never let the book de-risk itself once
+it is already at cap would be a bug, not a safety feature. A trade that adds
+exposure (opens new, or grows an existing position further) is still capped
+exactly as before. See evaluate_decision()'s de-risk exemption for the mechanics.
 """
 from __future__ import annotations
 
@@ -104,26 +111,49 @@ def evaluate_decision(
             )
             notional *= scale
 
-    # --- Control: per-symbol position cap. ---
-    max_symbol_notional = config.max_position_notional_pct * state.equity_usd
-    current_symbol_notional = abs(state.positions_notional_usd.get(decision.symbol, 0.0))
-    room_left = max(max_symbol_notional - current_symbol_notional, 0.0)
-    if notional > room_left:
-        reasons.append(
-            f"resized from {notional:.2f} to {room_left:.2f} to respect per-symbol cap "
-            f"({config.max_position_notional_pct:.0%} of equity)"
-        )
-        notional = room_left
+    # --- De-risk exemption: split off the portion of this trade that reduces an
+    # existing position (trades opposite to its sign) from the portion that would
+    # grow exposure. A cap that blocks a trade shrinking the book's own risk
+    # exactly like one growing it is a gap, not a safety feature - confirmed live
+    # Sept 22, the book sat over the aggregate cap for 8 straight days rejecting
+    # every decision, including ones proposing to cover the existing shorts. Only
+    # the de-risking amount, up to fully flattening the existing position, is
+    # exempt; anything beyond that (flipping to a new position on the other side)
+    # is still a normal new-risk trade and goes through the caps below unchanged.
+    existing_notional = state.positions_notional_usd.get(decision.symbol, 0.0)
+    decision_sign = 1.0 if decision.side == "buy" else -1.0
+    existing_sign = 1.0 if existing_notional > 0 else -1.0
+    is_reducing = existing_notional != 0.0 and decision_sign != existing_sign
+    reducing_notional = min(notional, abs(existing_notional)) if is_reducing else 0.0
+    at_risk_notional = notional - reducing_notional
 
-    # --- Control: aggregate book notional cap. ---
+    # --- Control: per-symbol position cap (only the risk-increasing portion). ---
+    max_symbol_notional = config.max_position_notional_pct * state.equity_usd
+    current_symbol_notional = abs(existing_notional)
+    room_left = max(max_symbol_notional - current_symbol_notional, 0.0)
+    if at_risk_notional > room_left:
+        reasons.append(
+            f"resized the risk-increasing portion from {at_risk_notional:.2f} to {room_left:.2f} "
+            f"to respect per-symbol cap ({config.max_position_notional_pct:.0%} of equity)"
+        )
+        at_risk_notional = room_left
+
+    # --- Control: aggregate book notional cap (only the risk-increasing portion). ---
     max_aggregate = config.max_aggregate_notional_pct * state.equity_usd
     room_left_aggregate = max(max_aggregate - _aggregate_notional(state), 0.0)
-    if notional > room_left_aggregate:
+    if at_risk_notional > room_left_aggregate:
         reasons.append(
-            f"resized from {notional:.2f} to {room_left_aggregate:.2f} to respect aggregate "
-            f"book cap ({config.max_aggregate_notional_pct:.0%} of equity)"
+            f"resized the risk-increasing portion from {at_risk_notional:.2f} to {room_left_aggregate:.2f} "
+            f"to respect aggregate book cap ({config.max_aggregate_notional_pct:.0%} of equity)"
         )
-        notional = room_left_aggregate
+        at_risk_notional = room_left_aggregate
+
+    notional = reducing_notional + at_risk_notional
+    if reducing_notional > 0:
+        reasons.append(
+            f"{reducing_notional:.2f} of this trade reduces the existing {decision.symbol} "
+            f"position and is exempt from the position/aggregate caps (de-risking, not new risk)"
+        )
 
     if notional <= 0:
         reasons.append("resized to zero by position/aggregate caps - effectively rejected")

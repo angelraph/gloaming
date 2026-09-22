@@ -11,7 +11,12 @@ isn't, or a call fails, never a second vote alongside it.
 ## Controls (v1)
 
 1. **Position size cap** - max notional per rToken, and max aggregate book notional,
-   as a fraction of the paper ledger's equity.
+   as a fraction of the paper ledger's equity. Net-exposure aware: a trade that
+   reduces an existing position (trades opposite to its sign) is exempt from these
+   caps up to the point of fully flattening it - confirmed live Sept 22 that
+   without this, a book sitting over its own cap rejects every decision including
+   ones that would reduce its risk, for as long as it stays over cap. A trade that
+   adds exposure is still capped exactly as before.
 2. **Per-trade max-loss circuit breaker** - a proposed trade whose stop-loss distance
    implies loss beyond a fixed threshold is rejected outright.
 3. **Daily max-loss circuit breaker** - once realized+unrealized daily loss crosses a
