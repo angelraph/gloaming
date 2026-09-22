@@ -8,7 +8,7 @@ flowchart TB
         bitget["Bitget market data<br/>rToken + crypto prices, via bgc CLI"]
         yahoo["Yahoo Finance<br/>ES=F / NQ=F futures, DXY"]
         qwen["Qwen3.8-max API<br/>hackathon endpoint"]
-        signal["Bitget bitget-signal MCP server<br/>crypto Fear & Greed + BTC long/short"]
+        signal["Bitget bitget-signal MCP server<br/>crypto sentiment + BTC long/short"]
     end
 
     subgraph engine["engine/ (Python, shared)"]
