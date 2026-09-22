@@ -1633,6 +1633,6 @@
       "rationale": "RNVDAUSDT 24h return -3.03% vs. blended proxy fair-value estimate -0.92% (futures -2.46%, crypto 1.04%, fx 0.02%) -> spread -2.12%, below the 1.5% threshold -> buy (bet on reversion toward fair value)."
     }
   ],
-  "equity_at_day_start_usd": 98896.23180199994,
-  "day_start_date": "2026-09-21"
+  "equity_at_day_start_usd": 97864.70862099994,
+  "day_start_date": "2026-09-22"
 }
