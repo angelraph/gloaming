@@ -1,15 +1,15 @@
 {
-  "cash_usd": 142510.23440499994,
+  "cash_usd": 139511.17247599992,
   "positions": {
-    "RAAPLUSDT": -27.060199999999995,
-    "RGOOGLUSDT": -39.8632,
-    "RAMZNUSDT": -50.339500000000015,
-    "RMSFTUSDT": -15.461900000000002,
-    "RSPYUSDT": -2.6725000000000003,
-    "RQQQUSDT": -2.8879,
-    "RMETAUSDT": 0.5328000000000002,
-    "RNVDAUSDT": 7.7585,
-    "RTSLAUSDT": 4.2261
+    "RAAPLUSDT": -25.891699999999993,
+    "RGOOGLUSDT": -39.1871,
+    "RAMZNUSDT": -49.49160000000001,
+    "RMSFTUSDT": -14.855800000000002,
+    "RSPYUSDT": -2.3493000000000004,
+    "RQQQUSDT": -2.2193,
+    "RMETAUSDT": 0.9987000000000001,
+    "RNVDAUSDT": 9.2909,
+    "RTSLAUSDT": 5.2828
   },
   "fills": [
     {
@@ -2090,6 +2090,87 @@
       "price": 773.5,
       "notional_usd": 350.00875,
       "rationale": "[Qwen3.8-max] RSPYUSDT is only up 0.03% while the blended overnight fair-value proxy is up 0.87%, leaving a -0.84% spread that suggests mild undervaluation. The strong futures proxy return of 2.09% supports a corrective buy, but the negative crypto beta return and modest spread size argue for conservative sizing."
+    },
+    {
+      "timestamp": "2026-09-22T22:17:27.656629+00:00",
+      "symbol": "RAAPLUSDT",
+      "side": "buy",
+      "qty": 1.1685,
+      "price": 340.0,
+      "notional_usd": 397.29,
+      "rationale": "[Qwen3.8-max] RAAPLUSDT returned only 0.35% while the blended synthetic fair-value proxy rose 2.37%, leaving a -2.01% spread that suggests the rToken is lagging its estimated fair value. The strong futures proxy gain (+5.36%) supports a possible catch-up, but negative crypto beta (-1.03%) and proxy uncertainty justify a modest size and 2% stop."
+    },
+    {
+      "timestamp": "2026-09-22T22:17:43.162500+00:00",
+      "symbol": "RAMZNUSDT",
+      "side": "buy",
+      "qty": 0.8479,
+      "price": 255.17,
+      "notional_usd": 216.35864299999997,
+      "rationale": "[Qwen3.8-max] RAMZNUSDT is down -1.33% while the blended overnight fair-value proxy is up +2.37%, implying a -3.70% discount that is large enough to be potentially actionable. The +5.36% futures proxy supports the fair-value estimate, but the negative -1.03% crypto beta and lack of liquidity/news context justify only a modest position."
+    },
+    {
+      "timestamp": "2026-09-22T22:17:56.677492+00:00",
+      "symbol": "RMETAUSDT",
+      "side": "buy",
+      "qty": 0.4659,
+      "price": 737.98,
+      "notional_usd": 343.824882,
+      "rationale": "[Qwen3.8-max] RMETAUSDT is flat at -0.25% while the blended overnight fair-value proxy rose +2.37%, creating a -2.62% spread that looks like lagged repricing rather than noise, especially with the futures proxy up +5.36%. I size moderately because the move may partly reflect token-specific liquidity or unobserved news risk during the closed market window."
+    },
+    {
+      "timestamp": "2026-09-22T22:18:12.638776+00:00",
+      "symbol": "RTSLAUSDT",
+      "side": "buy",
+      "qty": 1.0567,
+      "price": 378.53,
+      "notional_usd": 399.99265099999997,
+      "rationale": "[Qwen3.8-max] RTSLAUSDT is up only 0.94% while the blended synthetic fair-value proxy is up 2.37%, leaving a -1.43% discount that is supported by the strong +5.36% futures proxy. The edge is modest and partly offset by -1.03% crypto beta, so a small conservative buy is appropriate."
+    },
+    {
+      "timestamp": "2026-09-22T22:18:25.542490+00:00",
+      "symbol": "RGOOGLUSDT",
+      "side": "buy",
+      "qty": 0.6761,
+      "price": 352.63,
+      "notional_usd": 238.41314300000002,
+      "rationale": "[Qwen3.8-max] RGOOGLUSDT is down -0.99% while the blended overnight fair-value proxy is up +2.37%, creating a -3.36% spread that looks meaningfully wide, supported mainly by the +5.36% futures proxy. I size conservatively because the token-specific reason for the lag is unknown and the fair value estimate is synthetic."
+    },
+    {
+      "timestamp": "2026-09-22T22:18:40.212955+00:00",
+      "symbol": "RNVDAUSDT",
+      "side": "buy",
+      "qty": 1.5324,
+      "price": 228.4,
+      "notional_usd": 350.00016,
+      "rationale": "[Qwen3.8-max] RNVDAUSDT is up only 0.54% while the blended overnight fair-value proxy is up 2.37%, leaving a -1.83% spread that suggests the rToken is lagging the strong +5.36% futures signal. The edge is modest and could reflect liquidity or unknown news, so a small buy with a tight 2% stop is appropriate."
+    },
+    {
+      "timestamp": "2026-09-22T22:19:00.063990+00:00",
+      "symbol": "RMSFTUSDT",
+      "side": "buy",
+      "qty": 0.6061,
+      "price": 500.24,
+      "notional_usd": 303.195464,
+      "rationale": "[Qwen3.8-max] RMSFTUSDT is down 0.27% while the blended synthetic fair-value return is +2.37%, leaving a -2.64% discount that looks actionable, especially with the futures proxy up 5.36%. However, crypto beta is -1.03% and I cannot rule out rToken-specific news, so I size conservatively."
+    },
+    {
+      "timestamp": "2026-09-22T22:19:15.984363+00:00",
+      "symbol": "RQQQUSDT",
+      "side": "buy",
+      "qty": 0.6686,
+      "price": 747.79,
+      "notional_usd": 499.97239399999995,
+      "rationale": "[Qwen3.8-max] RQQQUSDT is trading 1.56% below the blended synthetic fair-value return of +2.37%, having gained only +0.81% despite a strong +5.36% futures proxy signal. This suggests a possible overnight lag/mispricing, but the negative crypto beta (-1.03%) and lack of external context justify a modest size and a 2.5% stop."
+    },
+    {
+      "timestamp": "2026-09-22T22:19:30.720564+00:00",
+      "symbol": "RSPYUSDT",
+      "side": "buy",
+      "qty": 0.3232,
+      "price": 773.56,
+      "notional_usd": 250.01459199999996,
+      "rationale": "[Qwen3.8-max] RSPYUSDT is flat over 24h while the blended synthetic fair-value proxy is +0.77%, producing a -0.76% spread that suggests mild undervaluation. The +2.16% futures proxy supports convergence higher, but the -1.03% crypto-beta signal weakens conviction, so a small position is appropriate."
     }
   ],
   "equity_at_day_start_usd": 97864.70862099994,
