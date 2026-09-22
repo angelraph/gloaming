@@ -8,6 +8,7 @@ flowchart TB
         bitget["Bitget market data<br/>rToken + crypto prices, via bgc CLI"]
         yahoo["Yahoo Finance<br/>ES=F / NQ=F futures, DXY"]
         qwen["Qwen3.8-max API<br/>hackathon endpoint"]
+        signal["Bitget bitget-signal MCP server<br/>crypto Fear & Greed + BTC long/short"]
     end
 
     subgraph engine["engine/ (Python, shared)"]
@@ -31,6 +32,7 @@ flowchart TB
 
     fv --> loop
     data --> loop
+    signal -. "optional enrichment, None if unavailable" .-> loop
     loop <--> qwen
     loop --> risk
     risk --> ledger
@@ -49,10 +51,11 @@ flowchart TB
     ui <--> qwen
 ```
 
-There is no separate FastAPI or SQLite layer, and no `bitget-signal` news/macro
-skill integration - both were considered and deliberately not built (see
-"Deferred, not silently missing" below). The Agent and the Desk each read the
-same on-disk files directly.
+There is no separate FastAPI or SQLite layer - that was considered and
+deliberately not built (see "Deferred, not silently missing" below). The Agent
+and the Desk each read the same on-disk files directly. `bitget-signal` (crypto
+sentiment + BTC derivatives positioning) is wired in directly to the Agent loop
+- see "Bitget-signal integration" below for what is and isn't covered.
 
 ## Why this mechanic, not a generic trading bot
 
@@ -73,12 +76,14 @@ works, not a generic sentiment- or news-trading bot.
    weighted per `fairvalue/config.py` (heuristic prior, OLS-calibrated once enough
    overlapping history exists - see `engine/backtest/run_backtest.py`).
 3. `gloaming_agent/agent_loop.py` runs only while NYSE is closed (self-enforced,
-   not just documented - see `run_once()`'s `is_nyse_closed()` check), builds a
-   live snapshot per symbol, and calls Qwen3.8-max for the trade decision
-   whenever `QWEN_API_KEY` is configured, falling back to a deterministic
-   fixed-threshold rule otherwise (see `docs/event_decision_execution_flow.md`
-   for the exact sequence). Every decision passes through `risk_controls.py`
-   before execution.
+   not just documented - see `run_once()`'s `is_nyse_closed()` check). Once per
+   cycle it also calls `bitget_signal.get_signal_context()` (real crypto Fear &
+   Greed + BTC long/short positioning from Bitget's own public MCP server - see
+   "Bitget-signal integration" below), then builds a live snapshot per symbol
+   and calls Qwen3.8-max for the trade decision whenever `QWEN_API_KEY` is
+   configured, falling back to a deterministic fixed-threshold rule otherwise
+   (see `docs/event_decision_execution_flow.md` for the exact sequence). Every
+   decision passes through `risk_controls.py` before execution.
 4. Approved decisions execute via `gloaming_agent/paper_ledger.py` - a
    self-maintained virtual ledger marked to real, live rToken prices (see
    "Execution model" below for why, not `execution.py`'s Bitget CLI wrapper).
@@ -112,6 +117,47 @@ Bitget CLI wrapper, including live account reads and `--paper-trading` order cal
 is kept in the repo and still works correctly against tradable symbols like
 `BTCUSDT` - it's simply no longer in the rToken decision path.
 
+## Bitget-signal integration: real sentiment and derivatives context
+
+`gloaming_agent/bitget_signal.py` calls Bitget's own public `bitget-signal` MCP
+server (`https://datahub.noxiaohao.com/mcp`, confirmed by reading the installer
+script of the `@bitget-ai/bitget-signal` package already listed in
+`package.json`) directly over Streamable HTTP/JSON-RPC - no API key, no account,
+no credentials. It adds two real signals to the Agent's overnight reasoning:
+
+- `sentiment_index` - crypto Fear & Greed reading.
+- `derivatives_sentiment` - BTC futures long/short positioning.
+
+Both are fetched once per cycle in `run_once()` (not once per symbol), bundled by
+`get_signal_context()`, and passed through `build_snapshot()` as an optional
+`bitget_signal_context` field. `build_user_prompt()` only adds a signal section to
+the Qwen prompt when real values are present - it never fills in a placeholder for
+a source that returned nothing, and the raw fields the API returns are passed
+through unrenamed rather than mapped onto a guessed schema for a "successful"
+response this project has not yet observed live.
+
+Every call is wrapped the same way every other external dependency in this
+project is (`kv_sync.py`, `llm_client.py`): broad `try/except`, logs to `stderr`,
+returns `None` on any failure, never raises into the trading loop. It also
+detects the case where the MCP layer itself succeeds (`isError: false`) but the
+signal server's own upstream source had nothing to return (e.g.
+`{"alt_me_error": ""}`) and treats that the same as a hard failure - `None`, not
+a fabricated neutral value.
+
+Confirmed live Sept 22: the signal server's JSON-RPC layer works correctly, but
+its own upstream sources (alternative.me, mempool.space) were returning empty
+payloads at call time. A full real `agent_loop.py --smoke-test` run that same day
+(not mocked) showed the integration degrading exactly as designed - two logged
+"no real data available" lines, the rest of the 9-symbol cycle completing
+normally with no crash and no change in behavior. `tests/test_bitget_signal.py`
+covers the real response shape, the empty-payload case, MCP-level errors,
+network failures, and the missing-session-id case (7 tests, all mocking the HTTP
+layer directly - CI never touches the real network).
+
+This covers `sentiment_index` and `derivatives_sentiment` specifically. The
+broader `bitget-signal` news/macro-event skills (`news-briefing`,
+`macro-analyst`) are still not integrated - see below.
+
 ## Deferred, not silently missing
 
 Two pieces were designed early on and intentionally not built, rather than left as
@@ -122,15 +168,16 @@ an undocumented gap:
   `decision_log/*.jsonl` and `paper_ledger.json` - standing up a second service to
   re-serve files that already exist would be an extra moving part with nothing to
   show for it. `gloaming_desk/lib/data.ts` reads them directly instead.
-- **`bitget-signal` news/macro-event skills.** Investigated on Day 5: these ship as
-  Claude-Code-style skill definitions backed by MCP tool calls (`news_feed`,
-  `tradfi_news` against an MCP server), designed for an MCP-client agent
-  environment (e.g. Claude Desktop), not for a Python subprocess calling a CLI.
-  Wiring a minimal MCP client for one data source was a real scope decision against
-  the hackathon deadline, made explicitly rather than silently skipped. Qwen's
-  reasoning today is grounded entirely in the real numeric snapshot (rToken price,
-  proxy returns, spread) - genuinely real market data, just not news headlines.
-  Noted here as a concrete direction for future work, not hidden.
+- **`bitget-signal` news/macro-event skills** (`news-briefing`, `macro-analyst`).
+  Investigated on Day 5: at the time, these looked like Claude-Code-style skill
+  definitions designed for an MCP-client agent environment (e.g. Claude Desktop),
+  not for a Python subprocess. `sentiment_index` and `derivatives_sentiment` were
+  later confirmed reachable over plain HTTP (see "Bitget-signal integration"
+  above) and wired in; the remaining news/macro skills were not revisited before
+  the deadline. Qwen's reasoning is grounded in the real numeric snapshot (rToken
+  price, proxy returns, spread, plus sentiment/derivatives context when
+  available) - genuinely real market data, just not news headlines. Noted here as
+  a concrete direction for future work, not hidden.
 
 ## Alpha Factory (stretch, not a formal 3rd submission)
 
