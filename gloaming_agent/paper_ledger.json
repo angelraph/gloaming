@@ -1,8 +1,8 @@
 {
-  "cash_usd": 67925.80447400005,
+  "cash_usd": 67491.14263600005,
   "positions": {
-    "RGOOGLUSDT": -21.62889999999999,
-    "RAMZNUSDT": -26.685800000000004,
+    "RGOOGLUSDT": -21.02729999999999,
+    "RAMZNUSDT": -25.816000000000003,
     "RMSFTUSDT": 0.3968999999999978,
     "RSPYUSDT": 9.492500000000001,
     "RQQQUSDT": 9.6506,
@@ -4187,6 +4187,24 @@
       "price": 352.52,
       "notional_usd": 238.515032,
       "rationale": "[Qwen3.8-max] RGOOGLUSDT is down -1.21% while the blended overnight fair-value proxy is up +2.57%, producing a -3.77% actual-versus-fair spread. The positive futures proxy (+4.09%) and crypto beta (+1.74%) support a mean-reversion buy, but because this is a closed-market synthetic signal, sizing is kept moderate."
+    },
+    {
+      "timestamp": "2026-09-23T05:32:45.776333+00:00",
+      "symbol": "RAMZNUSDT",
+      "side": "buy",
+      "qty": 0.8698,
+      "price": 255.87,
+      "notional_usd": 222.55572600000002,
+      "rationale": "[Qwen3.8-max] RAMZNUSDT is down -1.46% while the blended synthetic fair-value proxy is up +2.58%, producing a -4.04% spread that suggests possible short-term undervaluation. The signal is supported by the strong +4.09% futures proxy, but because I cannot rule out an Amazon-specific after-hours reason, I size conservatively."
+    },
+    {
+      "timestamp": "2026-09-23T05:33:30.728273+00:00",
+      "symbol": "RGOOGLUSDT",
+      "side": "buy",
+      "qty": 0.6016,
+      "price": 352.57,
+      "notional_usd": 212.106112,
+      "rationale": "[Qwen3.8-max] RGOOGLUSDT is down -1.19% while the blended overnight fair-value proxy is up +2.58%, producing a -3.77% spread that suggests the rToken is trading below synthetic fair value. The futures proxy's strong +4.09% move supports a possible reversion, but without external news context the size is kept conservative."
     }
   ],
   "equity_at_day_start_usd": 98228.94175099995,
