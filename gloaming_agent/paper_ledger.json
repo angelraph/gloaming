@@ -1,15 +1,15 @@
 {
-  "cash_usd": 105532.31391400001,
+  "cash_usd": 102570.92748100002,
   "positions": {
-    "RAAPLUSDT": -13.0635,
-    "RGOOGLUSDT": -31.440399999999997,
-    "RAMZNUSDT": -40.4027,
-    "RMSFTUSDT": -8.090100000000001,
-    "RSPYUSDT": 3.1447999999999996,
-    "RQQQUSDT": 3.8842,
-    "RMETAUSDT": 5.694699999999999,
-    "RNVDAUSDT": 29.352700000000002,
-    "RTSLAUSDT": 16.669199999999996
+    "RAAPLUSDT": -11.9375,
+    "RGOOGLUSDT": -30.745899999999995,
+    "RAMZNUSDT": -39.6088,
+    "RMSFTUSDT": -7.5954000000000015,
+    "RSPYUSDT": 3.7908999999999997,
+    "RQQQUSDT": 4.3892,
+    "RMETAUSDT": 6.124999999999999,
+    "RNVDAUSDT": 30.567600000000002,
+    "RTSLAUSDT": 17.749499999999998
   },
   "fills": [
     {
@@ -3062,6 +3062,87 @@
       "price": 773.25,
       "notional_usd": 450.0315,
       "rationale": "[Qwen3.8-max] RSPYUSDT is down 0.07% while the blended overnight fair-value proxy is up 1.20%, leaving a -1.27% spread that suggests mild undervaluation and potential catch-up. The edge is modest and could reflect token-specific noise rather than pure mispricing, so a conservative position is appropriate."
+    },
+    {
+      "timestamp": "2026-09-23T01:32:31.325734+00:00",
+      "symbol": "RAAPLUSDT",
+      "side": "buy",
+      "qty": 1.126,
+      "price": 339.92,
+      "notional_usd": 382.74992,
+      "rationale": "[Qwen3.8-max] RAAPLUSDT is up only 0.33% while the blended overnight fair-value proxy is up 2.94%, creating a -2.61% spread that suggests the rToken is lagging the strong +5.38% futures signal. This looks like a possible convergence buy, but sizing is moderate because the move could reflect token-specific liquidity or information not visible in the provided data."
+    },
+    {
+      "timestamp": "2026-09-23T01:33:27.873990+00:00",
+      "symbol": "RAMZNUSDT",
+      "side": "buy",
+      "qty": 0.7939,
+      "price": 255.47,
+      "notional_usd": 202.817633,
+      "rationale": "[Qwen3.8-max] RAMZNUSDT fell 1.50% while the blended overnight fair-value proxy rose 2.94%, creating a -4.44% spread that looks like a meaningful dislocation versus live risk proxies, especially with futures up 5.38%. However, because the token-specific cause of the lag is unknown without external context, the position should be sized conservatively."
+    },
+    {
+      "timestamp": "2026-09-23T01:33:41.909772+00:00",
+      "symbol": "RMETAUSDT",
+      "side": "buy",
+      "qty": 0.4303,
+      "price": 741.02,
+      "notional_usd": 318.860906,
+      "rationale": "[Qwen3.8-max] RMETAUSDT is only up 0.11% while the blended synthetic fair-value return is +2.94%, leaving a -2.82% discount that looks actionable given the strong +5.38% futures proxy signal. I size modestly because the convergence trade depends on overnight proxy validity and I lack external context for any stock-specific cause."
+    },
+    {
+      "timestamp": "2026-09-23T01:33:55.928187+00:00",
+      "symbol": "RTSLAUSDT",
+      "side": "buy",
+      "qty": 1.0803,
+      "price": 379.11,
+      "notional_usd": 409.55253300000004,
+      "rationale": "[Qwen3.8-max] RTSLAUSDT rose only 0.50% while the blended overnight fair-value proxy rose 2.94%, leaving a -2.44% spread that suggests the rToken is lagging the live risk-on signal, especially with the futures proxy up 5.38%. Without confirming external context, the edge looks plausible but not strong enough for maximum sizing, so a moderate buy with a 2.5% stop is appropriate."
+    },
+    {
+      "timestamp": "2026-09-23T01:34:08.280386+00:00",
+      "symbol": "RGOOGLUSDT",
+      "side": "buy",
+      "qty": 0.6945,
+      "price": 352.5,
+      "notional_usd": 244.81125,
+      "rationale": "[Qwen3.8-max] RGOOGLUSDT fell -1.15% while the blended overnight fair-value proxy rose +2.94%, creating a -4.08% spread that looks like a meaningful discount. The strong +5.38% futures proxy supports a rebound, but absent external context I size conservatively."
+    },
+    {
+      "timestamp": "2026-09-23T01:34:47.549304+00:00",
+      "symbol": "RNVDAUSDT",
+      "side": "buy",
+      "qty": 1.2149,
+      "price": 228.58,
+      "notional_usd": 277.70184200000006,
+      "rationale": "[Qwen3.8-max] RNVDAUSDT is only +0.42% while the blended synthetic fair-value proxy is +2.94%, producing a -2.52% spread, with the futures proxy especially strong at +5.38%. This points to possible undervaluation during the closed-market window, but absent external confirmation I would keep sizing conservative."
+    },
+    {
+      "timestamp": "2026-09-23T01:35:01.059518+00:00",
+      "symbol": "RMSFTUSDT",
+      "side": "buy",
+      "qty": 0.4947,
+      "price": 499.6,
+      "notional_usd": 247.15212,
+      "rationale": "[Qwen3.8-max] RMSFTUSDT is down 0.30% while the blended overnight fair-value proxy is up 2.94%, creating a -3.24% spread that looks like possible undervaluation rather than tiny noise. The strong +5.38% futures proxy supports a positive risk-on backdrop, but because the token-specific cause of the lag is unknown, sizing is kept conservative."
+    },
+    {
+      "timestamp": "2026-09-23T01:35:21.559659+00:00",
+      "symbol": "RQQQUSDT",
+      "side": "buy",
+      "qty": 0.505,
+      "price": 747.98,
+      "notional_usd": 377.7299,
+      "rationale": "[Qwen3.8-max] RQQQUSDT is only up 0.56% while the blended synthetic fair-value proxy is up 2.94%, creating a -2.38% spread, largely driven by the strong 5.38% futures-proxy move. This suggests the rToken may be lagging fair value during the closed-market window, but because the fair value is proxy-based and may not fully capture token-specific or liquidity risk, the position should be modest."
+    },
+    {
+      "timestamp": "2026-09-23T01:35:31.758789+00:00",
+      "symbol": "RSPYUSDT",
+      "side": "buy",
+      "qty": 0.6461,
+      "price": 773.89,
+      "notional_usd": 500.010329,
+      "rationale": "[Qwen3.8-max] RSPYUSDT is flat at +0.03% while the blended overnight fair-value proxy is +1.32%, creating a -1.29% discount driven mainly by the +2.14% futures proxy. This looks like a plausible catch-up mispricing during the closed-market window, but the size is kept moderate because the proxy is synthetic and the rToken may reflect liquidity or stale-quote effects."
     }
   ],
   "equity_at_day_start_usd": 98228.94175099995,
