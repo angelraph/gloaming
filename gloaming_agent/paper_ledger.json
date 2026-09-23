@@ -1,8 +1,8 @@
 {
-  "cash_usd": 51476.10975900007,
+  "cash_usd": 51126.78213100007,
   "positions": {
-    "RGOOGLUSDT": -10.711299999999985,
-    "RAMZNUSDT": -10.904800000000003,
+    "RGOOGLUSDT": -10.256599999999985,
+    "RAMZNUSDT": -10.165300000000004,
     "RMSFTUSDT": 2.7941999999999974,
     "RSPYUSDT": 11.0268,
     "RQQQUSDT": 11.331199999999999,
@@ -4799,6 +4799,24 @@
       "price": 352.25,
       "notional_usd": 243.862675,
       "rationale": "[Qwen3.8-max] RGOOGLUSDT is down -1.69% while the blended overnight fair-value proxy is up +2.00%, creating a -3.69% spread that looks like potential undervaluation. The signal is mainly driven by the strong +4.06% futures proxy while crypto beta and FX sentiment are nearly flat, so I size conservatively in case the gap reflects missing context rather than pure mispricing."
+    },
+    {
+      "timestamp": "2026-09-23T09:47:44.625402+00:00",
+      "symbol": "RAMZNUSDT",
+      "side": "buy",
+      "qty": 0.7395,
+      "price": 255.8,
+      "notional_usd": 189.16410000000002,
+      "rationale": "[Qwen3.8-max] RAMZNUSDT is down 1.73% while the blended overnight fair-value proxy is up 1.97%, creating a -3.70% spread that looks like a possible closed-market dislocation. However, the futures proxy's +4.09% move may not be fully stock-specific, so I size conservatively in case the discount reflects unavailable company-specific news."
+    },
+    {
+      "timestamp": "2026-09-23T09:48:32.536856+00:00",
+      "symbol": "RGOOGLUSDT",
+      "side": "buy",
+      "qty": 0.4547,
+      "price": 352.24,
+      "notional_usd": 160.163528,
+      "rationale": "[Qwen3.8-max] RGOOGLUSDT fell 1.78% while the blended overnight fair-value proxy rose 1.97%, creating a -3.75% spread that suggests the rToken is trading below its synthetic fair value. The positive futures proxy (+4.09%) supports a modest convergence trade, but because I cannot verify whether the lag reflects company-specific news, sizing is conservative."
     }
   ],
   "equity_at_day_start_usd": 98228.94175099995,
