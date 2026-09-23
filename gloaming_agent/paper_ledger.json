@@ -1,15 +1,15 @@
 {
-  "cash_usd": 64993.54228200004,
+  "cash_usd": 62372.03418300005,
   "positions": {
-    "RGOOGLUSDT": -18.98799999999999,
-    "RAMZNUSDT": -23.408800000000003,
-    "RMSFTUSDT": 0.7284999999999978,
-    "RSPYUSDT": 9.707,
-    "RQQQUSDT": 9.8727,
-    "RMETAUSDT": 11.041299999999996,
-    "RNVDAUSDT": 48.0966,
-    "RTSLAUSDT": 28.9246,
-    "RAAPLUSDT": 1.4822
+    "RGOOGLUSDT": -18.426099999999987,
+    "RAMZNUSDT": -22.601000000000003,
+    "RMSFTUSDT": 1.3607999999999978,
+    "RSPYUSDT": 10.1158,
+    "RQQQUSDT": 10.2957,
+    "RMETAUSDT": 11.468999999999996,
+    "RNVDAUSDT": 49.4791,
+    "RTSLAUSDT": 29.759800000000002,
+    "RAAPLUSDT": 2.4119
   },
   "fills": [
     {
@@ -4322,6 +4322,87 @@
       "price": 352.79,
       "notional_usd": 253.90296300000003,
       "rationale": "[Qwen3.8-max] RGOOGLUSDT is down 1.06% while the blended overnight fair-value proxy is up 2.49%, producing a -3.54% spread that looks like undervaluation rather than a tiny noise deviation. The futures proxy's strong +4.15% move supports a positive market backdrop, but I size conservatively because the token-specific reason for the lag is unknown."
+    },
+    {
+      "timestamp": "2026-09-23T06:32:26.707049+00:00",
+      "symbol": "RAAPLUSDT",
+      "side": "buy",
+      "qty": 0.9297,
+      "price": 340.6,
+      "notional_usd": 316.65582,
+      "rationale": "[Qwen3.8-max] RAAPLUSDT is up only 0.34% while the blended overnight fair-value proxy is up 2.42%, leaving a -2.08% discount to synthetic fair value. Positive futures (+4.18%) and crypto-beta (+1.11%) signals support a modest convergence trade, but proxy-model risk and closed-market liquidity justify a conservative size."
+    },
+    {
+      "timestamp": "2026-09-23T06:32:40.294491+00:00",
+      "symbol": "RAMZNUSDT",
+      "side": "buy",
+      "qty": 0.8078,
+      "price": 255.97,
+      "notional_usd": 206.77256599999998,
+      "rationale": "[Qwen3.8-max] RAMZNUSDT fell 1.45% while the blended overnight fair-value proxy rose 2.42%, creating a -3.87% spread that looks large enough to be a potential dislocation rather than pure noise. The positive futures proxy (+4.18%) supports a corrective buy, but because I cannot rule out an rToken-specific or corporate-news cause, I size conservatively."
+    },
+    {
+      "timestamp": "2026-09-23T06:32:53.141209+00:00",
+      "symbol": "RMETAUSDT",
+      "side": "buy",
+      "qty": 0.4277,
+      "price": 740.41,
+      "notional_usd": 316.673357,
+      "rationale": "[Qwen3.8-max] RMETAUSDT fell -0.58% while the blended overnight fair-value proxy rose +2.42%, creating a -3.00% spread that looks like a meaningful but not extreme dislocation. Strong futures proxy strength (+4.18%) supports a rebound trade, but sizing is kept conservative because I cannot verify whether the lag reflects stock-specific news."
+    },
+    {
+      "timestamp": "2026-09-23T06:33:29.506098+00:00",
+      "symbol": "RTSLAUSDT",
+      "side": "buy",
+      "qty": 0.8352,
+      "price": 379.14,
+      "notional_usd": 316.657728,
+      "rationale": "[Qwen3.8-max] RTSLAUSDT is up only 0.96% while the blended overnight fair-value proxy is up 2.42%, leaving a -1.46% spread that suggests mild underpricing. The signal is supported by the strong 4.18% futures proxy but tempered by the non-specific proxy blend, so a small buy with a 2% stop is appropriate."
+    },
+    {
+      "timestamp": "2026-09-23T06:33:46.871938+00:00",
+      "symbol": "RGOOGLUSDT",
+      "side": "buy",
+      "qty": 0.5619,
+      "price": 352.8,
+      "notional_usd": 198.23832,
+      "rationale": "[Qwen3.8-max] RGOOGLUSDT is down 1.11% while the blended overnight fair-value proxy is up 2.42%, creating a -3.53% spread that suggests the rToken is lagging a positive risk backdrop. The +4.18% futures proxy supports a convergence trade, but sizing is conservative because the move could reflect unobserved GOOGL-specific news."
+    },
+    {
+      "timestamp": "2026-09-23T06:34:02.800243+00:00",
+      "symbol": "RNVDAUSDT",
+      "side": "buy",
+      "qty": 1.3825,
+      "price": 229.03,
+      "notional_usd": 316.633975,
+      "rationale": "[Qwen3.8-max] RNVDAUSDT is up only 1.22% while the blended overnight fair-value proxy is up 2.42%, creating a -1.20% spread, with the futures proxy especially strong at +4.18%. This suggests possible undervaluation and convergence potential, but the edge is modest and model-dependent, so a conservative size is appropriate."
+    },
+    {
+      "timestamp": "2026-09-23T06:34:16.977616+00:00",
+      "symbol": "RMSFTUSDT",
+      "side": "buy",
+      "qty": 0.6323,
+      "price": 500.75,
+      "notional_usd": 316.62422499999997,
+      "rationale": "[Qwen3.8-max] RMSFTUSDT is down -0.53% while the blended overnight fair-value proxy is up +2.42%, creating a -2.94% spread that looks like lagging price rather than fundamental weakness, especially with the futures proxy up +4.18%. I size moderately because the divergence is meaningful but I cannot rule out token-specific or earnings-related information not visible in the snapshot."
+    },
+    {
+      "timestamp": "2026-09-23T06:34:31.687093+00:00",
+      "symbol": "RQQQUSDT",
+      "side": "buy",
+      "qty": 0.423,
+      "price": 748.54,
+      "notional_usd": 316.63241999999997,
+      "rationale": "[Qwen3.8-max] RQQQUSDT is up only 0.95% versus a blended synthetic fair-value return of 2.42%, leaving a -1.46% discount while the futures proxy is strongly positive at 4.18%. That suggests possible underreaction, but the spread is modest and could reflect liquidity or unknown news, so a small conservative buy is appropriate."
+    },
+    {
+      "timestamp": "2026-09-23T06:34:44.631158+00:00",
+      "symbol": "RSPYUSDT",
+      "side": "buy",
+      "qty": 0.4088,
+      "price": 774.51,
+      "notional_usd": 316.619688,
+      "rationale": "[Qwen3.8-max] RSPYUSDT returned only 0.07% while the blended overnight fair-value proxy rose 1.09%, leaving a -1.02% spread that suggests the rToken is lagging stronger futures and crypto-beta signals. The edge is modest and model-dependent, so a small buy with a tight 2% stop is appropriate."
     }
   ],
   "equity_at_day_start_usd": 98228.94175099995,
