@@ -1,15 +1,15 @@
 {
-  "cash_usd": 42958.5028780001,
+  "cash_usd": 41270.7471590001,
   "positions": {
-    "RGOOGLUSDT": -4.216999999999985,
-    "RAMZNUSDT": -1.2205000000000044,
-    "RMSFTUSDT": 3.9283999999999977,
-    "RSPYUSDT": 11.4597,
-    "RQQQUSDT": 12.093799999999998,
-    "RMETAUSDT": 13.135299999999996,
-    "RNVDAUSDT": 55.131,
-    "RTSLAUSDT": 33.431000000000004,
-    "RAAPLUSDT": 6.3521
+    "RGOOGLUSDT": -3.4515999999999853,
+    "RAMZNUSDT": -0.2765000000000044,
+    "RMSFTUSDT": 4.263399999999998,
+    "RSPYUSDT": 11.6778,
+    "RQQQUSDT": 12.319799999999999,
+    "RMETAUSDT": 13.363999999999995,
+    "RNVDAUSDT": 55.8713,
+    "RTSLAUSDT": 33.876200000000004,
+    "RAAPLUSDT": 6.8465
   },
   "fills": [
     {
@@ -5150,6 +5150,87 @@
       "price": 350.92,
       "notional_usd": 205.32329199999998,
       "rationale": "[Qwen3.8-max] RGOOGLUSDT is down 1.64% while the blended overnight fair-value proxy is up 1.77%, creating a -3.41% spread that looks like underpricing, supported by the strong +3.82% futures signal. However, because I cannot confirm whether GOOGL-specific news is driving the divergence, I size conservatively."
+    },
+    {
+      "timestamp": "2026-09-23T12:17:31.791643+00:00",
+      "symbol": "RAAPLUSDT",
+      "side": "buy",
+      "qty": 0.4944,
+      "price": 340.65,
+      "notional_usd": 168.41736,
+      "rationale": "[Qwen3.8-max] RAAPLUSDT returned only 0.23% versus a blended synthetic fair-value return of 1.75%, leaving a -1.52% discount that looks like mild overnight underpricing. The strong +3.80% futures proxy supports upside, but weak crypto beta (-0.48%) and closed-market convergence risk justify a modest size."
+    },
+    {
+      "timestamp": "2026-09-23T12:17:47.365732+00:00",
+      "symbol": "RAMZNUSDT",
+      "side": "buy",
+      "qty": 0.944,
+      "price": 254.83,
+      "notional_usd": 240.55952,
+      "rationale": "[Qwen3.8-max] RAMZNUSDT is down 1.57% while the blended overnight fair-value proxy is up 1.75%, producing a -3.33% actual-versus-fair spread that looks like a discount rather than normal drift. The strong +3.80% futures proxy supports a mean-reversion buy, but possible unobserved token- or company-specific news argues for a modest size and a 3% stop."
+    },
+    {
+      "timestamp": "2026-09-23T12:17:59.718911+00:00",
+      "symbol": "RMETAUSDT",
+      "side": "buy",
+      "qty": 0.2287,
+      "price": 736.3,
+      "notional_usd": 168.39181,
+      "rationale": "[Qwen3.8-max] RMETAUSDT is flat at -0.05% while the blended overnight fair-value proxy is +1.75%, creating a -1.81% lag that looks like a modest underpricing rather than a large dislocation. The +3.80% futures proxy supports convergence, but the -0.48% crypto-beta signal and lack of company-specific context justify a conservative size."
+    },
+    {
+      "timestamp": "2026-09-23T12:18:15.286519+00:00",
+      "symbol": "RTSLAUSDT",
+      "side": "buy",
+      "qty": 0.4452,
+      "price": 378.25,
+      "notional_usd": 168.3969,
+      "rationale": "[Qwen3.8-max] RTSLAUSDT is up only 0.39% while the blended overnight fair-value proxy is up 1.75%, leaving a -1.37% lag that suggests mild undervaluation. The strong futures proxy return of 3.80% supports a catch-up trade, but weak crypto beta (-0.48%) and the modest spread argue for a small, conservative position."
+    },
+    {
+      "timestamp": "2026-09-23T12:18:32.695330+00:00",
+      "symbol": "RGOOGLUSDT",
+      "side": "buy",
+      "qty": 0.7654,
+      "price": 350.6,
+      "notional_usd": 268.34924,
+      "rationale": "[Qwen3.8-max] RGOOGLUSDT is down 1.60% while the blended synthetic fair-value proxy is up 1.75%, producing a -3.35% actual-versus-fair spread. The strong +3.80% futures proxy supports a possible undervaluation, but because crypto beta is slightly negative and external context is unavailable, sizing is conservative."
+    },
+    {
+      "timestamp": "2026-09-23T12:18:47.325330+00:00",
+      "symbol": "RNVDAUSDT",
+      "side": "buy",
+      "qty": 0.7403,
+      "price": 227.49,
+      "notional_usd": 168.410847,
+      "rationale": "[Qwen3.8-max] RNVDAUSDT is up only 0.32% while the blended overnight fair-value proxy is +1.75%, leaving a -1.43% discount driven mainly by the strong +3.80% futures signal. That is a modest but potentially actionable lag, though the slightly negative crypto beta (-0.48%) and lack of event context justify a small position and a 2.5% stop."
+    },
+    {
+      "timestamp": "2026-09-23T12:19:04.934048+00:00",
+      "symbol": "RMSFTUSDT",
+      "side": "buy",
+      "qty": 0.335,
+      "price": 502.67,
+      "notional_usd": 168.39445,
+      "rationale": "[Qwen3.8-max] RMSFTUSDT fell -1.00% while the blended synthetic fair-value return was +1.75%, leaving a -2.75% spread that looks like a discount rather than a tiny noise level. The strong +3.80% futures proxy supports the possibility of convergence, but possible MSFT-specific factors I cannot verify justify a conservative size."
+    },
+    {
+      "timestamp": "2026-09-23T12:19:23.313301+00:00",
+      "symbol": "RQQQUSDT",
+      "side": "buy",
+      "qty": 0.226,
+      "price": 745.1,
+      "notional_usd": 168.39260000000002,
+      "rationale": "[Qwen3.8-max] RQQQUSDT returned only 0.59% versus a blended synthetic fair-value return of 1.75%, leaving a -1.16% discount that looks modestly actionable, especially with the futures proxy up 3.80%. However, negative crypto beta at -0.48% and the small spread argue for a conservative position rather than high conviction."
+    },
+    {
+      "timestamp": "2026-09-23T12:20:02.062655+00:00",
+      "symbol": "RSPYUSDT",
+      "side": "buy",
+      "qty": 0.2181,
+      "price": 772.32,
+      "notional_usd": 168.442992,
+      "rationale": "[Qwen3.8-max] RSPYUSDT is down -0.21% while the blended overnight fair-value proxy is up +0.51%, creating a -0.72% spread that suggests mild undervaluation. The positive futures signal (+1.31%) supports a reversion trade, but the negative crypto beta (-0.48%) and modest spread magnitude justify only a small, low-conviction position."
     }
   ],
   "equity_at_day_start_usd": 98228.94175099995,
