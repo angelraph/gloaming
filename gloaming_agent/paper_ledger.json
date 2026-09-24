@@ -1,5 +1,5 @@
 {
-  "cash_usd": 58729.07619100009,
+  "cash_usd": 59729.071481000086,
   "positions": {
     "RGOOGLUSDT": 0.2349000000000147,
     "RMSFTUSDT": 0.4371999999999985,
@@ -7,7 +7,7 @@
     "RQQQUSDT": 12.5696,
     "RMETAUSDT": 8.013199999999996,
     "RNVDAUSDT": 48.436099999999996,
-    "RTSLAUSDT": 7.60620000000001,
+    "RTSLAUSDT": 4.95320000000001,
     "RAAPLUSDT": 1.1592999999999996,
     "RAMZNUSDT": 0.7372000000000001
   },
@@ -5609,10 +5609,19 @@
       "price": 376.28,
       "notional_usd": 1000.001728,
       "rationale": "[Qwen3.8-max] The -0.27% spread is too small to be a compelling standalone buy signal, especially with the book already long +40.7% net versus the 25% cap and risk approving only sells for this symbol. Selling $1,000 reduces the over-cap net exposure while only modestly trimming the $3,862 RTSLAUSDT long, and continues the recent de-risking sequence of $1,000 sells."
+    },
+    {
+      "timestamp": "2026-09-24T12:20:45.440259+00:00",
+      "symbol": "RTSLAUSDT",
+      "side": "sell",
+      "qty": 2.653,
+      "price": 376.93,
+      "notional_usd": 999.9952900000001,
+      "rationale": "[Qwen3.8-max] The -0.29% spread versus the -0.06% blended fair-value return is too small to be a compelling standalone buy signal, while the book is materially over its net cap at +39.7% versus the 25% limit. The risk layer currently approves only sells in RTSLAUSDT (buy $0, sell up to $14,609), and after the existing $2,867 long and recent $1,000 sells, another $1,000 sell helps reduce net exposure without chasing a weak edge."
     }
   ],
   "equity_at_day_start_usd": 97833.22629900009,
   "day_start_date": "2026-09-24",
-  "net_over_cap_cycles": 1,
+  "net_over_cap_cycles": 2,
   "net_over_cap_baseline_usd": 14250.182132749978
 }
