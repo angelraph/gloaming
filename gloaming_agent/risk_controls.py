@@ -10,6 +10,10 @@ fully flattening it, since a cap that can never let the book de-risk itself once
 it is already at cap would be a bug, not a safety feature. A trade that adds
 exposure (opens new, or grows an existing position further) is still capped
 exactly as before. See evaluate_decision()'s de-risk exemption for the mechanics.
+
+A separate net directional cap (max_net_notional_pct, 25% of equity) bounds how
+one-sided the whole book can be, since the gross caps alone allow a full-size
+bet in a single direction. It limits new exposure only; it never forces a trade.
 """
 from __future__ import annotations
 
@@ -20,6 +24,7 @@ from dataclasses import dataclass, field
 class RiskConfig:
     max_position_notional_pct: float = 0.15   # cap per-symbol notional as % of equity
     max_aggregate_notional_pct: float = 0.60   # cap total book notional as % of equity
+    max_net_notional_pct: float = 0.25         # cap |net long minus net short| as % of equity
     max_trade_loss_pct: float = 0.02           # reject if stop-loss-implied loss > this % of equity
     max_daily_loss_pct: float = 0.05           # halt new positions once daily loss crosses this
     vol_scaling_reference: float = 0.02         # "typical" daily vol; sizing scales down above this
@@ -173,6 +178,27 @@ def evaluate_decision(
         at_risk_notional = room_left_aggregate
 
     notional = reducing_notional + at_risk_notional
+
+    # --- Control: net directional exposure cap (applies to the whole trade). ---
+    # The gross caps above allow a full-size one-way bet: confirmed live Sept 23-24,
+    # the book went from about 60% net short to about 60% net long, all inside
+    # every gross cap. This bounds |net long minus net short|. A trade pushing net
+    # further from zero gets only the room left under the cap. A trade toward zero
+    # is allowed up to fully flattening net, plus at most the cap on the other
+    # side. Unlike the per-symbol/aggregate exemption, this is checked against the
+    # whole trade, because it constrains the book's direction, not one symbol.
+    net_now = sum(state.positions_notional_usd.values())
+    max_net = config.max_net_notional_pct * state.equity_usd
+    same_direction = net_now == 0.0 or (net_now > 0) == (decision_sign > 0)
+    net_allowed = max(max_net - abs(net_now), 0.0) if same_direction else abs(net_now) + max_net
+    if notional > net_allowed:
+        reasons.append(
+            f"resized from {notional:.2f} to {net_allowed:.2f} to respect net directional "
+            f"cap ({config.max_net_notional_pct:.0%} of equity; book net is {net_now:.2f})"
+        )
+        notional = net_allowed
+        reducing_notional = min(reducing_notional, notional)
+
     if reducing_notional > 0:
         reasons.append(
             f"{reducing_notional:.2f} of this trade reduces the existing {decision.symbol} "
@@ -180,7 +206,7 @@ def evaluate_decision(
         )
 
     if notional <= 0:
-        reasons.append("resized to zero by position/aggregate caps - effectively rejected")
+        reasons.append("resized to zero by position/aggregate/net caps - effectively rejected")
         return RiskResult(False, 0.0, reasons)
 
     if not reasons:

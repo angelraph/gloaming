@@ -86,8 +86,10 @@ def test_per_symbol_position_cap_rejects_when_already_full():
 
 
 def test_aggregate_book_cap_resizes_down_across_symbols():
-    # aggregate cap is 60% of 10,000 = 6,000; already holding 5,900 across other symbols
-    state = _state(equity=10_000.0, positions={"RTSLAUSDT": 3_000.0, "RNVDAUSDT": 2_900.0})
+    # aggregate cap is 60% of 10,000 = 6,000; already holding 5,900 gross across other
+    # symbols. Mixed-sign so the net directional cap (tested separately below) is not
+    # what binds here: net is only 100.
+    state = _state(equity=10_000.0, positions={"RTSLAUSDT": 3_000.0, "RNVDAUSDT": -2_900.0})
     decision = TradeDecision("RAAPLUSDT", "buy", notional_usd=1_000.0, rationale="test", stop_loss_pct=0.01)
     result = evaluate_decision(decision, state, recent_volatility=0.01)
     assert result.approved
@@ -177,3 +179,67 @@ def test_daily_circuit_breaker_rejects_outright_when_theres_nothing_to_derisk():
     assert not result.approved
     assert result.adjusted_notional_usd == 0.0
     assert "circuit breaker" in result.reasons[0]
+
+
+# --- Net directional exposure cap (25% of equity) ---
+
+def test_net_cap_rejects_a_buy_when_the_book_is_already_net_long_at_the_cap():
+    # net long 2,500 = exactly 25% of 10,000, gross well under every gross cap
+    state = _state(equity=10_000.0, positions={"RTSLAUSDT": 1_300.0, "RNVDAUSDT": 1_200.0})
+    decision = TradeDecision("RAAPLUSDT", "buy", notional_usd=300.0, rationale="test", stop_loss_pct=0.01)
+    result = evaluate_decision(decision, state, recent_volatility=0.01)
+    assert not result.approved
+    assert result.adjusted_notional_usd == 0.0
+
+
+def test_net_cap_resizes_a_buy_to_the_room_left_under_the_cap():
+    state = _state(equity=10_000.0, positions={"RTSLAUSDT": 1_500.0, "RNVDAUSDT": 800.0})  # net 2,300
+    decision = TradeDecision("RAAPLUSDT", "buy", notional_usd=500.0, rationale="test", stop_loss_pct=0.01)
+    result = evaluate_decision(decision, state, recent_volatility=0.01)
+    assert result.approved
+    assert result.adjusted_notional_usd == pytest.approx(200.0)  # 2,500 - 2,300
+
+
+def test_net_cap_applies_the_same_way_on_the_short_side():
+    state = _state(equity=10_000.0, positions={"RTSLAUSDT": -1_300.0, "RNVDAUSDT": -1_200.0})  # net -2,500
+    decision = TradeDecision("RAAPLUSDT", "sell", notional_usd=300.0, rationale="test", stop_loss_pct=0.01)
+    result = evaluate_decision(decision, state, recent_volatility=0.01)
+    assert not result.approved
+
+
+def test_net_cap_lets_a_trade_that_reduces_net_exposure_through_even_when_over_the_cap():
+    # net long 5,600 = 56% of equity, far over the 25% net cap. A sell that trims
+    # a long must still go through - the cap limits new exposure, it never traps the book.
+    state = _state(equity=10_000.0, positions={"A": 1_400.0, "B": 1_400.0, "C": 1_400.0, "D": 1_400.0})
+    decision = TradeDecision("A", "sell", notional_usd=300.0, rationale="test", stop_loss_pct=0.01)
+    result = evaluate_decision(decision, state, recent_volatility=0.01)
+    assert result.approved
+    assert result.adjusted_notional_usd == pytest.approx(300.0)
+
+
+def test_net_cap_lets_a_new_short_through_when_the_book_is_net_long():
+    # opening a short in a fresh symbol reduces net long exposure - allowed
+    state = _state(equity=10_000.0, positions={"A": 1_400.0, "B": 1_400.0, "C": 1_400.0, "D": 1_400.0})
+    decision = TradeDecision("E", "sell", notional_usd=300.0, rationale="test", stop_loss_pct=0.01)
+    result = evaluate_decision(decision, state, recent_volatility=0.01)
+    assert result.approved
+    assert result.adjusted_notional_usd == pytest.approx(300.0)
+
+
+def test_net_cap_limits_how_far_a_single_trade_can_flip_the_book_past_zero():
+    config = RiskConfig(max_net_notional_pct=0.05)  # 500 on 10,000 equity
+    state = _state(equity=10_000.0, positions={"A": 300.0})  # net +300
+    decision = TradeDecision("A", "sell", notional_usd=1_000.0, rationale="test", stop_loss_pct=0.01)
+    result = evaluate_decision(decision, state, recent_volatility=0.01, config=config)
+    assert result.approved
+    # 300 flattens net, then at most 500 the other way
+    assert result.adjusted_notional_usd == pytest.approx(800.0)
+
+
+def test_net_cap_does_not_touch_a_balanced_book():
+    # long 1,400 / short 1,400: gross 2,800, net 0 - room for a full-size trade
+    state = _state(equity=10_000.0, positions={"A": 1_400.0, "B": -1_400.0})
+    decision = TradeDecision("C", "buy", notional_usd=500.0, rationale="test", stop_loss_pct=0.01)
+    result = evaluate_decision(decision, state, recent_volatility=0.01)
+    assert result.approved
+    assert result.adjusted_notional_usd == pytest.approx(500.0)

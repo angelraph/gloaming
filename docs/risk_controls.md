@@ -41,6 +41,16 @@ isn't, or a call fails, never a second vote alongside it.
 8. **Withdrawal-disabled account** - the Bitget Agentic Account used for account
    reads (`execution.py`) has withdrawal permissions disabled at the account level,
    independent of anything in this repo.
+9. **Net directional exposure cap** - |net long minus net short| across the whole
+   book is capped at 25% of equity, in addition to the gross caps in control #1.
+   Added Sept 24 after live operation showed the gross caps alone allow a
+   full-size one-way bet: the book went from about 60% net short to about 60% net
+   long (concentrated in the most volatile names) while every gross cap was
+   respected. A trade that pushes net further from zero gets only the room left
+   under the cap. A trade toward zero is always allowed, up to fully flattening
+   net plus at most the cap on the other side. This cap only limits new exposure;
+   it never forces a trade, so a book already over it stays put until a
+   net-reducing decision arrives.
 
 ## Test coverage
 
