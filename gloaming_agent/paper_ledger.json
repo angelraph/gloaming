@@ -1,11 +1,11 @@
 {
-  "cash_usd": 73334.8250150001,
+  "cash_usd": 73341.7313260001,
   "positions": {
     "RGOOGLUSDT": 0.2349000000000147,
     "RMSFTUSDT": 0.5110999999999986,
     "RSPYUSDT": 9.187,
     "RQQQUSDT": 9.175999999999998,
-    "RMETAUSDT": 1.7339999999999953,
+    "RMETAUSDT": 1.7250999999999954,
     "RNVDAUSDT": 37.5535,
     "RTSLAUSDT": 0.6080000000000095,
     "RAAPLUSDT": 0.7857999999999994,
@@ -6005,6 +6005,15 @@
       "price": 335.91,
       "notional_usd": 349.98462900000004,
       "rationale": "[Qwen3.8-max] The rToken is trading at a -1.40% spread to the +1.04% blended synthetic fair value, driven largely by the futures proxy's +2.32% return while RAAPL only moved -0.36%, suggesting it is underpriced overnight. Buying $350 covers the existing $86 short and adds modest long exposure, which is appropriate because book net is already +24.6% of equity against a 25% cap, leaving almost no room to increase directional risk. I have already bought three times in the last two hours ($482, $68, $350), so I am keeping this fill small and capping it at $350 rather than chasing the full $1,000 limit."
+    },
+    {
+      "timestamp": "2026-09-24T23:32:24.642436+00:00",
+      "symbol": "RMETAUSDT",
+      "side": "sell",
+      "qty": 0.0089,
+      "price": 775.99,
+      "notional_usd": 6.906311,
+      "rationale": "[Qwen3.8-max] RMETA is up 5.53% versus a blended synthetic fair-value return of only 1.18%, creating a +4.34% spread that indicates the rToken is overextended relative to overnight proxies. The book's net exposure is already at +25.0% of equity, exactly hitting the net cap, so adding long exposure is prohibited and reducing net is the priority; my recent sells ($366, $356, $366) correctly lean into this. I propose selling the maximum $15 the risk layer would approve to trim the position and capture the mean-reversion edge without violating constraints."
     }
   ],
   "equity_at_day_start_usd": 97833.22629900009,
