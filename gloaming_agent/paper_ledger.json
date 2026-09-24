@@ -1,5 +1,5 @@
 {
-  "cash_usd": 47886.928396000076,
+  "cash_usd": 48886.917799000075,
   "positions": {
     "RGOOGLUSDT": 0.2349000000000147,
     "RMSFTUSDT": 0.4371999999999985,
@@ -8,7 +8,7 @@
     "RMETAUSDT": 12.132999999999996,
     "RNVDAUSDT": 56.6915,
     "RTSLAUSDT": 20.90430000000001,
-    "RAAPLUSDT": 4.1335999999999995,
+    "RAAPLUSDT": 1.1592999999999996,
     "RAMZNUSDT": 0.7372000000000001
   },
   "fills": [
@@ -5510,10 +5510,19 @@
       "price": 498.22,
       "notional_usd": 999.977362,
       "rationale": "[Qwen3.8-max] The -0.42% spread versus the -0.20% blended fair-value return suggests only mild cheapness, not a strong standalone buy edge. With book net exposure at +51.8% versus a 25% net cap and risk approval of $0 for buys but $9,177 for sells, reducing net exposure takes priority; selling $1,000 trims the existing $1,218 RMSFTUSDT long while respecting the $1,000 per-decision limit."
+    },
+    {
+      "timestamp": "2026-09-24T09:33:09.882335+00:00",
+      "symbol": "RAAPLUSDT",
+      "side": "sell",
+      "qty": 2.9743,
+      "price": 336.21,
+      "notional_usd": 999.9894029999999,
+      "rationale": "[Qwen3.8-max] The -0.98% spread suggests RAAPLUSDT is mildly cheap versus the -0.25% blended fair-value proxy, but the book is badly over its net cap at +50.8% versus a 25% cap, and the risk layer currently approves $0 buys and up to $10,361 sells. Selling $1,000 reduces the existing $1,390 long and helps bring net exposure down while leaving a small stub position in case the discount converges."
     }
   ],
   "equity_at_day_start_usd": 97833.22629900009,
   "day_start_date": "2026-09-24",
   "net_over_cap_cycles": 1,
-  "net_over_cap_baseline_usd": 25103.25846799998
+  "net_over_cap_baseline_usd": 24080.144393749983
 }
