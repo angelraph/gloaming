@@ -1,13 +1,13 @@
 {
-  "cash_usd": 53729.91631500008,
+  "cash_usd": 55729.93709500008,
   "positions": {
     "RGOOGLUSDT": 0.2349000000000147,
     "RMSFTUSDT": 0.4371999999999985,
     "RSPYUSDT": 11.801599999999999,
     "RQQQUSDT": 12.5696,
-    "RMETAUSDT": 10.751899999999996,
+    "RMETAUSDT": 9.381999999999996,
     "RNVDAUSDT": 52.9113,
-    "RTSLAUSDT": 12.91560000000001,
+    "RTSLAUSDT": 10.26380000000001,
     "RAAPLUSDT": 1.1592999999999996,
     "RAMZNUSDT": 0.7372000000000001
   },
@@ -5564,10 +5564,28 @@
       "price": 223.0,
       "notional_usd": 842.9846,
       "rationale": "[Qwen3.8-max] The -2.37% spread suggests RNVDAUSDT is modestly cheap versus the -0.29% synthetic fair-value return, but the book is +45.6% net long versus a 25% net cap and the risk layer approves $0 buys and only sells here. With an existing $12,642 long (13.0% of equity, near the 15% symbol cap), I sell the maximum allowed $1,000 to reduce net exposure despite the small apparent mispricing."
+    },
+    {
+      "timestamp": "2026-09-24T11:05:18.806628+00:00",
+      "symbol": "RMETAUSDT",
+      "side": "sell",
+      "qty": 1.3699,
+      "price": 730.0,
+      "notional_usd": 1000.0269999999999,
+      "rationale": "[Qwen3.8-max] The -1.55% spread suggests RMETA is slightly cheap versus the -0.11% synthetic fair-value return, but the book is materially over its net cap at +44.8% versus the 25% limit, and the risk layer currently approves only sells for this symbol. With an existing $7,849 long and recent $1,000 sells already indicating de-risking, a small $1,000 sell reduces net exposure while only modestly giving up the modest convergence edge."
+    },
+    {
+      "timestamp": "2026-09-24T11:05:44.042180+00:00",
+      "symbol": "RTSLAUSDT",
+      "side": "sell",
+      "qty": 2.6518,
+      "price": 377.1,
+      "notional_usd": 999.9937800000001,
+      "rationale": "[Qwen3.8-max] The -0.60% spread (-0.71% actual vs -0.11% fair value) is only a mild cheapness signal, but the book is materially over its net cap at +43.8% versus the 25% limit and the risk layer approves only sells here. Despite three recent $1,000 sells, net exposure is still excessive, so another $1,000 sell is a risk-management reduction rather than a high-conviction valuation trade."
     }
   ],
   "equity_at_day_start_usd": 97833.22629900009,
   "day_start_date": "2026-09-24",
-  "net_over_cap_cycles": 2,
-  "net_over_cap_baseline_usd": 19227.488660249983
+  "net_over_cap_cycles": 1,
+  "net_over_cap_baseline_usd": 17301.069953749982
 }
