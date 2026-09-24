@@ -1,5 +1,5 @@
 {
-  "cash_usd": 44886.93167400008,
+  "cash_usd": 45886.94143400008,
   "positions": {
     "RGOOGLUSDT": 0.2349000000000147,
     "RMSFTUSDT": 2.4442999999999984,
@@ -7,7 +7,7 @@
     "RQQQUSDT": 12.5696,
     "RMETAUSDT": 12.132999999999996,
     "RNVDAUSDT": 56.6915,
-    "RTSLAUSDT": 26.22690000000001,
+    "RTSLAUSDT": 23.56390000000001,
     "RAAPLUSDT": 4.1335999999999995,
     "RAMZNUSDT": 0.7372000000000001
   },
@@ -5483,10 +5483,19 @@
       "price": 497.64,
       "notional_usd": 1000.00758,
       "rationale": "[Qwen3.8-max] The -0.61% spread suggests RMSFTUSDT is only slightly cheap versus the -0.06% blended fair-value return, which is not a strong standalone buy edge. With the book net long +54.9% of equity versus a 25% net cap and risk approval showing buy $0 but sell up to $7,148, reducing the existing $2,216 long by $1,000 is more consistent with bringing net exposure back under the cap."
+    },
+    {
+      "timestamp": "2026-09-24T08:51:09.664089+00:00",
+      "symbol": "RTSLAUSDT",
+      "side": "sell",
+      "qty": 2.663,
+      "price": 375.52,
+      "notional_usd": 1000.0097599999999,
+      "rationale": "[Qwen3.8-max] The -1.02% spread suggests RTSLAUSDT is slightly cheap versus the -0.10% blended fair-value return, but the book is badly over the net cap at +53.9% versus a 25% cap, and the risk layer approves only sells here. Selling $1,000 continues the recent de-risking pattern while only modestly reducing a small 10.1% symbol position."
     }
   ],
   "equity_at_day_start_usd": 97833.22629900009,
   "day_start_date": "2026-09-24",
   "net_over_cap_cycles": 1,
-  "net_over_cap_baseline_usd": 28154.348876249984
+  "net_over_cap_baseline_usd": 27092.799722499985
 }
