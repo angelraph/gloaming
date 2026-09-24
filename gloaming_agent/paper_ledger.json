@@ -1,5 +1,5 @@
 {
-  "cash_usd": 48886.917799000075,
+  "cash_usd": 49886.90173300008,
   "positions": {
     "RGOOGLUSDT": 0.2349000000000147,
     "RMSFTUSDT": 0.4371999999999985,
@@ -7,7 +7,7 @@
     "RQQQUSDT": 12.5696,
     "RMETAUSDT": 12.132999999999996,
     "RNVDAUSDT": 56.6915,
-    "RTSLAUSDT": 20.90430000000001,
+    "RTSLAUSDT": 18.23490000000001,
     "RAAPLUSDT": 1.1592999999999996,
     "RAMZNUSDT": 0.7372000000000001
   },
@@ -5519,10 +5519,19 @@
       "price": 336.21,
       "notional_usd": 999.9894029999999,
       "rationale": "[Qwen3.8-max] The -0.98% spread suggests RAAPLUSDT is mildly cheap versus the -0.25% blended fair-value proxy, but the book is badly over its net cap at +50.8% versus a 25% cap, and the risk layer currently approves $0 buys and up to $10,361 sells. Selling $1,000 reduces the existing $1,390 long and helps bring net exposure down while leaving a small stub position in case the discount converges."
+    },
+    {
+      "timestamp": "2026-09-24T09:51:18.765509+00:00",
+      "symbol": "RTSLAUSDT",
+      "side": "sell",
+      "qty": 2.6694,
+      "price": 374.61,
+      "notional_usd": 999.9839340000001,
+      "rationale": "[Qwen3.8-max] The -0.98% spread suggests RTSLAUSDT is only slightly cheap versus the -0.31% blended fair-value return, so this is not a strong symbol-specific sell signal. However, the book is badly over the net cap at +49.7% versus a 25% cap, and the risk layer approves only sells here, with buy capacity $0. A $1,000 sell reduces net exposure while staying within the per-decision limit, after prior $1,000 sells have not yet restored the cap."
     }
   ],
   "equity_at_day_start_usd": 97833.22629900009,
   "day_start_date": "2026-09-24",
   "net_over_cap_cycles": 1,
-  "net_over_cap_baseline_usd": 24080.144393749983
+  "net_over_cap_baseline_usd": 22995.547729999984
 }
