@@ -1,13 +1,13 @@
 {
-  "cash_usd": 51886.92791500008,
+  "cash_usd": 53729.91631500008,
   "positions": {
     "RGOOGLUSDT": 0.2349000000000147,
     "RMSFTUSDT": 0.4371999999999985,
     "RSPYUSDT": 11.801599999999999,
     "RQQQUSDT": 12.5696,
     "RMETAUSDT": 10.751899999999996,
-    "RNVDAUSDT": 56.6915,
-    "RTSLAUSDT": 15.57660000000001,
+    "RNVDAUSDT": 52.9113,
+    "RTSLAUSDT": 12.91560000000001,
     "RAAPLUSDT": 1.1592999999999996,
     "RAMZNUSDT": 0.7372000000000001
   },
@@ -5546,10 +5546,28 @@
       "price": 376.18,
       "notional_usd": 999.9992940000001,
       "rationale": "[Qwen3.8-max] The -0.81% spread suggests RTSLAUSDT is slightly cheap versus the -0.30% synthetic fair-value return, but that edge is modest and the book is badly over its net cap at +47.7% versus a 25% limit, with risk approval only for sells ($0 buy, $14,594 sell). Selling $1,000 reduces net long exposure while respecting the current long position of $6,860 and the recent $1,000 sells already made."
+    },
+    {
+      "timestamp": "2026-09-24T10:36:02.789092+00:00",
+      "symbol": "RTSLAUSDT",
+      "side": "sell",
+      "qty": 2.661,
+      "price": 375.8,
+      "notional_usd": 1000.0038000000001,
+      "rationale": "[Qwen3.8-max] The -0.84% spread suggests RTSLAUSDT is only modestly cheap versus the -0.29% blended fair-value return, which is not strong enough to justify adding risk while the book is +46.7% net long against a 25% net cap. With risk approval only for sells and three recent $1,000 sells already indicating reduction, selling another $1,000 helps move net exposure down without materially giving up a small edge."
+    },
+    {
+      "timestamp": "2026-09-24T10:37:32.053582+00:00",
+      "symbol": "RNVDAUSDT",
+      "side": "sell",
+      "qty": 3.7802,
+      "price": 223.0,
+      "notional_usd": 842.9846,
+      "rationale": "[Qwen3.8-max] The -2.37% spread suggests RNVDAUSDT is modestly cheap versus the -0.29% synthetic fair-value return, but the book is +45.6% net long versus a 25% net cap and the risk layer approves $0 buys and only sells here. With an existing $12,642 long (13.0% of equity, near the 15% symbol cap), I sell the maximum allowed $1,000 to reduce net exposure despite the small apparent mispricing."
     }
   ],
   "equity_at_day_start_usd": 97833.22629900009,
   "day_start_date": "2026-09-24",
   "net_over_cap_cycles": 1,
-  "net_over_cap_baseline_usd": 21084.545437249988
+  "net_over_cap_baseline_usd": 19227.488660249983
 }
