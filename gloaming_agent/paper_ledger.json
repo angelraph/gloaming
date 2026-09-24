@@ -1,11 +1,11 @@
 {
-  "cash_usd": 73314.18685900011,
+  "cash_usd": 73380.1411200001,
   "positions": {
     "RGOOGLUSDT": 0.2349000000000147,
-    "RMSFTUSDT": -0.09200000000000136,
+    "RMSFTUSDT": 0.5110999999999986,
     "RSPYUSDT": 9.187,
     "RQQQUSDT": 9.175999999999998,
-    "RMETAUSDT": 3.1360999999999954,
+    "RMETAUSDT": 2.664399999999995,
     "RNVDAUSDT": 37.5535,
     "RTSLAUSDT": 0.6080000000000095,
     "RAAPLUSDT": -1.4997000000000007,
@@ -5942,6 +5942,24 @@
       "price": 377.65,
       "notional_usd": 350.00602,
       "rationale": "[Qwen3.8-max] The -1.78% spread (rToken at -0.63% vs synthetic fair value +1.15%, driven by a +2.18% futures proxy) indicates RTSLA is cheap overnight, favoring a buy. Book net exposure is already +24.6% against a 25% cap, so adding long risk is constrained; I am sizing to the risk layer's $353 buy approval limit rather than pushing higher. Buying also trims my existing $120 short and aligns with my most recent $350 fill 0.2h ago, treating this as a measured continuation of the same mean-reversion thesis without overextending near the net cap."
+    },
+    {
+      "timestamp": "2026-09-24T21:02:22.609833+00:00",
+      "symbol": "RMETAUSDT",
+      "side": "sell",
+      "qty": 0.4717,
+      "price": 775.82,
+      "notional_usd": 365.954294,
+      "rationale": "[Qwen3.8-max] RMETA is up 4.02% versus a blended synthetic fair-value return of only 1.29%, creating a +2.73% spread that suggests the rToken is overpriced relative to live proxies. The book's net exposure is already at +25.0% of equity, exactly at the 25% net cap, and the risk layer permits $0 in buys but up to $14,663 in sells; selling reduces this overextended net long while capturing the mispricing. I propose a conservative $500 sell, consistent with my recent small trims (three sells totaling ~$1,041 in the last hour), rather than aggressively adding to an already maxed-out directional bet."
+    },
+    {
+      "timestamp": "2026-09-24T21:02:39.807767+00:00",
+      "symbol": "RMSFTUSDT",
+      "side": "buy",
+      "qty": 0.6031,
+      "price": 497.43,
+      "notional_usd": 300.000033,
+      "rationale": "[Qwen3.8-max] The -1.79% spread (rToken at -0.50% vs synthetic fair value +1.29%) suggests RMSFTUSDT is underpriced relative to overnight proxies, supporting a buy. However, book net exposure is already +24.6% of equity against a 25% cap, so adding long risk is heavily constrained; I am sizing conservatively at $300, within the risk layer's $366 buy approval. Recent fills show I sold $500 then bought back $453 in the last 8 hours, so I am keeping this incremental rather than chasing aggressively near the net cap."
     }
   ],
   "equity_at_day_start_usd": 97833.22629900009,
