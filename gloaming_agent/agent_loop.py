@@ -60,11 +60,14 @@ NYSE_TZ = ZoneInfo("America/New_York")
 SPREAD_THRESHOLD = 0.015  # 1.5% - crude Day 4 fixed threshold; Day 5's Qwen replaces this
 # Total wall-clock the LLM may use across one cycle's per-symbol decisions. The
 # scheduled workflow is killed at 10 minutes (.github/workflows/agent_loop.yml), and
-# a killed job loses that cycle's ledger commit. A Qwen call takes 17-36s, so a bad
-# Qwen day (every call hitting its timeout and retry, about a minute a symbol) could
-# otherwise push nine symbols past the limit. Once the budget is spent the remaining
-# symbols use the disclosed rule-based fallback, labeled as such in decision_source.
-LLM_CYCLE_BUDGET_S = 360.0
+# a killed job loses that cycle's ledger commit. With thinking off a call takes 5-8s
+# (nine symbols in about a minute); this is only a safety net for a bad Qwen day where
+# every call hits its timeout and retry (about a minute a symbol). Measured Sept 24:
+# a 360s cap left runs at 8.3-9.4 minutes of the 10 allowed, too close, so it is 240s
+# now: worst case is about 1.5 min of setup and data + 240s + one last call, roughly
+# 7 minutes. Once the budget is spent the remaining symbols use the disclosed
+# rule-based fallback, labeled as such in decision_source.
+LLM_CYCLE_BUDGET_S = 240.0
 
 
 def is_nyse_closed(now_utc: datetime | None = None) -> bool:

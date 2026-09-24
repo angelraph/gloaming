@@ -126,7 +126,12 @@ the caps, what the risk layer would approve right now, and its recent fills in t
 symbol, and the system prompt tells it that managing the book (for example, not
 treating nine correlated "cheap" signals as nine independent trades) is part of
 its job. That exact context is stored on each logged snapshot, so the decision
-log shows what Qwen saw when it decided.
+log shows what Qwen saw when it decided. The call is made with the model's
+thinking mode switched off (`enable_thinking: false`): with it on, a decision took
+17-77 seconds of hidden reasoning and, once the book-aware prompt shipped, the
+share of decisions Qwen actually made in production fell from 83% to about 14%
+because calls timed out. With it off a call takes 5-8 seconds, and the rationale
+still cites the book figures.
 
 It is never the last word: `gloaming_agent/risk_controls.py` is a **separate,
 deterministic, non-LLM** module that can reject or resize any decision
@@ -140,7 +145,7 @@ Those trades still pass through the same gate and ledger and are labeled
 `risk_backstop_trim (deterministic risk layer, not the LLM)` in `decision_source`
 (see docs/risk_controls.md, control #10). A fixed-threshold rule (`decide_rule_based()`)
 is the disclosed automatic fallback used only when Qwen is unconfigured or a
-call fails or times out (30s per call, one retry, and a 6-minute cap on total LLM
+call fails or times out (30s per call, one retry, and a 4-minute cap on total LLM
 time per cycle so a slow Qwen day cannot push the job past its 10-minute limit;
 symbols beyond the cap use the fallback and say so in `decision_source`) - never a
 parallel second opinion - and every logged decision
