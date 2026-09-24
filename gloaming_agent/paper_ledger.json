@@ -1,14 +1,14 @@
 {
-  "cash_usd": 73793.20420600011,
+  "cash_usd": 73314.18685900011,
   "positions": {
     "RGOOGLUSDT": 0.2349000000000147,
     "RMSFTUSDT": -0.09200000000000136,
     "RSPYUSDT": 9.187,
     "RQQQUSDT": 9.175999999999998,
-    "RMETAUSDT": 3.5904999999999956,
+    "RMETAUSDT": 3.1360999999999954,
     "RNVDAUSDT": 37.5535,
-    "RTSLAUSDT": -0.3187999999999904,
-    "RAAPLUSDT": -2.9338000000000006,
+    "RTSLAUSDT": 0.6080000000000095,
+    "RAAPLUSDT": -1.4997000000000007,
     "RAMZNUSDT": -0.0007999999999999119
   },
   "fills": [
@@ -5915,6 +5915,33 @@
       "price": 739.05,
       "notional_usd": 499.96732499999996,
       "rationale": "[Qwen3.8-max] The -1.39% spread (rToken at $739.05 vs +1.12% synthetic fair value) suggests RQQQUSDT is cheap, but the book's net exposure is +25.0% of equity, already over the 25% net cap, and the risk layer permits $0 in buys. Selling $500 aligns with my recent fills (three $500 sells in the last 7.5h) and helps bring net exposure back under the cap, which is the priority right now."
+    },
+    {
+      "timestamp": "2026-09-24T20:47:19.523917+00:00",
+      "symbol": "RAAPLUSDT",
+      "side": "buy",
+      "qty": 1.4341,
+      "price": 335.87,
+      "notional_usd": 481.67116699999997,
+      "rationale": "[Qwen3.8-max] RAAPL is trading at a -1.47% spread to its synthetic fair value (actual -0.32% vs blended +1.15%), driven largely by the futures proxy's +2.18% move, suggesting it is cheap overnight. Buying up to the risk layer's $482 cap reduces my existing $985 short and trims the book's net long exposure from +$23,956 (+24.5%) toward the +25% cap, which is prudent given recent sells in this symbol. I am sizing conservatively because the spread relies heavily on one proxy and I lack external context for why RAAPL lagged."
+    },
+    {
+      "timestamp": "2026-09-24T20:47:28.724992+00:00",
+      "symbol": "RMETAUSDT",
+      "side": "sell",
+      "qty": 0.4544,
+      "price": 776.1,
+      "notional_usd": 352.65984000000003,
+      "rationale": "[Qwen3.8-max] RMETA is trading at a +2.84% spread to its synthetic fair value (actual 3.99% vs blended 1.15%), indicating it is overpriced relative to overnight proxies, which supports selling. The book's net exposure is +25.0%, already over the 25% net cap, and the risk layer permits $0 in buys but up to $14,662 in sells; reducing this long position both captures the mispricing and helps bring net exposure back under the cap. I am sizing conservatively at $500 given recent sells ($629, $335, $353) to avoid chasing."
+    },
+    {
+      "timestamp": "2026-09-24T20:47:35.035331+00:00",
+      "symbol": "RTSLAUSDT",
+      "side": "buy",
+      "qty": 0.9268,
+      "price": 377.65,
+      "notional_usd": 350.00602,
+      "rationale": "[Qwen3.8-max] The -1.78% spread (rToken at -0.63% vs synthetic fair value +1.15%, driven by a +2.18% futures proxy) indicates RTSLA is cheap overnight, favoring a buy. Book net exposure is already +24.6% against a 25% cap, so adding long risk is constrained; I am sizing to the risk layer's $353 buy approval limit rather than pushing higher. Buying also trims my existing $120 short and aligns with my most recent $350 fill 0.2h ago, treating this as a measured continuation of the same mean-reversion thesis without overextending near the net cap."
     }
   ],
   "equity_at_day_start_usd": 97833.22629900009,
