@@ -1,14 +1,14 @@
 {
-  "cash_usd": 63338.12223700009,
+  "cash_usd": 67338.12343500007,
   "positions": {
     "RGOOGLUSDT": 0.2349000000000147,
-    "RMSFTUSDT": -0.0006000000000015437,
-    "RSPYUSDT": 11.147099999999998,
-    "RQQQUSDT": 11.888399999999999,
-    "RMETAUSDT": 6.644699999999996,
-    "RNVDAUSDT": 46.195299999999996,
-    "RTSLAUSDT": 3.6250000000000098,
-    "RAAPLUSDT": -0.000700000000000367,
+    "RMSFTUSDT": -1.0036000000000014,
+    "RSPYUSDT": 10.492899999999999,
+    "RQQQUSDT": 11.207899999999999,
+    "RMETAUSDT": 5.965899999999996,
+    "RNVDAUSDT": 43.9531,
+    "RTSLAUSDT": 2.29800000000001,
+    "RAAPLUSDT": -2.9692000000000007,
     "RAMZNUSDT": 0.7372000000000001
   },
   "fills": [
@@ -5681,10 +5681,73 @@
       "price": 763.97,
       "notional_usd": 500.018365,
       "rationale": "[Qwen3.8-max] The book is over its net exposure cap at +35.5% (cap 25%), and the risk layer permits $0 in buys but up to $14,605 in sells, so adding to this long is impossible. The -0.38% spread indicates RSPYUSDT is slightly cheap versus the -0.84% synthetic fair value, but reducing the oversized directional book takes priority; I propose a conservative $500 sell to trim the position without aggressively chasing a small mispricing. Recent fills were all buys ($335, $168, $96) that pushed us further over the net cap, reinforcing the need to reverse course."
+    },
+    {
+      "timestamp": "2026-09-24T13:02:15.467113+00:00",
+      "symbol": "RAAPLUSDT",
+      "side": "sell",
+      "qty": 2.9685,
+      "price": 336.87,
+      "notional_usd": 999.998595,
+      "rationale": "[Qwen3.8-max] The rToken is trading at a -1.95% spread to the blended synthetic fair value (+0.01%), driven by a -1.94% actual drop versus positive futures proxy (+1.47%), indicating it is overpriced relative to overnight signals. The book is already +35.0% net exposure, exceeding the 25% net cap, so selling reduces directional risk while capturing the spread; the risk layer permits up to $14,612 in sells and I have been selling this symbol recently ($1,000 at 4.7h, $1,000 at 3.5h, $391 at 0.2h ago), confirming the persistent mispricing. I propose a $1,000 sell with a 2% stop loss to manage risk while helping bring net exposure back under the cap."
+    },
+    {
+      "timestamp": "2026-09-24T13:02:25.199543+00:00",
+      "symbol": "RMETAUSDT",
+      "side": "sell",
+      "qty": 0.6788,
+      "price": 736.62,
+      "notional_usd": 500.017656,
+      "rationale": "[Qwen3.8-max] The -0.28% spread (rToken at $736.62 vs synthetic fair value +0.01%) is small, but the book is over its net cap at +34.0% (cap 25%), and the risk layer permits only sells up to $14,612 for this symbol. I have already sold $3,000 in the last two hours; continuing to trim with a smaller $500 notional reduces the overweight long position toward the cap without over-trading on a thin edge."
+    },
+    {
+      "timestamp": "2026-09-24T13:02:31.274763+00:00",
+      "symbol": "RTSLAUSDT",
+      "side": "sell",
+      "qty": 1.327,
+      "price": 376.78,
+      "notional_usd": 499.98705999999993,
+      "rationale": "[Qwen3.8-max] The -0.29% spread (rToken at $376.78 vs synthetic fair value +0.01%) indicates mild overpricing, but the primary driver is book management: net exposure is +33.4% of equity, exceeding the 25% net cap, and the risk layer permits only sells (up to $14,612). I am continuing to trim this long position with a conservative $500 sell, consistent with my recent fills ($1,000, $1,000, $500), to bring net exposure back under the cap without over-concentrating reductions in a single symbol."
+    },
+    {
+      "timestamp": "2026-09-24T13:02:41.325794+00:00",
+      "symbol": "RNVDAUSDT",
+      "side": "sell",
+      "qty": 2.2422,
+      "price": 223.0,
+      "notional_usd": 500.0106,
+      "rationale": "[Qwen3.8-max] The rToken is trading at a -1.98% spread to the blended synthetic fair value (+0.01%), but with book net exposure already at +32.9% (over the 25% cap) and an existing $10,302 long in RNVDA, selling is the only direction that reduces over-cap net exposure. I am sizing conservatively at $500, consistent with my recent sells ($843, $999, $500), because the negative crypto beta (-2.43%) dragging the spread may reflect genuine overnight risk rather than pure mispricing."
+    },
+    {
+      "timestamp": "2026-09-24T13:02:47.016399+00:00",
+      "symbol": "RMSFTUSDT",
+      "side": "sell",
+      "qty": 1.003,
+      "price": 498.51,
+      "notional_usd": 500.00552999999996,
+      "rationale": "[Qwen3.8-max] The rToken is trading at a -0.81% spread to the blended synthetic fair value (+0.01%), indicating mild overpricing, while the futures proxy is up +1.47% suggesting underlying strength that hasn't fully priced in yet. The book's net exposure is +32.4%, already over the 25% net cap, so selling reduces directional risk and aligns with my recent fills (sold $1,000 at 4.4h, $1,000 at 3.7h, $218 at 0.2h ago). I am sizing conservatively at $500 since the spread is modest and I want to avoid chasing repeated sells without fresh signal change."
+    },
+    {
+      "timestamp": "2026-09-24T13:02:52.174603+00:00",
+      "symbol": "RQQQUSDT",
+      "side": "sell",
+      "qty": 0.6805,
+      "price": 734.71,
+      "notional_usd": 499.97015500000003,
+      "rationale": "[Qwen3.8-max] The rToken is trading at a -1.49% spread to the blended synthetic fair value (+0.01%), suggesting it is cheap, but buying is prohibited because the book's net exposure is +31.9%, already over the 25% net cap, and the risk layer approves $0 for buys. Selling reduces the oversized long position (currently $8,735 / 9.0% of equity) toward compliance; I propose a $500 sell consistent with the recent $500 fill 0.2h ago, accepting the negative spread as the cost of bringing net exposure back under the cap."
+    },
+    {
+      "timestamp": "2026-09-24T13:02:57.622412+00:00",
+      "symbol": "RSPYUSDT",
+      "side": "sell",
+      "qty": 0.6542,
+      "price": 764.31,
+      "notional_usd": 500.011602,
+      "rationale": "[Qwen3.8-max] The -0.34% spread (rToken at $764.31 vs synthetic fair value) indicates mild overpricing, supporting a sell. More importantly, the book's net exposure is +31.4% ($30,577), exceeding the 25% net cap, and the risk layer permits zero additional buys but up to $14,612 in sells; reducing this long position (currently $8,520) directly helps bring net exposure back under the cap. I propose a $500 sell, consistent with the recent $500 fill 0.2h ago, prioritizing book-level risk management over the modest spread."
     }
   ],
   "equity_at_day_start_usd": 97833.22629900009,
   "day_start_date": "2026-09-24",
   "net_over_cap_cycles": 1,
-  "net_over_cap_baseline_usd": 9688.16406649998
+  "net_over_cap_baseline_usd": 5723.178673499984
 }
