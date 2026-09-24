@@ -1,13 +1,13 @@
 {
-  "cash_usd": 45886.94143400008,
+  "cash_usd": 47886.928396000076,
   "positions": {
     "RGOOGLUSDT": 0.2349000000000147,
-    "RMSFTUSDT": 2.4442999999999984,
+    "RMSFTUSDT": 0.4371999999999985,
     "RSPYUSDT": 11.801599999999999,
     "RQQQUSDT": 12.5696,
     "RMETAUSDT": 12.132999999999996,
     "RNVDAUSDT": 56.6915,
-    "RTSLAUSDT": 23.56390000000001,
+    "RTSLAUSDT": 20.90430000000001,
     "RAAPLUSDT": 4.1335999999999995,
     "RAMZNUSDT": 0.7372000000000001
   },
@@ -5492,10 +5492,28 @@
       "price": 375.52,
       "notional_usd": 1000.0097599999999,
       "rationale": "[Qwen3.8-max] The -1.02% spread suggests RTSLAUSDT is slightly cheap versus the -0.10% blended fair-value return, but the book is badly over the net cap at +53.9% versus a 25% cap, and the risk layer approves only sells here. Selling $1,000 continues the recent de-risking pattern while only modestly reducing a small 10.1% symbol position."
+    },
+    {
+      "timestamp": "2026-09-24T09:20:35.659018+00:00",
+      "symbol": "RTSLAUSDT",
+      "side": "sell",
+      "qty": 2.6596,
+      "price": 376.0,
+      "notional_usd": 1000.0096000000001,
+      "rationale": "[Qwen3.8-max] The -0.74% spread suggests only a modest cheapness edge versus the -0.20% blended fair-value return, while the book is badly over its net cap at +52.8% versus a 25% cap. With an existing $8,860 long (9.1% of equity) and recent repeated $1,000 sells, priority is reducing net exposure, so a small $1,000 sell is more appropriate than trying to buy the spread."
+    },
+    {
+      "timestamp": "2026-09-24T09:23:02.933373+00:00",
+      "symbol": "RMSFTUSDT",
+      "side": "sell",
+      "qty": 2.0071,
+      "price": 498.22,
+      "notional_usd": 999.977362,
+      "rationale": "[Qwen3.8-max] The -0.42% spread versus the -0.20% blended fair-value return suggests only mild cheapness, not a strong standalone buy edge. With book net exposure at +51.8% versus a 25% net cap and risk approval of $0 for buys but $9,177 for sells, reducing net exposure takes priority; selling $1,000 trims the existing $1,218 RMSFTUSDT long while respecting the $1,000 per-decision limit."
     }
   ],
   "equity_at_day_start_usd": 97833.22629900009,
   "day_start_date": "2026-09-24",
-  "net_over_cap_cycles": 2,
-  "net_over_cap_baseline_usd": 27092.799722499985
+  "net_over_cap_cycles": 1,
+  "net_over_cap_baseline_usd": 25103.25846799998
 }
