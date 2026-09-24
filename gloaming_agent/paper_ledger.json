@@ -1,11 +1,11 @@
 {
-  "cash_usd": 38886.911549000084,
+  "cash_usd": 39886.90625900008,
   "positions": {
     "RGOOGLUSDT": 0.2349000000000147,
     "RMSFTUSDT": 4.453799999999998,
     "RSPYUSDT": 11.801599999999999,
     "RQQQUSDT": 12.5696,
-    "RMETAUSDT": 13.493499999999996,
+    "RMETAUSDT": 12.132999999999996,
     "RNVDAUSDT": 56.6915,
     "RTSLAUSDT": 34.12930000000001,
     "RAAPLUSDT": 7.1141,
@@ -5429,8 +5429,19 @@
       "price": 740.81,
       "notional_usd": 79.41483199999999,
       "rationale": "[Qwen3.8-max] RQQQUSDT fell -0.85% while the blended overnight fair-value proxy rose +0.86%, creating a -1.71% discount that looks moderately actionable during the closed-market window. The +3.19% futures proxy supports upside, but the -2.48% crypto-beta signal reduces conviction, so sizing is conservative."
+    },
+    {
+      "timestamp": "2026-09-24T07:05:11.528846+00:00",
+      "symbol": "RMETAUSDT",
+      "side": "sell",
+      "qty": 1.3605,
+      "price": 735.02,
+      "notional_usd": 999.99471,
+      "rationale": "[Qwen3.8-max] The -1.01% spread versus the +0.15% blended fair-value return suggests mild cheapness, but the book is badly over its net cap at +60.1% versus a 25% cap and gross is also at/over 60%, while the risk layer approves $0 buys. Selling $1,000 of the existing $9,918 long reduces directional exposure despite the modest mispricing."
     }
   ],
   "equity_at_day_start_usd": 97833.22629900009,
-  "day_start_date": "2026-09-24"
+  "day_start_date": "2026-09-24",
+  "net_over_cap_cycles": 1,
+  "net_over_cap_baseline_usd": 33257.565084249974
 }
