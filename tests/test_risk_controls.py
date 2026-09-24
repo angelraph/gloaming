@@ -243,3 +243,104 @@ def test_net_cap_does_not_touch_a_balanced_book():
     result = evaluate_decision(decision, state, recent_volatility=0.01)
     assert result.approved
     assert result.adjusted_notional_usd == pytest.approx(500.0)
+
+
+# --- Backstop trim planner, the tracker that decides when it engages, capacity probe ---
+
+from risk_controls import plan_net_trim, trade_capacity_usd, update_net_over_cap_tracker  # noqa: E402
+
+
+def test_plan_net_trim_does_nothing_within_the_tolerance_band():
+    # net long 2,550 = 25.5% of 10,000: over the 25% cap by 50, inside the 1% band
+    state = _state(equity=10_000.0, positions={"A": 1_300.0, "B": 1_250.0})
+    assert plan_net_trim(state) == []
+
+
+def test_plan_net_trim_sells_a_bounded_proportional_slice_when_net_long_and_over_the_cap():
+    # net long 5,000 (50%), cap 2,500, excess 2,500; per-cycle limit is 2% of equity = 200
+    state = _state(equity=10_000.0, positions={"A": 3_000.0, "B": 2_000.0})
+    decisions = plan_net_trim(state)
+    assert {d.symbol for d in decisions} == {"A", "B"}
+    assert all(d.side == "sell" for d in decisions)
+    assert sum(d.notional_usd for d in decisions) == pytest.approx(200.0)
+    by_symbol = {d.symbol: d.notional_usd for d in decisions}
+    assert by_symbol["A"] == pytest.approx(120.0)  # 3,000 / 5,000 of the slice
+    assert by_symbol["B"] == pytest.approx(80.0)
+    assert "not the LLM" in decisions[0].rationale
+
+
+def test_plan_net_trim_buys_back_when_the_book_is_net_short():
+    state = _state(equity=10_000.0, positions={"A": -3_000.0, "B": -2_000.0})
+    decisions = plan_net_trim(state)
+    assert decisions and all(d.side == "buy" for d in decisions)
+
+
+def test_plan_net_trim_only_touches_the_over_exposed_side():
+    state = _state(equity=10_000.0, positions={"A": 4_000.0, "B": 2_000.0, "C": -500.0})
+    symbols = {d.symbol for d in plan_net_trim(state)}
+    assert symbols == {"A", "B"}
+
+
+def test_plan_net_trim_never_trades_more_than_the_excess():
+    # excess 1,100 (cap 2,500, net 3,600) is smaller than the 2% slice would allow
+    config = RiskConfig(net_trim_max_pct_per_cycle=0.5)
+    state = _state(equity=10_000.0, positions={"A": 3_600.0})
+    total = sum(d.notional_usd for d in plan_net_trim(state, config))
+    assert total == pytest.approx(1_100.0)
+
+
+def test_plan_net_trim_skips_orders_below_the_minimum():
+    config = RiskConfig(net_trim_min_order_usd=1_000.0)
+    state = _state(equity=10_000.0, positions={"A": 3_000.0, "B": 2_000.0})
+    assert plan_net_trim(state, config) == []
+
+
+def test_plan_net_trim_handles_zero_equity_and_an_empty_book():
+    assert plan_net_trim(_state(equity=0.0, positions={"A": 100.0})) == []
+    assert plan_net_trim(_state(equity=10_000.0)) == []
+
+
+def test_every_planned_trim_is_approved_by_the_real_gate_even_when_the_daily_breaker_is_on():
+    state = _state(equity=10_000.0, positions={"A": 3_000.0, "B": 2_000.0}, daily_realized=-600.0)
+    for d in plan_net_trim(state):
+        result = evaluate_decision(d, state, recent_volatility=0.0)
+        assert result.approved
+        assert result.adjusted_notional_usd == pytest.approx(d.notional_usd)
+
+
+def test_tracker_resets_when_the_book_is_within_the_band():
+    assert update_net_over_cap_tracker(5, 3_000.0, 50.0, 10_000.0) == (0, 0.0)
+
+
+def test_tracker_starts_a_clock_the_first_cycle_over_the_cap():
+    assert update_net_over_cap_tracker(0, 0.0, 2_000.0, 10_000.0) == (1, 2_000.0)
+
+
+def test_tracker_counts_cycles_without_progress():
+    cycles, baseline = 1, 2_000.0
+    for _ in range(3):
+        cycles, baseline = update_net_over_cap_tracker(cycles, baseline, 1_950.0, 10_000.0)  # only 50 of progress
+    assert cycles == 4
+    assert baseline == 2_000.0
+
+
+def test_tracker_restarts_the_clock_when_the_llm_makes_real_progress():
+    # excess fell from 2,000 to 1,800: 200 of progress, over the 1% of equity (100) threshold
+    assert update_net_over_cap_tracker(5, 2_000.0, 1_800.0, 10_000.0) == (1, 1_800.0)
+
+
+def test_tracker_stays_engaged_once_the_backstop_has_started_even_as_its_own_trims_shrink_the_excess():
+    config = RiskConfig()
+    cycles, baseline = config.net_trim_backstop_cycles, 2_000.0
+    cycles_after, baseline_after = update_net_over_cap_tracker(cycles, baseline, 1_000.0, 10_000.0, config)
+    assert cycles_after == cycles  # the trim's own progress must not disengage it
+    assert baseline_after == baseline
+
+
+def test_trade_capacity_reflects_the_real_gate():
+    at_cap_long = _state(equity=10_000.0, positions={"A": 1_300.0, "B": 1_200.0})  # net +2,500
+    assert trade_capacity_usd(at_cap_long, "C", "buy") == 0.0
+    assert trade_capacity_usd(at_cap_long, "A", "sell") > 0.0
+    balanced = _state(equity=10_000.0, positions={"A": 1_000.0, "B": -1_000.0})
+    assert trade_capacity_usd(balanced, "C", "buy") > 0.0
+    assert trade_capacity_usd(_state(equity=0.0), "C", "buy") == 0.0

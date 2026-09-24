@@ -120,13 +120,30 @@ price/return, futures-proxy/crypto-beta/FX-proxy returns, the resulting
 spread vs. synthetic fair value) and returns a structured decision (buy/sell/
 hold, notional, stop-loss, confidence, rationale).
 
+Qwen sees its own book, not just one symbol's market data: every decision prompt
+includes its position in that symbol, the book's net and gross exposure against
+the caps, what the risk layer would approve right now, and its recent fills in the
+symbol, and the system prompt tells it that managing the book (for example, not
+treating nine correlated "cheap" signals as nine independent trades) is part of
+its job. That exact context is stored on each logged snapshot, so the decision
+log shows what Qwen saw when it decided.
+
 It is never the last word: `gloaming_agent/risk_controls.py` is a **separate,
 deterministic, non-LLM** module that can reject or resize any decision
-regardless of Qwen's confidence (position caps, daily/per-trade circuit
-breakers, volatility-scaled sizing, no leverage), and only an approved
-decision can reach execution. A fixed-threshold rule (`decide_rule_based()`)
+regardless of Qwen's confidence (position caps, a net directional exposure cap,
+daily/per-trade circuit breakers, volatility-scaled sizing, no leverage), and only
+an approved decision can reach execution. One disclosed exception to "the risk
+layer only gates": if the book stays over its net directional cap for about 2
+hours of market-closed time without Qwen bringing it back, a deterministic
+backstop sells down at most 2% of equity per cycle until it is back inside the cap.
+Those trades still pass through the same gate and ledger and are labeled
+`risk_backstop_trim (deterministic risk layer, not the LLM)` in `decision_source`
+(see docs/risk_controls.md, control #10). A fixed-threshold rule (`decide_rule_based()`)
 is the disclosed automatic fallback used only when Qwen is unconfigured or a
-call fails - never a parallel second opinion - and every logged decision
+call fails or times out (30s per call, one retry, and a 6-minute cap on total LLM
+time per cycle so a slow Qwen day cannot push the job past its 10-minute limit;
+symbols beyond the cap use the fallback and say so in `decision_source`) - never a
+parallel second opinion - and every logged decision
 records which path actually produced it (`decision_source`), so the full
 history is auditable.
 

@@ -63,6 +63,13 @@ class LedgerState:
     # "daily P&L" means since-today's-open, not since-ledger-inception.
     equity_at_day_start_usd: float = STARTING_EQUITY_USD
     day_start_date: str = ""  # ISO date; "" forces a reset on first real use
+    # State for the net-exposure backstop (risk_controls.update_net_over_cap_tracker):
+    # consecutive active cycles the book has stayed over its net cap without the LLM
+    # bringing it back, and the excess when that clock last restarted. Lives here
+    # because every scheduled run is a fresh process; this file is the only thing
+    # that carries state from one cycle to the next.
+    net_over_cap_cycles: int = 0
+    net_over_cap_baseline_usd: float = 0.0
 
 
 def _load() -> LedgerState:
@@ -75,6 +82,8 @@ def _load() -> LedgerState:
         fills=raw.get("fills", []),
         equity_at_day_start_usd=raw.get("equity_at_day_start_usd", STARTING_EQUITY_USD),
         day_start_date=raw.get("day_start_date", ""),
+        net_over_cap_cycles=raw.get("net_over_cap_cycles", 0),
+        net_over_cap_baseline_usd=raw.get("net_over_cap_baseline_usd", 0.0),
     )
 
 
@@ -82,6 +91,29 @@ def _save(state: LedgerState) -> None:
     state_dict = asdict(state)
     LEDGER_PATH.write_text(json.dumps(state_dict, indent=2, default=str))
     kv_sync.push_ledger_state(state_dict)  # best-effort mirror for the deployed Desk; no-ops if unconfigured
+
+
+def recent_fills(symbol: str, limit: int = 3) -> list[dict]:
+    """The last `limit` real fills in `symbol`, oldest first, for showing the LLM what
+    it has recently done in that symbol."""
+    state = _load()
+    return [f for f in state.fills if f["symbol"] == symbol][-limit:]
+
+
+def get_net_tracker() -> tuple[int, float]:
+    state = _load()
+    return state.net_over_cap_cycles, state.net_over_cap_baseline_usd
+
+
+def set_net_tracker(cycles: int, baseline_usd: float) -> None:
+    """Persists the backstop's clock. Skips the write (and the Redis push) when
+    nothing changed, which is the normal case for a book that is within its cap."""
+    state = _load()
+    if state.net_over_cap_cycles == cycles and state.net_over_cap_baseline_usd == baseline_usd:
+        return
+    state.net_over_cap_cycles = cycles
+    state.net_over_cap_baseline_usd = baseline_usd
+    _save(state)
 
 
 def record_fill(symbol: str, side: str, qty: float, price: float, rationale: str) -> Fill:

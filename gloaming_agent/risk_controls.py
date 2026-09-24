@@ -13,7 +13,10 @@ exactly as before. See evaluate_decision()'s de-risk exemption for the mechanics
 
 A separate net directional cap (max_net_notional_pct, 25% of equity) bounds how
 one-sided the whole book can be, since the gross caps alone allow a full-size
-bet in a single direction. It limits new exposure only; it never forces a trade.
+bet in a single direction. The cap itself limits new exposure only and never forces
+a trade. The LLM is shown its book and the cap, and is the primary way an over-cap
+book comes back under it; plan_net_trim() is a deterministic backstop that agent_loop
+only engages after the LLM has failed to make progress for several active cycles.
 """
 from __future__ import annotations
 
@@ -25,6 +28,11 @@ class RiskConfig:
     max_position_notional_pct: float = 0.15   # cap per-symbol notional as % of equity
     max_aggregate_notional_pct: float = 0.60   # cap total book notional as % of equity
     max_net_notional_pct: float = 0.25         # cap |net long minus net short| as % of equity
+    net_trim_max_pct_per_cycle: float = 0.02   # auto-trim sells/buys back at most this % of equity per cycle
+    net_trim_tolerance_pct: float = 0.01       # no trim until net is over the cap by more than this % of equity
+    net_trim_min_order_usd: float = 5.0        # skip trim orders smaller than this
+    net_trim_backstop_cycles: int = 8          # active cycles the LLM gets to bring net under the cap before the backstop trims
+    net_trim_progress_pct: float = 0.01        # excess shrinking by this % of equity restarts that clock
     max_trade_loss_pct: float = 0.02           # reject if stop-loss-implied loss > this % of equity
     max_daily_loss_pct: float = 0.05           # halt new positions once daily loss crosses this
     vol_scaling_reference: float = 0.02         # "typical" daily vol; sizing scales down above this
@@ -60,6 +68,110 @@ class RiskResult:
 
 def _aggregate_notional(state: PortfolioState) -> float:
     return sum(abs(v) for v in state.positions_notional_usd.values())
+
+
+def plan_net_trim(state: PortfolioState, config: RiskConfig = RiskConfig()) -> list[TradeDecision]:
+    """Deterministic, non-LLM BACKSTOP unwind for a book whose net directional
+    exposure is over the net cap. The net cap only stops new exposure, it never
+    forces a trade, so a book that is already over it (confirmed live Sept 24: net
+    long about 60% of equity when the cap became 25%) stays put until a
+    net-reducing decision arrives. The LLM is shown its book and the cap and is the
+    primary way the book comes back under it; agent_loop only calls this once the
+    LLM has failed to make progress for net_trim_backstop_cycles active cycles (see
+    update_net_over_cap_tracker). This returns the sells (or buy-backs, for a net
+    short book) that walk it back toward the cap, without dumping it in one cycle:
+
+    - nothing until net is over the cap by more than net_trim_tolerance_pct of
+      equity, so small mark-to-market drift around the cap does not cause churn;
+    - at most net_trim_max_pct_per_cycle of equity is traded per cycle;
+    - the amount is spread across the positions on the over-exposed side in
+      proportion to their size, and never exceeds any one position.
+
+    Every decision returned here still goes through evaluate_decision() like any
+    other trade; this only proposes them."""
+    if state.equity_usd <= 0:
+        return []
+    net = sum(state.positions_notional_usd.values())
+    max_net = config.max_net_notional_pct * state.equity_usd
+    excess = abs(net) - max_net
+    if excess <= config.net_trim_tolerance_pct * state.equity_usd:
+        return []
+
+    trim_total = min(excess, config.net_trim_max_pct_per_cycle * state.equity_usd)
+    side = "sell" if net > 0 else "buy"
+    candidates = {
+        symbol: abs(value)
+        for symbol, value in state.positions_notional_usd.items()
+        if value != 0.0 and (value > 0) == (net > 0)
+    }
+    pool = sum(candidates.values())
+    if pool <= 0:
+        return []
+    fraction = min(trim_total / pool, 1.0)
+
+    decisions = []
+    for symbol, size in sorted(candidates.items()):
+        amount = size * fraction
+        if amount < config.net_trim_min_order_usd:
+            continue
+        decisions.append(TradeDecision(
+            symbol=symbol,
+            side=side,
+            notional_usd=amount,
+            rationale=(
+                f"Backstop trim (deterministic risk layer, not the LLM, engaged because the "
+                f"LLM did not bring the book back under its net cap): book net exposure "
+                f"{net:+,.0f} ({net / state.equity_usd:+.1%} of equity) is over the "
+                f"{config.max_net_notional_pct:.0%} net directional cap, so {side} "
+                f"{amount:,.0f} of {symbol}, its proportional share of {trim_total:,.0f} "
+                f"this cycle (at most {config.net_trim_max_pct_per_cycle:.0%} of equity per cycle)."
+            ),
+            stop_loss_pct=0.02,
+            confidence=1.0,
+        ))
+    return decisions
+
+
+def update_net_over_cap_tracker(
+    cycles: int,
+    baseline_excess_usd: float,
+    excess_usd: float,
+    equity_usd: float,
+    config: RiskConfig = RiskConfig(),
+) -> tuple[int, float]:
+    """Counts consecutive active cycles the book has stayed over its net cap without
+    the LLM making real progress, so the backstop only engages when it has actually
+    failed to bring the book back. Returns the new (cycles, baseline_excess_usd).
+
+    - Within the tolerance band of the cap: clock resets to zero.
+    - First cycle over: clock starts at 1, baseline is that excess.
+    - Before the backstop has engaged: if the excess has shrunk by at least
+      net_trim_progress_pct of equity since the baseline, the LLM is making
+      progress, so the clock restarts from this cycle.
+    - Once the backstop has engaged (cycles >= net_trim_backstop_cycles) it stays
+      engaged until the book is back inside the band - its own trims shrink the
+      excess and must not count as the LLM making progress."""
+    if excess_usd <= config.net_trim_tolerance_pct * equity_usd:
+        return 0, 0.0
+    if cycles <= 0:
+        return 1, excess_usd
+    if cycles >= config.net_trim_backstop_cycles:
+        return cycles, baseline_excess_usd
+    if excess_usd <= baseline_excess_usd - config.net_trim_progress_pct * equity_usd:
+        return 1, excess_usd
+    return cycles + 1, baseline_excess_usd
+
+
+def trade_capacity_usd(state: PortfolioState, symbol: str, side: str, config: RiskConfig = RiskConfig()) -> float:
+    """The largest notional evaluate_decision() would currently approve for this
+    symbol and side, by asking the real gate rather than re-deriving its rules.
+    Ignores volatility scaling and the per-trade stop-loss cap (probed with zero
+    volatility and a tiny stop). Shown to the LLM so it sees the same limits the
+    risk layer will enforce instead of proposing sizes into a wall."""
+    if state.equity_usd <= 0:
+        return 0.0
+    probe = TradeDecision(symbol, side, state.equity_usd, "capacity probe", stop_loss_pct=0.0001)
+    return evaluate_decision(probe, state, recent_volatility=0.0, config=config).adjusted_notional_usd
 
 
 def evaluate_decision(

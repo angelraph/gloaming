@@ -48,9 +48,27 @@ isn't, or a call fails, never a second vote alongside it.
    long (concentrated in the most volatile names) while every gross cap was
    respected. A trade that pushes net further from zero gets only the room left
    under the cap. A trade toward zero is always allowed, up to fully flattening
-   net plus at most the cap on the other side. This cap only limits new exposure;
-   it never forces a trade, so a book already over it stays put until a
-   net-reducing decision arrives.
+   net plus at most the cap on the other side. The cap itself only limits new
+   exposure and never forces a trade, so a book already over it stays put until a
+   net-reducing decision arrives; see control #10.
+10. **Net-exposure backstop trim** - the LLM is the primary way an over-cap book
+    comes back under the net cap: every decision prompt now shows Qwen its own book
+    (its position in the symbol, net and gross exposure against the caps, what the
+    risk layer would approve right now, and its recent fills in that symbol), and
+    the system prompt tells it that managing the book is part of its job. Only if
+    the book stays over the cap for 8 active cycles (about 2 hours of market-closed
+    time) with no real progress (the excess shrinking by less than 1% of equity)
+    does deterministic code step in: it sells (or buys back, for a net short book)
+    at most 2% of equity per cycle, spread across the over-exposed positions in
+    proportion to their size, until the book is back inside the cap plus a 1%
+    tolerance band. Every backstop trade goes through `evaluate_decision()`, the
+    ledger and the decision log like any other trade, and is labeled
+    `risk_backstop_trim (deterministic risk layer, not the LLM)` in
+    `decision_source`, so it can never be mistaken for an LLM decision. The
+    backstop's own trims do not count as the LLM making progress, so it stays
+    engaged until the book is back inside the cap. This means the risk layer can
+    originate an order, which the earlier version of this document (and the
+    submission's LLM role disclosure) said it never did; both now say so.
 
 ## Test coverage
 

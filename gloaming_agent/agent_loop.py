@@ -26,6 +26,7 @@ from __future__ import annotations
 
 import json
 import sys
+import time
 from dataclasses import asdict
 from datetime import datetime, timezone
 from pathlib import Path
@@ -45,11 +46,25 @@ import bitget_signal  # noqa: E402
 import kv_sync  # noqa: E402
 import llm_client  # noqa: E402
 import paper_ledger  # noqa: E402
-from risk_controls import TradeDecision, evaluate_decision  # noqa: E402
+from risk_controls import (  # noqa: E402
+    RiskConfig,
+    TradeDecision,
+    evaluate_decision,
+    plan_net_trim,
+    trade_capacity_usd,
+    update_net_over_cap_tracker,
+)
 
 DECISION_LOG_DIR = Path(__file__).resolve().parent / "decision_log"
 NYSE_TZ = ZoneInfo("America/New_York")
 SPREAD_THRESHOLD = 0.015  # 1.5% - crude Day 4 fixed threshold; Day 5's Qwen replaces this
+# Total wall-clock the LLM may use across one cycle's per-symbol decisions. The
+# scheduled workflow is killed at 10 minutes (.github/workflows/agent_loop.yml), and
+# a killed job loses that cycle's ledger commit. A Qwen call takes 17-36s, so a bad
+# Qwen day (every call hitting its timeout and retry, about a minute a symbol) could
+# otherwise push nine symbols past the limit. Once the budget is spent the remaining
+# symbols use the disclosed rule-based fallback, labeled as such in decision_source.
+LLM_CYCLE_BUDGET_S = 360.0
 
 
 def is_nyse_closed(now_utc: datetime | None = None) -> bool:
@@ -161,10 +176,92 @@ def decide_rule_based(snapshot: dict) -> TradeDecision | None:
     )
 
 
+def build_book_context(state, symbol: str, fills: list[dict], config: RiskConfig | None = None) -> dict:
+    """What the LLM needs to know about its own book to be a real decision-maker
+    rather than a per-symbol signal reader: its position in this symbol, the
+    book's net and gross exposure against the caps, what the risk layer would
+    approve right now (asked of the real gate, not re-derived), and its own recent
+    fills in this symbol. Everything here is real ledger state; it is also stored
+    on the logged snapshot, so the decision log shows exactly what Qwen saw."""
+    config = config or RiskConfig()
+    equity = state.equity_usd
+    positions = state.positions_notional_usd
+    net = sum(positions.values())
+    gross = sum(abs(v) for v in positions.values())
+    symbol_position = positions.get(symbol, 0.0)
+    now = datetime.now(timezone.utc)
+
+    recent = []
+    for f in fills:
+        try:
+            hours_ago = (now - datetime.fromisoformat(f["timestamp"])).total_seconds() / 3600
+        except (KeyError, ValueError):
+            hours_ago = None
+        recent.append({"side": f["side"], "notional_usd": round(f["notional_usd"], 2),
+                       "hours_ago": None if hours_ago is None else round(hours_ago, 1)})
+
+    return {
+        "equity_usd": round(equity, 2),
+        "daily_pnl_pct": round(state.daily_realized_pnl_usd / equity, 4) if equity > 0 else 0.0,
+        "symbol_position_usd": round(symbol_position, 2),
+        "symbol_position_pct": round(symbol_position / equity, 4) if equity > 0 else 0.0,
+        "net_exposure_usd": round(net, 2),
+        "net_exposure_pct": round(net / equity, 4) if equity > 0 else 0.0,
+        "gross_exposure_usd": round(gross, 2),
+        "gross_exposure_pct": round(gross / equity, 4) if equity > 0 else 0.0,
+        "net_cap_pct": config.max_net_notional_pct,
+        "gross_cap_pct": config.max_aggregate_notional_pct,
+        "symbol_cap_pct": config.max_position_notional_pct,
+        "over_net_cap": equity > 0 and abs(net) > config.max_net_notional_pct * equity,
+        "buy_capacity_usd": round(trade_capacity_usd(state, symbol, "buy", config), 2),
+        "sell_capacity_usd": round(trade_capacity_usd(state, symbol, "sell", config), 2),
+        "recent_fills_this_symbol": recent,
+    }
+
+
+def _book_prompt_lines(book: dict) -> str:
+    """Formats build_book_context() for the prompt."""
+    position = book["symbol_position_usd"]
+    if abs(position) < 0.5:
+        position_text = "flat (no position)"
+    else:
+        position_text = f"{'long' if position > 0 else 'short'} ${abs(position):,.0f} ({abs(book['symbol_position_pct']):.1%} of equity)"
+
+    lines = [
+        "\nYour current book (real, from the paper ledger, as of this decision):",
+        f"- Equity ${book['equity_usd']:,.0f}; P&L today {book['daily_pnl_pct']:+.2%} "
+        f"(new risk is halted by a circuit breaker at -5%)",
+        f"- Your position in this symbol: {position_text}; per-symbol cap {book['symbol_cap_pct']:.0%} of equity",
+        f"- Book net exposure (long minus short): {book['net_exposure_usd']:+,.0f} = "
+        f"{book['net_exposure_pct']:+.1%} of equity; net cap {book['net_cap_pct']:.0%} either way"
+        + ("  ** OVER THE NET CAP **" if book["over_net_cap"] else ""),
+        f"- Book gross exposure: ${book['gross_exposure_usd']:,.0f} = {book['gross_exposure_pct']:.1%} of equity; "
+        f"gross cap {book['gross_cap_pct']:.0%}",
+        f"- What the risk layer would approve for this symbol right now: buy up to "
+        f"${book['buy_capacity_usd']:,.0f}, sell up to ${book['sell_capacity_usd']:,.0f} "
+        f"(you may propose at most $1,000 per decision)",
+    ]
+    if book["recent_fills_this_symbol"]:
+        fills = ", ".join(
+            f"{f['side']} ${f['notional_usd']:,.0f}"
+            + (f" ({f['hours_ago']}h ago)" if f["hours_ago"] is not None else "")
+            for f in book["recent_fills_this_symbol"]
+        )
+        lines.append(f"- Your last fills in this symbol: {fills}")
+    if book["over_net_cap"]:
+        lines.append(
+            "- The book is over its net directional cap. The risk layer rejects any trade that pushes net "
+            "exposure further from zero and approves trades that reduce it. Bringing net exposure back "
+            "under the cap is part of your job; weigh it against this symbol's spread."
+        )
+    return "\n".join(lines) + "\n"
+
+
 def build_user_prompt(snapshot: dict) -> str:
     """Turns one symbol's live snapshot into the user message Qwen reasons over.
     Every number here is real and live, fetched moments earlier in build_snapshot -
     nothing in this prompt is synthetic or estimated on the LLM's behalf."""
+    book_lines = _book_prompt_lines(snapshot["book_context"]) if snapshot.get("book_context") else ""
     signal_lines = ""
     signal_context = snapshot.get("bitget_signal_context")
     if signal_context:
@@ -203,10 +300,15 @@ def build_user_prompt(snapshot: dict) -> str:
         f"- FX risk sentiment 24h return: {snapshot['fx_risk_sentiment_pcnt_24h']:.2%}\n"
         f"- Blended synthetic fair-value return: {snapshot['fair_value_return_24h']:.2%}\n"
         f"{signal_lines}"
+        f"{book_lines}"
         f"\n"
         f"Spread (actual vs. fair value): {snapshot['spread']:.2%}\n"
         f"\n"
-        f"Decide whether this spread is an actionable mispricing."
+        + (
+            "Decide whether this spread is an actionable mispricing, and whether trading it "
+            "makes sense given your book."
+            if book_lines else "Decide whether this spread is an actionable mispricing."
+        )
     )
 
 
@@ -261,6 +363,66 @@ def decide(snapshot: dict) -> tuple[TradeDecision | None, str]:
         return decide_rule_based(snapshot), f"rule_based (Qwen call failed: {e})"
 
 
+def _net_backstop_pass(mark_prices: dict, snapshots: dict, emit, dry_run: bool) -> list[dict]:
+    """The deterministic backstop for the net directional cap. The LLM is shown its
+    book and is the primary way an over-cap book comes back under the cap; this only
+    trims if it has not made progress for RiskConfig.net_trim_backstop_cycles active
+    cycles (risk_controls.update_net_over_cap_tracker), and then only a slice of
+    equity per cycle (risk_controls.plan_net_trim). Every trim goes through
+    evaluate_decision, the ledger and the decision log like any other trade, and is
+    labeled with its own decision_source so it is never mistaken for an LLM decision.
+    Skipped entirely on a dry run (no ledger state is touched)."""
+    if dry_run:
+        return []
+    try:
+        config = RiskConfig()
+        state = paper_ledger.get_portfolio_state(mark_prices)
+        if state.equity_usd <= 0:
+            return []
+        net = sum(state.positions_notional_usd.values())
+        excess = abs(net) - config.max_net_notional_pct * state.equity_usd
+
+        cycles, baseline = paper_ledger.get_net_tracker()
+        cycles, baseline = update_net_over_cap_tracker(cycles, baseline, excess, state.equity_usd, config)
+        paper_ledger.set_net_tracker(cycles, baseline)
+        if cycles < config.net_trim_backstop_cycles:
+            return []
+
+        symbol_to_underlying = {cfg["rtoken_symbol"]: u for u, cfg in RTOKEN_UNIVERSE.items()}
+        trim_records = []
+        for decision in plan_net_trim(state, config):
+            price = mark_prices.get(decision.symbol)
+            if price is None:  # no fresh price this cycle, never trade on a stale one
+                continue
+            underlying = symbol_to_underlying.get(decision.symbol)
+            record = {
+                "timestamp": datetime.now(timezone.utc).isoformat(),
+                "underlying": underlying,
+                "snapshot": snapshots.get(underlying),
+                "decision_source": "risk_backstop_trim (deterministic risk layer, not the LLM)",
+                "decision": asdict(decision),
+            }
+            # recent_volatility=0: vol scaling shrinks new risk, and a trim is the opposite
+            risk_result = evaluate_decision(decision, state, recent_volatility=0.0, config=config)
+            record["risk_result"] = asdict(risk_result)
+            if not risk_result.approved:
+                record["execution"] = "SKIPPED: rejected by risk controls"
+            else:
+                try:
+                    qty = round(risk_result.adjusted_notional_usd / price, 4)
+                    record["execution"] = asdict(
+                        paper_ledger.record_fill(decision.symbol, decision.side, qty, price, decision.rationale)
+                    )
+                except Exception as e:  # noqa: BLE001
+                    record["execution"] = f"FAILED: {e}"
+            trim_records.append(record)
+            emit(record)
+        return trim_records
+    except Exception as e:  # noqa: BLE001 - the backstop must never cost the cycle its records
+        print(f"net backstop pass failed: {e}", file=sys.stderr)
+        return []
+
+
 def run_once(dry_run: bool = False, force: bool = False) -> list[dict]:
     """One full pass over the universe: snapshot -> decide -> risk-gate -> execute
     (or skip) -> log. Returns the list of log records written this cycle.
@@ -275,10 +437,11 @@ def run_once(dry_run: bool = False, force: bool = False) -> list[dict]:
     Two passes over RTOKEN_UNIVERSE: the first builds every symbol's live snapshot
     (needed regardless of whether a signal fires, both for the decision and to
     have a real mark price for paper_ledger's portfolio valuation); the second
-    applies decide() -> risk-gate -> execute using ONE portfolio_state snapshot
-    computed after pass one. Risk caps this cycle are therefore evaluated against
-    the book as it stood at the start of the cycle, not updated fill-by-fill within
-    the same cycle - a disclosed simplification, not a bug (see docs/risk_controls.md).
+    applies decide() -> risk-gate -> execute against a portfolio_state computed
+    after pass one and re-marked after every real fill, so each decision, its risk
+    gate, and the book context shown to the LLM reflect fills already made this
+    cycle (previously the book was frozen at the start of the cycle). A third step,
+    _net_backstop_pass(), then runs the deterministic net-exposure backstop.
 
     Each record is written to the local log and pushed to Redis the moment it is
     finalized, not batched until the whole cycle finishes. Confirmed live Sept 12:
@@ -334,6 +497,7 @@ def run_once(dry_run: bool = False, force: bool = False) -> list[dict]:
     portfolio_state = paper_ledger.get_portfolio_state(mark_prices)
 
     records = []
+    llm_time_spent = 0.0
     for underlying in RTOKEN_UNIVERSE:
         record = {"timestamp": datetime.now(timezone.utc).isoformat(), "underlying": underlying}
 
@@ -346,7 +510,24 @@ def run_once(dry_run: bool = False, force: bool = False) -> list[dict]:
         snapshot = snapshots[underlying]
         record["snapshot"] = snapshot
 
-        decision, decision_source = decide(snapshot)
+        # Show the LLM its own book (see build_book_context) - stored on the logged
+        # snapshot so the record shows exactly what it saw. Context is enrichment:
+        # failing to build it must never cost the cycle a decision.
+        try:
+            snapshot["book_context"] = build_book_context(
+                portfolio_state, snapshot["rtoken_symbol"],
+                paper_ledger.recent_fills(snapshot["rtoken_symbol"], 3),
+            )
+        except Exception as e:  # noqa: BLE001
+            print(f"book context unavailable for {underlying}: {e}", file=sys.stderr)
+
+        if llm_time_spent > LLM_CYCLE_BUDGET_S:
+            decision = decide_rule_based(snapshot)
+            decision_source = "rule_based (LLM time budget for this cycle exhausted)"
+        else:
+            llm_started = time.monotonic()
+            decision, decision_source = decide(snapshot)
+            llm_time_spent += time.monotonic() - llm_started
         record["decision_source"] = decision_source
         if decision is None:
             record["decision"] = None
@@ -379,9 +560,19 @@ def run_once(dry_run: bool = False, force: bool = False) -> list[dict]:
         except Exception as e:  # noqa: BLE001 - log and move on, never crash the loop over one fill
             record["execution"] = f"FAILED: {e}"
 
+        # Re-mark the book after a real fill so the next symbol's decision, its risk
+        # gate, and the book context the LLM sees all reflect it, instead of the
+        # book as it stood when the cycle began.
+        if isinstance(record["execution"], dict):
+            try:
+                portfolio_state = paper_ledger.get_portfolio_state(mark_prices)
+            except Exception as e:  # noqa: BLE001
+                print(f"portfolio refresh after fill failed: {e}", file=sys.stderr)
+
         records.append(record)
         _emit(record)
 
+    records.extend(_net_backstop_pass(mark_prices, snapshots, _emit, dry_run))
     return records
 
 

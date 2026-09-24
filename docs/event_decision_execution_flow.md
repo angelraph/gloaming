@@ -32,8 +32,9 @@ sequenceDiagram
         Note over Ledger: equity + positions, marked to<br/>this cycle's live prices
 
         loop each symbol with a usable snapshot
+            Loop->>Loop: build_book_context(): its position, net/gross<br/>exposure vs. caps, what the gate would approve,<br/>its recent fills (stored on the logged snapshot)
             alt QWEN_API_KEY configured
-                Loop->>Qwen: system prompt + real snapshot numbers
+                Loop->>Qwen: system prompt + real snapshot numbers<br/>+ its own book
                 alt call succeeds, valid schema
                     Qwen-->>Loop: action, notional_usd, stop_loss_pct,<br/>confidence, rationale
                 else call fails or malformed response
@@ -57,10 +58,14 @@ sequenceDiagram
                     Risk-->>Loop: approved=true, adjusted_notional_usd
                     Loop->>Ledger: record_fill(symbol, side, qty, price, rationale)
                     Ledger-->>Loop: Fill (persisted to paper_ledger.json)
+                    Loop->>Ledger: get_portfolio_state(mark_prices)
+                    Note over Ledger: book re-marked after every real fill,<br/>so the next symbol sees it
                     Loop->>Log: full record: snapshot + decision +<br/>risk_result + execution
                 end
             end
         end
+        Loop->>Risk: net-exposure backstop (only if book stayed over<br/>the net cap ~2h without the LLM bringing it back)
+        Risk-->>Loop: at most 2% of equity of trims, each through<br/>evaluate_decision, logged as risk_backstop_trim
     end
 ```
 
@@ -87,11 +92,17 @@ omitted here for brevity):
 
 ## Why this separation matters for the Agentic Trading track's LLM-role question
 
-Qwen3.8-max is the **primary decision-maker** - it sees the real snapshot and
-decides direction, size, and stop-loss. It is never the last word, though:
-`risk_controls.py` is a separate, deterministic, non-LLM module that can reject or
-resize any decision regardless of Qwen's confidence, and it is the only thing that
-can authorize a fill. The fixed-threshold rule in `decide_rule_based()` is not a
+Qwen3.8-max is the **primary decision-maker** - it sees the real snapshot and its
+own book (position, net/gross exposure against the caps, what the gate would
+approve, its recent fills) and decides direction, size, and stop-loss. It is never
+the last word, though: `risk_controls.py` is a separate, deterministic, non-LLM
+module that can reject or resize any decision regardless of Qwen's confidence, and
+it is the only thing that can authorize a fill. One disclosed exception to "the
+risk layer only gates": if the book stays over its net directional cap for about 2
+hours of market-closed time without Qwen bringing it back, a deterministic
+backstop proposes trims of at most 2% of equity per cycle; those pass through the
+same gate and are labeled `risk_backstop_trim` in `decision_source`. The
+fixed-threshold rule in `decide_rule_based()` is not a
 second opinion running alongside Qwen - it only fires when Qwen is unavailable or
 its call fails, and every record says which path actually produced it
 (`decision_source`), so the full history is auditable.

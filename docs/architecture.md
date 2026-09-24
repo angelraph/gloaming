@@ -80,8 +80,10 @@ works, not a generic sentiment- or news-trading bot.
    cycle it also calls `bitget_signal.get_signal_context()` (real crypto
    sentiment, BTC derivatives positioning, news, and yield-curve context from
    Bitget's own public MCP server - see "Bitget-signal integration" below), then
-   builds a live snapshot per symbol
-   and calls Qwen3.8-max for the trade decision whenever `QWEN_API_KEY` is
+   builds a live snapshot per symbol, adds the agent's own book context (its
+   position, net/gross exposure against the caps, what the risk layer would
+   approve, its recent fills), and calls Qwen3.8-max for the trade decision
+   whenever `QWEN_API_KEY` is
    configured, falling back to a deterministic fixed-threshold rule otherwise
    (see `docs/event_decision_execution_flow.md` for the exact sequence). Every
    decision passes through `risk_controls.py` before execution.

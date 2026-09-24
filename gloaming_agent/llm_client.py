@@ -56,16 +56,25 @@ def _client():
     )
 
 
-def get_decision_json(system_prompt: str, user_prompt: str, timeout_s: float = 20.0) -> dict:
+def get_decision_json(system_prompt: str, user_prompt: str, timeout_s: float = 30.0) -> dict:
     """Calls Qwen with a system + user prompt and parses the response as JSON.
     Raises LLMError (not a bare exception) on any failure - network, non-JSON
     response, or malformed schema - so callers have one exception type to catch
-    for 'the LLM step failed, fall back to rule-based decide()'."""
+    for 'the LLM step failed, fall back to rule-based decide()'.
+
+    Timeout and retries are set from measurement, not guesswork (Sept 24): a call
+    takes 17-36s (it is a reasoning model, ~500-1,200 completion tokens), so the old
+    20s timeout was cutting off real answers - 32 of 207 production calls that day
+    had already timed out and fallen back to the rule-based path, and the longer
+    prompt that shows Qwen its own book is about 25% slower still. 30s with one
+    retry (the SDK default was two) bounds a symbol's worst case at about a minute;
+    agent_loop separately caps the total LLM time per cycle so a bad Qwen day cannot
+    push the job past the workflow's 10-minute limit."""
     _require_configured()
     model = os.environ.get("QWEN_MODEL", "qwen3.8-max")
 
     try:
-        response = _client().chat.completions.create(
+        response = _client().with_options(max_retries=1).chat.completions.create(
             model=model,
             messages=[
                 {"role": "system", "content": system_prompt},
