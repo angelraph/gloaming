@@ -1,5 +1,5 @@
 {
-  "cash_usd": 42886.93653900008,
+  "cash_usd": 43886.92409400008,
   "positions": {
     "RGOOGLUSDT": 0.2349000000000147,
     "RMSFTUSDT": 4.453799999999998,
@@ -8,7 +8,7 @@
     "RMETAUSDT": 12.132999999999996,
     "RNVDAUSDT": 56.6915,
     "RTSLAUSDT": 26.22690000000001,
-    "RAAPLUSDT": 7.1141,
+    "RAAPLUSDT": 4.1335999999999995,
     "RAMZNUSDT": 0.7372000000000001
   },
   "fills": [
@@ -5465,10 +5465,19 @@
       "price": 380.29,
       "notional_usd": 1000.010584,
       "rationale": "[Qwen3.8-max] The -0.24% spread is only a slight cheapness signal, not a strong standalone buy edge, while the book is badly over its net cap at +57.1% versus a 25% cap and the risk layer approves $0 buys but up to $13,775 sells. Despite recent $1,000 sells 0.5h and 0.2h ago, I propose another maximum $1,000 sell primarily to reduce net long exposure rather than to express a high-conviction mispricing view."
+    },
+    {
+      "timestamp": "2026-09-24T08:18:11.186348+00:00",
+      "symbol": "RAAPLUSDT",
+      "side": "sell",
+      "qty": 2.9805,
+      "price": 335.51,
+      "notional_usd": 999.987555,
+      "rationale": "[Qwen3.8-max] The -1.69% spread versus the +0.20% blended fair-value return suggests RAAPLUSDT is modestly cheap, but the book is badly over its net cap at +56.0% versus the 25% limit and the risk layer approves $0 buys and up to $6,274 sells. Selling $1,000 reduces net long exposure while only partially giving up a small mispricing edge, and repeated recent buys already added exposure."
     }
   ],
   "equity_at_day_start_usd": 97833.22629900009,
   "day_start_date": "2026-09-24",
   "net_over_cap_cycles": 1,
-  "net_over_cap_baseline_usd": 30353.144617499984
+  "net_over_cap_baseline_usd": 29237.515521749985
 }
