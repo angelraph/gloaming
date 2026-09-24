@@ -1,14 +1,14 @@
 {
-  "cash_usd": 73305.14920800009,
+  "cash_usd": 73793.20420600011,
   "positions": {
     "RGOOGLUSDT": 0.2349000000000147,
-    "RMSFTUSDT": -0.09750000000000136,
+    "RMSFTUSDT": -0.09200000000000136,
     "RSPYUSDT": 9.187,
-    "RQQQUSDT": 9.8525,
-    "RMETAUSDT": 4.045299999999996,
+    "RQQQUSDT": 9.175999999999998,
+    "RMETAUSDT": 3.5904999999999956,
     "RNVDAUSDT": 37.5535,
-    "RTSLAUSDT": -1.2460999999999904,
-    "RAAPLUSDT": -2.9692000000000007,
+    "RTSLAUSDT": -0.3187999999999904,
+    "RAAPLUSDT": -2.9338000000000006,
     "RAMZNUSDT": -0.0007999999999999119
   },
   "fills": [
@@ -5870,6 +5870,51 @@
       "price": 496.62,
       "notional_usd": 449.987382,
       "rationale": "[Qwen3.8-max] The rToken is down -0.68% while the blended synthetic fair-value return is +1.23%, creating a -1.91% spread that suggests it is cheap relative to overnight proxies. Buying $450 covers the existing $498 short and slightly reduces the book's net long exposure (+24.5% of equity, near the 25% cap), which is preferable to adding more long risk; I am capping at the risk layer's $453 buy limit rather than repeating recent sells."
+    },
+    {
+      "timestamp": "2026-09-24T20:32:21.003078+00:00",
+      "symbol": "RAAPLUSDT",
+      "side": "buy",
+      "qty": 0.0354,
+      "price": 335.6,
+      "notional_usd": 11.88024,
+      "rationale": "[Qwen3.8-max] The -1.49% spread (rToken -0.36% vs synthetic fair value +1.12%) suggests RAAPL is cheap, but book net exposure is already at the +25.0% cap (+$24,419), so buying would push us over the limit. I sold $2,391 in this symbol over the last 11 hours with no spread improvement, and the risk layer caps buys at $12; I propose the maximum allowed $12 to marginally reduce net exposure toward the cap while acknowledging the repeated selling has not closed the gap."
+    },
+    {
+      "timestamp": "2026-09-24T20:32:31.340417+00:00",
+      "symbol": "RMETAUSDT",
+      "side": "sell",
+      "qty": 0.4548,
+      "price": 775.5,
+      "notional_usd": 352.69739999999996,
+      "rationale": "[Qwen3.8-max] RMETA is trading at a +2.84% premium to its synthetic fair value (actual 3.96% vs blended 1.12%), indicating it is overpriced relative to overnight proxies. Book net exposure is exactly at the +25.0% cap (+$24,431) and the risk layer permits $0 in buys but up to $14,659 in sells, so adding long is forbidden while selling reduces both this symbol's overweight (currently $3,137 / 3.2% of equity) and brings the book back under its net cap. I am continuing the recent pattern of small sells ($500, $629, $335) with a $500 notional to trim the mispricing without overshooting."
+    },
+    {
+      "timestamp": "2026-09-24T20:32:37.320460+00:00",
+      "symbol": "RTSLAUSDT",
+      "side": "buy",
+      "qty": 0.9273,
+      "price": 377.44,
+      "notional_usd": 350.000112,
+      "rationale": "[Qwen3.8-max] The rToken is trading at a -1.80% spread to the +1.12% blended synthetic fair value, driven largely by the futures proxy's +2.17% return while RTSLA only fell -0.67%, suggesting it is cheap overnight. I have sold this symbol three times in the last 7.5 hours (most recently $470 at 0.5h ago) building a short position that now aligns with this mispricing, so repeating sells would be chasing rather than exploiting edge. Buying $350 covers part of the short within the risk layer's $353 buy approval and slightly reduces the book's net long exposure (+$24,078 / +24.6%) which is near the +25% net cap."
+    },
+    {
+      "timestamp": "2026-09-24T20:32:52.187542+00:00",
+      "symbol": "RMSFTUSDT",
+      "side": "buy",
+      "qty": 0.0055,
+      "price": 496.25,
+      "notional_usd": 2.7293749999999997,
+      "rationale": "[Qwen3.8-max] The -1.91% spread (rToken at $496.25 vs synthetic fair-value return of +1.12% while actual 24h return is -0.79%) suggests the token is cheap, but book net exposure is already +$24,428 (+25.0%), exactly at the 25% net cap, so adding long risk is constrained. The risk layer permits only up to $3 in buys, and I recently sold $718 then bought $450 in this symbol, indicating choppy action; I buy the $3 maximum to slightly reduce the short position without breaching the net cap."
+    },
+    {
+      "timestamp": "2026-09-24T20:32:56.296879+00:00",
+      "symbol": "RQQQUSDT",
+      "side": "sell",
+      "qty": 0.6765,
+      "price": 739.05,
+      "notional_usd": 499.96732499999996,
+      "rationale": "[Qwen3.8-max] The -1.39% spread (rToken at $739.05 vs +1.12% synthetic fair value) suggests RQQQUSDT is cheap, but the book's net exposure is +25.0% of equity, already over the 25% net cap, and the risk layer permits $0 in buys. Selling $500 aligns with my recent fills (three $500 sells in the last 7.5h) and helps bring net exposure back under the cap, which is the priority right now."
     }
   ],
   "equity_at_day_start_usd": 97833.22629900009,
