@@ -5431,6 +5431,6 @@
       "rationale": "[Qwen3.8-max] RQQQUSDT fell -0.85% while the blended overnight fair-value proxy rose +0.86%, creating a -1.71% discount that looks moderately actionable during the closed-market window. The +3.19% futures proxy supports upside, but the -2.48% crypto-beta signal reduces conviction, so sizing is conservative."
     }
   ],
-  "equity_at_day_start_usd": 98228.94175099995,
-  "day_start_date": "2026-09-23"
+  "equity_at_day_start_usd": 97833.22629900009,
+  "day_start_date": "2026-09-24"
 }
