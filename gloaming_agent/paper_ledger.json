@@ -1,5 +1,5 @@
 {
-  "cash_usd": 39886.90625900008,
+  "cash_usd": 40886.92090900008,
   "positions": {
     "RGOOGLUSDT": 0.2349000000000147,
     "RMSFTUSDT": 4.453799999999998,
@@ -7,7 +7,7 @@
     "RQQQUSDT": 12.5696,
     "RMETAUSDT": 12.132999999999996,
     "RNVDAUSDT": 56.6915,
-    "RTSLAUSDT": 34.12930000000001,
+    "RTSLAUSDT": 31.48830000000001,
     "RAAPLUSDT": 7.1141,
     "RAMZNUSDT": 0.7372000000000001
   },
@@ -5438,10 +5438,19 @@
       "price": 735.02,
       "notional_usd": 999.99471,
       "rationale": "[Qwen3.8-max] The -1.01% spread versus the +0.15% blended fair-value return suggests mild cheapness, but the book is badly over its net cap at +60.1% versus a 25% cap and gross is also at/over 60%, while the risk layer approves $0 buys. Selling $1,000 of the existing $9,918 long reduces directional exposure despite the modest mispricing."
+    },
+    {
+      "timestamp": "2026-09-24T07:20:43.006472+00:00",
+      "symbol": "RTSLAUSDT",
+      "side": "sell",
+      "qty": 2.641,
+      "price": 378.65,
+      "notional_usd": 1000.01465,
+      "rationale": "[Qwen3.8-max] The -0.32% spread is only a mild cheapness signal and is not strong enough on its own, especially with blended fair value only +0.09% versus RTSLAUSDT's -0.22%. However, the book is badly over net cap at +59.1% versus a 25% cap, I am already long $12,923 (13.2% of equity), and the risk layer approves sells but $0 buys, so a small $1,000 sell reduces directional risk while sacrificing little of the weak edge."
     }
   ],
   "equity_at_day_start_usd": 97833.22629900009,
   "day_start_date": "2026-09-24",
-  "net_over_cap_cycles": 1,
+  "net_over_cap_cycles": 2,
   "net_over_cap_baseline_usd": 33257.565084249974
 }
