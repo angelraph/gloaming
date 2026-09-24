@@ -1,5 +1,5 @@
 {
-  "cash_usd": 73668.3635010001,
+  "cash_usd": 73318.3742160001,
   "positions": {
     "RGOOGLUSDT": 0.2349000000000147,
     "RMSFTUSDT": 0.5110999999999986,
@@ -8,7 +8,7 @@
     "RMETAUSDT": 2.2056999999999953,
     "RNVDAUSDT": 37.5535,
     "RTSLAUSDT": 0.6080000000000095,
-    "RAAPLUSDT": -1.2982000000000007,
+    "RAAPLUSDT": -0.25610000000000066,
     "RAMZNUSDT": -0.0007999999999999119
   },
   "fills": [
@@ -5978,6 +5978,15 @@
       "price": 775.88,
       "notional_usd": 355.896156,
       "rationale": "[Qwen3.8-max] RMETA is trading at a +2.81% spread to its 1.24% synthetic fair-value return (actual 4.05% vs fair 1.24%), indicating overvaluation that justifies selling. The book's net exposure is +25.0%, already over the 25% net cap, and the risk layer permits $0 in buys but up to $14,662 in sells; reducing this long position directly helps bring net exposure back under the cap. I am proposing a $500 sell, consistent with my recent fills ($353-$366) that are correctly trimming this overvalued, net-exposure-increasing position."
+    },
+    {
+      "timestamp": "2026-09-24T21:32:15.891551+00:00",
+      "symbol": "RAAPLUSDT",
+      "side": "buy",
+      "qty": 1.0421,
+      "price": 335.85,
+      "notional_usd": 349.98928500000005,
+      "rationale": "[Qwen3.8-max] The rToken is trading at a -1.56% discount to the synthetic fair value (+1.25% blended return vs -0.31% actual), driven largely by the +2.37% futures proxy, suggesting it is genuinely cheap while the market is closed. I am already short $436 in RAAPL and have been buying small amounts recently; buying $350 covers most of the short, which reduces the book's net long exposure from +$24,083 (+24.6%) toward zero, staying within the risk layer's $355 buy approval and avoiding pushing net exposure closer to the 25% cap."
     }
   ],
   "equity_at_day_start_usd": 97833.22629900009,
