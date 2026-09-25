@@ -15,18 +15,28 @@ import agent_loop  # noqa: E402
 import llm_client  # noqa: E402
 
 
-def _snapshot(spread=0.04):
-    return {
+def _snapshot(spread=0.04, **overrides):
+    snap = {
         "underlying": "AAPL",
         "rtoken_symbol": "RAAPLUSDT",
         "rtoken_last_price": 300.0,
-        "rtoken_pcnt_24h": 0.03,
-        "futures_proxy_pcnt_24h": -0.01,
-        "crypto_beta_pcnt_24h": -0.01,
-        "fx_risk_sentiment_pcnt_24h": 0.0,
-        "fair_value_return_24h": -0.01,
+        "signal_spec": "since_last_close_v2",
+        "real_close_price": 299.0,
+        "real_close_time": "2026-09-25T20:00:00+00:00",
+        "hours_since_close": 1.5,
+        "rtoken_return_since_close": 0.03,
+        "rtoken_pcnt_24h": 0.031,
+        "futures_proxy_return_since_close": -0.01,
+        "crypto_beta_return_since_close": -0.01,
+        "fx_risk_sentiment_return_since_close": 0.0,
+        "fair_value_return_since_close": -0.01,
+        "fair_value_price": 296.0,
         "spread": spread,
+        "recent_daily_volatility": 0.02,
+        "missing_proxies": [],
     }
+    snap.update(overrides)
+    return snap
 
 
 def test_decide_falls_back_to_rule_based_when_qwen_not_configured(monkeypatch):
@@ -75,6 +85,29 @@ def test_decide_llm_hold_returns_none(monkeypatch):
     assert agent_loop.decide_llm(_snapshot()) is None
 
 
+def test_a_hold_keeps_qwens_reasoning_instead_of_discarding_it(monkeypatch):
+    monkeypatch.setattr(
+        llm_client, "get_decision_json",
+        lambda system_prompt, user_prompt: {
+            "action": "hold", "notional_usd": 0,
+            "rationale": "the +0.05% spread is inside normal tracking noise",
+        },
+    )
+    snap = _snapshot(spread=0.0005)
+    assert agent_loop.decide_llm(snap) is None
+    assert snap["hold_rationale"] == "[Qwen3.8-max] the +0.05% spread is inside normal tracking noise"
+
+
+def test_a_zero_size_trade_is_recorded_as_a_hold_with_its_reasoning(monkeypatch):
+    monkeypatch.setattr(
+        llm_client, "get_decision_json",
+        lambda system_prompt, user_prompt: {"action": "buy", "notional_usd": 0, "rationale": "no size worth taking"},
+    )
+    snap = _snapshot()
+    assert agent_loop.decide_llm(snap) is None
+    assert "no size worth taking" in snap["hold_rationale"]
+
+
 def test_decide_llm_invalid_action_raises_llmerror(monkeypatch):
     monkeypatch.setattr(
         llm_client, "get_decision_json",
@@ -109,3 +142,41 @@ def test_build_user_prompt_includes_real_numbers_not_placeholders():
     assert "RAAPLUSDT" in prompt
     assert "3.86%" in prompt
     assert "$300.00" in prompt
+
+
+def test_prompt_anchors_the_signal_to_the_real_close_and_says_how_long_ago():
+    prompt = agent_loop.build_user_prompt(_snapshot())
+    assert "$299.00" in prompt                      # the real share's close
+    assert "Fri 2026-09-25 16:00 ET" in prompt      # when it closed, in exchange time
+    assert "1.5 hours ago" in prompt
+    assert "since the close" in prompt
+    assert "fair value $296.00" in prompt
+
+
+def test_prompt_labels_the_rolling_24h_return_as_context_only():
+    prompt = agent_loop.build_user_prompt(_snapshot())
+    assert "+3.10%" in prompt
+    assert "for context only" in prompt
+    assert "whole regular session" in prompt
+
+
+def test_prompt_says_so_when_a_proxy_was_unavailable_instead_of_printing_a_number():
+    prompt = agent_loop.build_user_prompt(_snapshot(
+        futures_proxy_return_since_close=None, missing_proxies=["futures:NQ=F"],
+    ))
+    assert "Index-futures proxy: unavailable" in prompt
+    assert "counted as no information, not as zero movement): futures:NQ=F" in prompt
+
+
+def test_rule_based_rationale_uses_the_since_close_numbers_and_survives_a_missing_proxy():
+    decision = agent_loop.decide_rule_based(_snapshot(
+        spread=0.04, fx_risk_sentiment_return_since_close=None,
+    ))
+    assert "since the real share's last close" in decision.rationale
+    assert "fx unavailable" in decision.rationale
+    assert "24h" not in decision.rationale
+
+
+def test_rule_based_fallback_holds_on_a_normal_sized_overnight_spread():
+    # a few tenths of a percent is normal noise for the anchored signal
+    assert agent_loop.decide_rule_based(_snapshot(spread=0.004)) is None

@@ -23,18 +23,26 @@ import paper_ledger  # noqa: E402
 from fairvalue.config import RTOKEN_UNIVERSE  # noqa: E402
 
 
-def _fake_snapshot(underlying, crypto_pcnt, fx_pcnt, futures_pcnt_by_ticker, bitget_signal_context=None):
+def _fake_snapshot(underlying, anchor, bitget_signal_context=None):
     cfg = RTOKEN_UNIVERSE[underlying]
     return {
         "underlying": underlying,
         "rtoken_symbol": cfg["rtoken_symbol"],
         "rtoken_last_price": 100.0,
+        "signal_spec": "since_last_close_v2",
+        "real_close_price": 100.0,
+        "real_close_time": "2026-09-25T20:00:00+00:00",
+        "hours_since_close": 1.0,
+        "rtoken_return_since_close": 0.0,
         "rtoken_pcnt_24h": 0.0,
-        "futures_proxy_pcnt_24h": 0.0,
-        "crypto_beta_pcnt_24h": 0.0,
-        "fx_risk_sentiment_pcnt_24h": 0.0,
-        "fair_value_return_24h": 0.0,
+        "futures_proxy_return_since_close": 0.0,
+        "crypto_beta_return_since_close": 0.0,
+        "fx_risk_sentiment_return_since_close": 0.0,
+        "fair_value_return_since_close": 0.0,
+        "fair_value_price": 100.0,
         "spread": 0.0,  # below any threshold - every symbol resolves to no-decision
+        "recent_daily_volatility": 0.02,
+        "missing_proxies": [],
         "bitget_signal_context": bitget_signal_context,
     }
 
@@ -53,10 +61,7 @@ def isolated(tmp_path, monkeypatch):
     monkeypatch.setattr(agent_loop.kv_sync, "push_decision_records", lambda records: None)
     monkeypatch.setattr(agent_loop.llm_client, "is_configured", lambda: False)
     monkeypatch.setattr(agent_loop, "is_nyse_closed", lambda: True)
-    monkeypatch.setattr(agent_loop, "get_crypto_ticks", lambda: {})
-    monkeypatch.setattr(agent_loop, "crypto_beta_return", lambda ticks: 0.0)
-    monkeypatch.setattr(agent_loop, "fx_risk_sentiment_return", lambda: 0.0)
-    monkeypatch.setattr(agent_loop, "_futures_proxy_pcnt_24h", lambda ticker: 0.0)
+    monkeypatch.setattr(agent_loop, "fetch_overnight_anchor", lambda underlyings, futures_tickers: object())
     monkeypatch.setattr(agent_loop.bitget_signal, "get_signal_context", lambda: None)
     monkeypatch.setattr(agent_loop, "build_snapshot", _fake_snapshot)
     yield

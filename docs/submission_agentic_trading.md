@@ -77,6 +77,18 @@ during exactly that window.
   deadline - check `gloaming_agent/decision_log/` or the live Desk for the
   current count at submission time.
 
+- **Signal correction, disclosed (Sept 25)**: checking why one symbol's spread was not
+  closing showed the live spread was mostly the regular session's own move, not an
+  overnight gap. The rToken tracked each real share's last close within about +/-0.25%
+  (most within 0.1%) while the reported spreads reached -4.62% and +2.80%, and one input
+  labeled "24h" was a 5-day futures return (NQ +2.76% versus a true +0.60%). The live
+  paper-trading record through Sept 25 was produced by that earlier specification; the
+  signal is now anchored to each real share's last regular-session close (see
+  docs/architecture.md, "The signal, and a correction"), records carry
+  `signal_spec: "since_last_close_v2"`, and the corrected signal produces mostly holds
+  with Qwen's reasoning recorded for each. The backtest above uses a different
+  (daily close-to-close) specification and is not evidence for the corrected signal.
+
 ### Progress / build status
 
 Fully built and running live, unattended, right now:

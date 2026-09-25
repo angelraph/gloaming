@@ -37,8 +37,7 @@ ENGINE_DIR = REPO_ROOT / "engine"
 sys.path.insert(0, str(ENGINE_DIR))
 sys.path.insert(0, str(Path(__file__).resolve().parent))
 
-from data.crypto_beta import crypto_beta_return, get_crypto_ticks  # noqa: E402
-from data.fx import fx_risk_sentiment_return  # noqa: E402
+from data.overnight_anchor import AnchorUnavailable, OvernightAnchor, fetch_overnight_anchor  # noqa: E402
 from data.rtoken_client import run_bgc  # noqa: E402
 from fairvalue.config import FAIRVALUE_WEIGHTS, RTOKEN_UNIVERSE  # noqa: E402
 
@@ -57,7 +56,11 @@ from risk_controls import (  # noqa: E402
 
 DECISION_LOG_DIR = Path(__file__).resolve().parent / "decision_log"
 NYSE_TZ = ZoneInfo("America/New_York")
-SPREAD_THRESHOLD = 0.015  # 1.5% - crude Day 4 fixed threshold; Day 5's Qwen replaces this
+# The rule-based FALLBACK's threshold (Qwen is the primary decision-maker). The spread is
+# now the dislocation since the real share's close, which is normally a few tenths of a
+# percent, so this fallback fires only on a genuine gap: rarely, which is the safe side
+# to be wrong on for a path that runs unattended when Qwen is unavailable.
+SPREAD_THRESHOLD = 0.015
 # Total wall-clock the LLM may use across one cycle's per-symbol decisions. The
 # scheduled workflow is killed at 10 minutes (.github/workflows/agent_loop.yml), and
 # a killed job loses that cycle's ledger commit. With thinking off a call takes 5-8s
@@ -97,59 +100,70 @@ def _get_rtoken_tick_with_pcnt(rtoken_symbol: str) -> dict:
     }
 
 
-def _futures_proxy_pcnt_24h(futures_ticker: str) -> float:
-    """Live 24h-ish proxy return: latest close vs. close ~24h/1-trading-day back.
-    Falls back to 0.0 (treated as 'no new information') if the feed is unavailable
-    - matches the weekend zero-fill convention from the Day 3 backtest."""
-    sys.path.insert(0, str(ENGINE_DIR / "data"))
-    from futures_proxy import fetch_futures_history  # local import: yfinance is a soft dependency
-
-    try:
-        df = fetch_futures_history(tickers=[futures_ticker], period="5d", interval="1h")
-        closes = df[futures_ticker].dropna()
-        if len(closes) < 2:
-            return 0.0
-        return float(closes.iloc[-1] / closes.iloc[0] - 1)
-    except Exception:
-        return 0.0
+def _pct(value, signed: bool = False) -> str:
+    """Percent formatting that says so when a proxy was unavailable instead of
+    printing a number that was never measured."""
+    if value is None:
+        return "unavailable"
+    return f"{value:+.2%}" if signed else f"{value:.2%}"
 
 
-def build_snapshot(underlying: str, crypto_pcnt: float, fx_pcnt: float,
-                     futures_pcnt_by_ticker: dict, bitget_signal_context: dict | None = None) -> dict:
-    """crypto_pcnt/fx_pcnt/futures_pcnt_by_ticker/bitget_signal_context are fetched
-    ONCE per run_once() cycle by the caller and shared across all symbols - these
-    proxies don't vary per-underlying (only the futures ticker choice does, and
-    even that's shared across the handful of symbols using the same index), so
-    refetching them per symbol was pure waste (9 symbols x redundant yfinance/bgc
-    calls each cycle).
+def build_snapshot(underlying: str, anchor: OvernightAnchor,
+                   bitget_signal_context: dict | None = None) -> dict:
+    """One symbol's live signal, anchored to where the REAL share last closed.
 
-    bitget_signal_context is real, additional macro/crypto context from Bitget's
-    own public bitget-signal MCP server (Fear & Greed sentiment, BTC derivatives
-    positioning) - genuinely optional enrichment, not a new hard dependency. It is
-    None whenever that server or its own upstream data sources have nothing to
-    give at call time (see bitget_signal.py); the fair-value model itself never
-    changes shape based on whether this is present."""
+        fair value = real close x (1 + blended proxy return since that close)
+        spread     = rToken return since that close - blended proxy return since it
+
+    `anchor` (the real closes, the futures / crypto / FX moves since the close, and
+    each share's realized volatility) is fetched ONCE per run_once() cycle and shared
+    across all symbols. Every term is measured over the same window. The previous
+    version compared the rToken's rolling 24h return, which contains the whole regular
+    session, with a ~5-day futures return, a 24h crypto return and a 1-hour FX return;
+    its spreads (up to -4.6%) were the session's own move, not a gap, while the real
+    overnight dislocation was about 0.1% (see engine/data/overnight_anchor.py).
+
+    A proxy that was unavailable this cycle contributes nothing (the same "no new
+    information" convention as before) and is listed in `missing_proxies`; a missing
+    real close raises, so that symbol gets no decision this cycle instead of one made
+    on an invented anchor.
+
+    bitget_signal_context is real, additional macro/crypto context from Bitget's own
+    public bitget-signal MCP server, genuinely optional enrichment (None whenever that
+    server has nothing to give, see bitget_signal.py); the model never depends on it."""
     cfg = RTOKEN_UNIVERSE[underlying]
+    if underlying not in anchor.close_prices:
+        raise ValueError(f"no real-share close for {underlying} on the anchor session {anchor.session_date}")
     rtoken = _get_rtoken_tick_with_pcnt(cfg["rtoken_symbol"])
-    futures_pcnt = futures_pcnt_by_ticker[cfg["futures_proxy"]]
 
+    close = anchor.close_prices[underlying]
+    futures_return = anchor.futures_return.get(cfg["futures_proxy"])
     fair_value_return = (
-        futures_pcnt * FAIRVALUE_WEIGHTS["futures_proxy_return"]
-        + crypto_pcnt * FAIRVALUE_WEIGHTS["crypto_beta_return"]
-        + fx_pcnt * FAIRVALUE_WEIGHTS["fx_risk_sentiment_return"]
+        (futures_return or 0.0) * FAIRVALUE_WEIGHTS["futures_proxy_return"]
+        + (anchor.crypto_return or 0.0) * FAIRVALUE_WEIGHTS["crypto_beta_return"]
+        + (anchor.fx_return or 0.0) * FAIRVALUE_WEIGHTS["fx_risk_sentiment_return"]
     )
-    spread = rtoken["pcnt_change_24h"] - fair_value_return
+    rtoken_return = rtoken["last_price"] / close - 1.0
+    relevant_missing = {f"futures:{cfg['futures_proxy']}", "crypto_beta", "fx_risk_sentiment"}
 
     return {
         "underlying": underlying,
         "rtoken_symbol": cfg["rtoken_symbol"],
         "rtoken_last_price": rtoken["last_price"],
-        "rtoken_pcnt_24h": rtoken["pcnt_change_24h"],
-        "futures_proxy_pcnt_24h": futures_pcnt,
-        "crypto_beta_pcnt_24h": crypto_pcnt,
-        "fx_risk_sentiment_pcnt_24h": fx_pcnt,
-        "fair_value_return_24h": fair_value_return,
-        "spread": spread,
+        "signal_spec": "since_last_close_v2",
+        "real_close_price": close,
+        "real_close_time": anchor.session_close_utc.isoformat(),
+        "hours_since_close": round(anchor.hours_since_close, 2),
+        "rtoken_return_since_close": rtoken_return,
+        "rtoken_pcnt_24h": rtoken["pcnt_change_24h"],  # rolling 24h, context only: it contains the whole session
+        "futures_proxy_return_since_close": futures_return,
+        "crypto_beta_return_since_close": anchor.crypto_return,
+        "fx_risk_sentiment_return_since_close": anchor.fx_return,
+        "fair_value_return_since_close": fair_value_return,
+        "fair_value_price": close * (1.0 + fair_value_return),
+        "spread": rtoken_return - fair_value_return,
+        "recent_daily_volatility": anchor.daily_volatility.get(underlying),
+        "missing_proxies": [m for m in anchor.missing if m in relevant_missing],
         "bitget_signal_context": bitget_signal_context,
     }
 
@@ -166,11 +180,13 @@ def decide_rule_based(snapshot: dict) -> TradeDecision | None:
 
     side = "sell" if spread > 0 else "buy"
     rationale = (
-        f"{snapshot['rtoken_symbol']} 24h return {snapshot['rtoken_pcnt_24h']:.2%} vs. blended "
-        f"proxy fair-value estimate {snapshot['fair_value_return_24h']:.2%} "
-        f"(futures {snapshot['futures_proxy_pcnt_24h']:.2%}, crypto {snapshot['crypto_beta_pcnt_24h']:.2%}, "
-        f"fx {snapshot['fx_risk_sentiment_pcnt_24h']:.2%}) -> spread {spread:.2%}, "
-        f"{'above' if spread > 0 else 'below'} the {SPREAD_THRESHOLD:.1%} threshold -> {side} "
+        f"{snapshot['rtoken_symbol']} return since the real share's last close "
+        f"{_pct(snapshot['rtoken_return_since_close'], signed=True)} vs. blended proxy fair-value "
+        f"return {_pct(snapshot['fair_value_return_since_close'], signed=True)} "
+        f"(futures {_pct(snapshot['futures_proxy_return_since_close'], signed=True)}, "
+        f"crypto {_pct(snapshot['crypto_beta_return_since_close'], signed=True)}, "
+        f"fx {_pct(snapshot['fx_risk_sentiment_return_since_close'], signed=True)}) -> spread "
+        f"{spread:+.2%}, {'above' if spread > 0 else 'below'} the {SPREAD_THRESHOLD:.1%} threshold -> {side} "
         f"(bet on reversion toward fair value)."
     )
     return TradeDecision(
@@ -292,20 +308,33 @@ def build_user_prompt(snapshot: dict) -> str:
                 "\nAdditional real-time context (Bitget's own public bitget-signal "
                 "MCP server):\n" + "\n".join(parts) + "\n"
             )
+    close_et = datetime.fromisoformat(snapshot["real_close_time"]).astimezone(NYSE_TZ)
+    missing = snapshot.get("missing_proxies") or []
+    missing_line = (
+        f"- Unavailable this cycle (counted as no information, not as zero movement): {', '.join(missing)}\n"
+        if missing else ""
+    )
     return (
         f"rToken: {snapshot['rtoken_symbol']}\n"
         f"Last price: ${snapshot['rtoken_last_price']:.2f}\n"
-        f"24h return: {snapshot['rtoken_pcnt_24h']:.2%}\n"
+        f"The real share's last regular-session close: ${snapshot['real_close_price']:.2f} "
+        f"({close_et:%a %Y-%m-%d} 16:00 ET, {snapshot['hours_since_close']:.1f} hours ago)\n"
+        f"rToken vs that close: {snapshot['rtoken_return_since_close']:+.2%} "
+        f"(its rolling 24h return, {snapshot['rtoken_pcnt_24h']:+.2%}, is for context only: it contains "
+        f"the whole regular session, which the rToken already priced)\n"
         f"\n"
-        f"Overnight proxy signals (live, while NYSE is closed):\n"
-        f"- Futures proxy 24h return: {snapshot['futures_proxy_pcnt_24h']:.2%}\n"
-        f"- Crypto beta 24h return: {snapshot['crypto_beta_pcnt_24h']:.2%}\n"
-        f"- FX risk sentiment 24h return: {snapshot['fx_risk_sentiment_pcnt_24h']:.2%}\n"
-        f"- Blended synthetic fair-value return: {snapshot['fair_value_return_24h']:.2%}\n"
+        f"Moves since that close, from proxies that stay live while NYSE is closed:\n"
+        f"- Index-futures proxy: {_pct(snapshot['futures_proxy_return_since_close'], signed=True)}\n"
+        f"- Crypto beta (BTC/ETH): {_pct(snapshot['crypto_beta_return_since_close'], signed=True)}\n"
+        f"- FX risk sentiment (inverted DXY): {_pct(snapshot['fx_risk_sentiment_return_since_close'], signed=True)}\n"
+        f"- Blended synthetic fair-value return since the close: "
+        f"{snapshot['fair_value_return_since_close']:+.2%} (fair value ${snapshot['fair_value_price']:.2f})\n"
+        f"{missing_line}"
         f"{signal_lines}"
         f"{book_lines}"
         f"\n"
-        f"Spread (actual vs. fair value): {snapshot['spread']:.2%}\n"
+        f"Spread (rToken return since the close minus fair-value return since the close): "
+        f"{snapshot['spread']:+.2%}\n"
         f"\n"
         + (
             "Decide whether this spread is an actionable mispricing, and whether trading it "
@@ -327,7 +356,12 @@ def decide_llm(snapshot: dict) -> TradeDecision | None:
     action = result.get("action")
     if action not in ("buy", "sell", "hold"):
         raise llm_client.LLMError(f"Qwen returned an invalid action: {action!r}")
+    rationale = str(result.get("rationale") or "Qwen provided no rationale.")
     if action == "hold":
+        # A hold used to throw its reasoning away. With an anchored signal most decisions
+        # are holds, so an unexplained hold would leave most of the log without the
+        # "why". run_once() moves this onto the record.
+        snapshot["hold_rationale"] = f"[Qwen3.8-max] {rationale}"
         return None
 
     try:
@@ -338,9 +372,9 @@ def decide_llm(snapshot: dict) -> TradeDecision | None:
         raise llm_client.LLMError(f"Qwen returned non-numeric fields: {result}") from e
 
     if notional <= 0:
+        snapshot["hold_rationale"] = f"[Qwen3.8-max] {rationale}"
         return None
 
-    rationale = str(result.get("rationale") or "Qwen provided no rationale.")
     return TradeDecision(
         symbol=snapshot["rtoken_symbol"], side=action,
         notional_usd=min(notional, 1000.0),  # hard ceiling regardless of what Qwen suggests
@@ -473,11 +507,17 @@ def run_once(dry_run: bool = False, force: bool = False) -> list[dict]:
         _emit(record)
         return [record]
 
-    # Fetch the shared, symbol-independent proxies exactly once per cycle.
-    crypto_pcnt = crypto_beta_return(get_crypto_ticks())
-    fx_pcnt = fx_risk_sentiment_return()
-    distinct_futures_tickers = {cfg["futures_proxy"] for cfg in RTOKEN_UNIVERSE.values()}
-    futures_pcnt_by_ticker = {t: _futures_proxy_pcnt_24h(t) for t in distinct_futures_tickers}
+    # Fetch the shared, symbol-independent anchor exactly once per cycle: where each real
+    # share last closed, and what the futures / crypto / FX proxies have done since. If
+    # the real closes cannot be established there is no anchor at all: every symbol is
+    # logged as an error and nothing trades this cycle, rather than trading on stale
+    # numbers.
+    distinct_futures_tickers = sorted({cfg["futures_proxy"] for cfg in RTOKEN_UNIVERSE.values()})
+    try:
+        anchor = fetch_overnight_anchor(list(RTOKEN_UNIVERSE), distinct_futures_tickers)
+        anchor_error = None
+    except (AnchorUnavailable, Exception) as e:  # noqa: BLE001 - a data outage must not crash the cycle
+        anchor, anchor_error = None, f"real-close anchor unavailable: {e}"
     # Real, optional enrichment from Bitget's own public bitget-signal MCP server
     # (see bitget_signal.py) - never fabricated, None whenever that source has
     # nothing to give, and the fair-value model above never depends on it.
@@ -491,7 +531,9 @@ def run_once(dry_run: bool = False, force: bool = False) -> list[dict]:
     mark_prices: dict[str, float] = {}
     for underlying in RTOKEN_UNIVERSE:
         try:
-            snapshot = build_snapshot(underlying, crypto_pcnt, fx_pcnt, futures_pcnt_by_ticker, bitget_signal_context)
+            if anchor is None:
+                raise RuntimeError(anchor_error)
+            snapshot = build_snapshot(underlying, anchor, bitget_signal_context)
             snapshots[underlying] = snapshot
             mark_prices[snapshot["rtoken_symbol"]] = snapshot["rtoken_last_price"]
         except Exception as e:  # noqa: BLE001 - one symbol's data failure shouldn't kill the cycle
@@ -532,14 +574,24 @@ def run_once(dry_run: bool = False, force: bool = False) -> list[dict]:
             decision, decision_source = decide(snapshot)
             llm_time_spent += time.monotonic() - llm_started
         record["decision_source"] = decision_source
+        hold_rationale = snapshot.pop("hold_rationale", None)
         if decision is None:
             record["decision"] = None
+            if hold_rationale:
+                record["hold_rationale"] = hold_rationale
             records.append(record)
             _emit(record)
             continue
         record["decision"] = asdict(decision)
 
-        risk_result = evaluate_decision(decision, portfolio_state, recent_volatility=abs(snapshot["spread"]))
+        # Realized daily volatility of the real share feeds the risk layer's volatility-scaled
+        # sizing (control #4). It used to be |spread|, which only worked while the "spread"
+        # was a multi-percent number; a dislocation of a few tenths of a percent is not a
+        # volatility, and using it would have quietly switched the control off.
+        recent_volatility = snapshot.get("recent_daily_volatility")
+        if recent_volatility is None:
+            recent_volatility = abs(snapshot["spread"])  # no realized vol this cycle: previous fallback
+        risk_result = evaluate_decision(decision, portfolio_state, recent_volatility=recent_volatility)
         record["risk_result"] = asdict(risk_result)
 
         if not risk_result.approved:

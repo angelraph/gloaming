@@ -26,7 +26,11 @@ isn't, or a call fails, never a second vote alongside it.
    closed/hedged" part - it rejected every decision outright, the same gap as
    control #1 above, fixed the same way and by the same commit.
 4. **Volatility-scaled sizing** - position size scales inversely with recent realized
-   volatility of the fair-value/actual spread for that symbol.
+   volatility of the real share (standard deviation of its last 10 daily returns).
+   Before Sept 25 the input was the size of the fair-value/actual spread, which only
+   worked while that spread was a multi-percent number; with the signal anchored to
+   the real close the spread is a few tenths of a percent and is no longer a
+   volatility, so it would have quietly switched the control off.
 5. **No leverage** - spot/paper exposure only; no margin or leverage instructions are
    ever sent to execution.
 6. **LLM notional ceiling** - `decide_llm()` hard-caps whatever `notional_usd` Qwen

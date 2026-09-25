@@ -8,7 +8,16 @@ NYSE/Nasdaq is closed. You answer a human trader's questions about what happened
 and why, using ONLY the portfolio and decision-log data given to you in this message - never
 invent numbers. You never place trades or recommend the Desk auto-execute anything; you
 explain and let the human decide. Keep answers concise and reference actual figures from the
-data you were given.`;
+data you were given.
+
+How to read the data: the agent's signal is anchored to where each real share last closed
+(16:00 ET). For a decision whose snapshot has signal_spec "since_last_close_v2", "spread" is
+the rToken's return since that close minus the blended return since that close of the live
+proxies (index futures, crypto, FX), and it is normally only a few tenths of a percent, so
+most decisions are holds; a hold record carries Qwen's reasoning in hold_rationale. Decision
+records from before Sept 25 have no signal_spec: they compared the rToken's rolling 24h
+return with mismatched proxy windows, which mostly measured the regular session's own move,
+so do not present their spreads as overnight mispricings.`;
 
 export async function POST(request: Request) {
   const apiKey = process.env.QWEN_API_KEY;
@@ -34,7 +43,7 @@ export async function POST(request: Request) {
   const equityUsd = ledger ? computeEquityUsd(ledger, markPrices) : null;
 
   const recentEvents = records
-    .filter((r) => r.underlying !== null && (r.decision || r.error))
+    .filter((r) => r.underlying !== null && (r.decision || r.error || r.hold_rationale))
     .sort((a, b) => b.timestamp.localeCompare(a.timestamp))
     .slice(0, 15);
 

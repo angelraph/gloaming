@@ -28,8 +28,13 @@ type TimelineResponse = {
       rtoken_symbol: string;
       rtoken_last_price: number;
       spread: number;
-      fair_value_return_24h: number;
-      rtoken_pcnt_24h: number;
+      signal_spec?: string;
+      real_close_price?: number;
+      hours_since_close?: number;
+      rtoken_return_since_close?: number;
+      fair_value_return_since_close?: number;
+      fair_value_return_24h?: number;
+      rtoken_pcnt_24h?: number;
       bitget_signal_context?: {
         fear_greed?: Record<string, unknown>;
         long_short?: Record<string, unknown>;
@@ -38,6 +43,7 @@ type TimelineResponse = {
       } | null;
     };
     decision?: { side: string; notional_usd: number; rationale: string } | null;
+    hold_rationale?: string;
     error?: string;
   }>;
   count: number;

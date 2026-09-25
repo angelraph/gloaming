@@ -23,18 +23,26 @@ from risk_controls import PortfolioState, RiskConfig, TradeDecision  # noqa: E40
 SYMBOLS = [cfg["rtoken_symbol"] for cfg in RTOKEN_UNIVERSE.values()]
 
 
-def _fake_snapshot(underlying, crypto_pcnt, fx_pcnt, futures_pcnt_by_ticker, bitget_signal_context=None):
+def _fake_snapshot(underlying, anchor, bitget_signal_context=None):
     cfg = RTOKEN_UNIVERSE[underlying]
     return {
         "underlying": underlying,
         "rtoken_symbol": cfg["rtoken_symbol"],
         "rtoken_last_price": 100.0,
+        "signal_spec": "since_last_close_v2",
+        "real_close_price": 100.0,
+        "real_close_time": "2026-09-25T20:00:00+00:00",
+        "hours_since_close": 1.0,
+        "rtoken_return_since_close": 0.0,
         "rtoken_pcnt_24h": 0.0,
-        "futures_proxy_pcnt_24h": 0.0,
-        "crypto_beta_pcnt_24h": 0.0,
-        "fx_risk_sentiment_pcnt_24h": 0.0,
-        "fair_value_return_24h": 0.0,
+        "futures_proxy_return_since_close": 0.0,
+        "crypto_beta_return_since_close": 0.0,
+        "fx_risk_sentiment_return_since_close": 0.0,
+        "fair_value_return_since_close": 0.0,
+        "fair_value_price": 100.0,
         "spread": 0.0,
+        "recent_daily_volatility": 0.02,
+        "missing_proxies": [],
         "bitget_signal_context": bitget_signal_context,
     }
 
@@ -47,10 +55,7 @@ def isolated(tmp_path, monkeypatch):
     monkeypatch.setattr(agent_loop.kv_sync, "push_decision_records", lambda records: None)
     monkeypatch.setattr(agent_loop.llm_client, "is_configured", lambda: False)
     monkeypatch.setattr(agent_loop, "is_nyse_closed", lambda: True)
-    monkeypatch.setattr(agent_loop, "get_crypto_ticks", lambda: {})
-    monkeypatch.setattr(agent_loop, "crypto_beta_return", lambda ticks: 0.0)
-    monkeypatch.setattr(agent_loop, "fx_risk_sentiment_return", lambda: 0.0)
-    monkeypatch.setattr(agent_loop, "_futures_proxy_pcnt_24h", lambda ticker: 0.0)
+    monkeypatch.setattr(agent_loop, "fetch_overnight_anchor", lambda underlyings, futures_tickers: object())
     monkeypatch.setattr(agent_loop.bitget_signal, "get_signal_context", lambda: None)
     monkeypatch.setattr(agent_loop, "build_snapshot", _fake_snapshot)
     yield
@@ -105,7 +110,7 @@ def test_book_context_includes_recent_fills_with_their_age():
 # --- what the prompt actually tells Qwen ---
 
 def _snapshot_with_book(book):
-    snap = _fake_snapshot("AAPL", 0.0, 0.0, {})
+    snap = _fake_snapshot("AAPL", None)
     snap["book_context"] = book
     return snap
 
@@ -135,7 +140,7 @@ def test_prompt_says_flat_for_a_symbol_with_no_position():
 
 
 def test_prompt_is_unchanged_when_there_is_no_book_context():
-    prompt = agent_loop.build_user_prompt(_fake_snapshot("AAPL", 0.0, 0.0, {}))
+    prompt = agent_loop.build_user_prompt(_fake_snapshot("AAPL", None))
     assert "Your current book" not in prompt
     assert prompt.rstrip().endswith("Decide whether this spread is an actionable mispricing.")
 
@@ -162,6 +167,22 @@ def test_the_book_is_re_marked_after_each_real_fill_within_a_cycle(monkeypatch):
     assert nets[1] == pytest.approx(500.0, abs=1.0)
     assert nets[2] == pytest.approx(1_000.0, abs=1.0)
     assert nets[3] == pytest.approx(1_500.0, abs=1.0)
+
+
+# --- holds keep their reasoning ---
+
+def test_a_hold_is_logged_with_qwens_reasoning_on_the_record_not_buried_in_the_snapshot(monkeypatch):
+    monkeypatch.setattr(agent_loop.llm_client, "is_configured", lambda: True)
+    monkeypatch.setattr(
+        agent_loop.llm_client, "get_decision_json",
+        lambda system_prompt, user_prompt: {"action": "hold", "notional_usd": 0, "rationale": "inside tracking noise"},
+    )
+    records = agent_loop.run_once(dry_run=True, force=True)
+    assert len(records) == len(RTOKEN_UNIVERSE)
+    for record in records:
+        assert record["decision"] is None
+        assert record["hold_rationale"] == "[Qwen3.8-max] inside tracking noise"
+        assert "hold_rationale" not in record["snapshot"]
 
 
 # --- the per-cycle LLM time budget ---

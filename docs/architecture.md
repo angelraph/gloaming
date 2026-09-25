@@ -68,13 +68,70 @@ estimating a synthetic fair value during that closed window from proxies that
 and trading/reporting on the resulting spread. This is specific to how rToken
 works, not a generic sentiment- or news-trading bot.
 
+## The signal, and a correction (Sept 25)
+
+**Current specification (`since_last_close_v2`).** The question the signal answers is
+"where should the rToken be now, given where the real share last closed and what has
+moved since?" Every input is measured over the same window, from the last regular
+session's 16:00 ET close to now:
+
+    fair value = real close x (1 + blended proxy return since that close)
+    spread     = rToken return since that close - blended proxy return since that close
+
+with the same 0.5 / 0.3 / 0.2 blend of index futures, BTC/ETH, and inverted DXY. Once
+per cycle `engine/data/overnight_anchor.py` fetches the real closes (Yahoo daily
+bars), the futures and DXY moves since the close (Yahoo hourly), and the BTC/ETH move
+(Bitget hourly klines). A proxy that cannot be fetched contributes nothing and is
+listed in the snapshot's `missing_proxies`; a missing real close means that symbol,
+or the whole cycle, gets no decision rather than one made on an invented anchor.
+Each logged snapshot carries `signal_spec`, the close price and time, and the hours
+since the close. Simplifications, disclosed: the close is modeled as 16:00 ET every
+trading day (early closes and holidays are not modeled, as `is_nyse_closed()` already
+notes), and the blend weights are still the heuristic prior.
+
+**What it replaced, and why it was wrong.** From Sept 10 to Sept 25 the live spread
+was the rToken's rolling 24h return minus a blend of three proxy returns measured
+over three different windows: the futures term was the return over the entire 5-day
+window fetched (`closes.iloc[-1] / closes.iloc[0]`, documented as "24h"), the crypto
+term a true 24h return, and the FX term the latest one-hour bar. Checked against real
+data on Sept 25:
+
+- Every rToken sat within about +/-0.25% of its real share's last close (most within
+  0.1%), so the real overnight dislocation was about 0.1%.
+- The old spreads on the same symbols were as large as -4.62% (META) and +2.80% (MSFT).
+  They were the regular session's own move, which the rToken had already priced
+  correctly and a proxy blend with no company-specific term cannot see, not a
+  mispricing that could close. META's real share had risen 4.5% and then fallen 3.3% on
+  consecutive sessions while NQ futures moved 0.3% and 0.4%; the rToken tracked the
+  share within 0.3% throughout.
+- The futures term used +2.76% for NQ where the true 24h return was +0.60%, tilting
+  every fair value by the 5-day trend. That is the cause of the persistent one-way
+  buying, and of the book swinging from about 60% net short to about 60% net long.
+
+The paper-trading record from Sept 10 through Sept 25 was therefore produced by the old
+specification and should be read that way. Records from the correction onward carry
+`signal_spec: "since_last_close_v2"`; earlier ones do not. Under the corrected signal
+spreads are normally a few tenths of a percent, so most decisions are holds (each hold
+now keeps Qwen's reasoning in `hold_rationale`), and trading is much sparser.
+
+The volatility-scaled sizing control used `|spread|` as its volatility input, which only
+made sense while the "spread" was a multi-percent number; it now uses the real share's
+realized daily volatility (last 10 sessions), so the control stays meaningful.
+
+The Alpha Factory backtest (`engine/backtest/`, `engine/fairvalue/model.py`) works on
+daily close-to-close return series, a different specification from the live signal
+above, so its statistics are not evidence for it.
+
 ## Data flow
 
-1. `engine/data/*` loaders pull rToken prices (via the Bitget Agent CLI, `bgc`),
-   futures proxies (`ES=F`/`NQ=F`), crypto beta (BTC/ETH klines), and FX (DXY).
-2. `engine/fairvalue/model.py` blends these into a synthetic fair value per rToken,
-   weighted per `fairvalue/config.py` (heuristic prior, OLS-calibrated once enough
-   overlapping history exists - see `engine/backtest/run_backtest.py`).
+1. `engine/data/overnight_anchor.py` fetches, once per cycle, the real shares' last
+   regular-session closes and the futures proxies (`ES=F`/`NQ=F`), crypto beta
+   (BTC/ETH via the Bitget Agent CLI, `bgc`), and FX (DXY) moves since that close;
+   the rToken price and its rolling 24h change come from `bgc`.
+2. `agent_loop.build_snapshot()` blends those moves into the synthetic fair value per
+   rToken, weighted per `fairvalue/config.py` (heuristic prior; the OLS calibration in
+   `engine/fairvalue/model.py` and `engine/backtest/run_backtest.py` belongs to the
+   daily-return backtest).
 3. `gloaming_agent/agent_loop.py` runs only while NYSE is closed (self-enforced,
    not just documented - see `run_once()`'s `is_nyse_closed()` check). Once per
    cycle it also calls `bitget_signal.get_signal_context()` (real crypto

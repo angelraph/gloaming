@@ -25,7 +25,7 @@ sequenceDiagram
     else NYSE is closed
         Loop->>Data: fetch crypto beta, FX, futures proxy<br/>(shared once per cycle, not per symbol)
         loop each of 9 symbols
-            Loop->>Data: live rToken price + 24h change
+            Loop->>Data: live rToken price (+ real close and proxy moves<br/>since that close, fetched once per cycle)
             Loop->>Loop: build_snapshot() -> spread vs. fair value
         end
         Loop->>Ledger: get_portfolio_state(mark_prices)
@@ -72,7 +72,10 @@ sequenceDiagram
 ## A real example, pulled from the running log
 
 This is an unedited record from `decision_log/` (only the timestamp field is
-omitted here for brevity):
+omitted here for brevity). It predates the Sept 25 signal correction, so its
+"spread" is the earlier rolling-24h comparison, which mostly measured the regular
+session's own move (see docs/architecture.md, "The signal, and a correction"); it is
+kept because it shows the event -> decision -> execution flow exactly as logged:
 
 - **Event**: `RAAPLUSDT` (Apple rToken) 24h return +2.68%, blended overnight
   fair-value proxy estimate -1.27% (futures -1.71%, crypto beta -1.34%, FX -0.06%)

@@ -22,14 +22,31 @@ export type DecisionRecord = {
   timestamp: string;
   underlying: string | null;
   decision_source?: string;
+  // Qwen's reasoning when it chose to hold: with the anchored signal most decisions are holds
+  hold_rationale?: string;
   snapshot?: {
     rtoken_symbol: string;
     rtoken_last_price: number;
-    rtoken_pcnt_24h: number;
-    futures_proxy_pcnt_24h: number;
-    crypto_beta_pcnt_24h: number;
-    fx_risk_sentiment_pcnt_24h: number;
-    fair_value_return_24h: number;
+    // Records before Sept 25 carry the earlier rolling-24h fields (a comparison later found
+    // to measure the session's own move, not a gap); records from then on are
+    // signal_spec "since_last_close_v2", anchored to the real share's last regular close.
+    signal_spec?: string;
+    rtoken_pcnt_24h?: number;
+    futures_proxy_pcnt_24h?: number;
+    crypto_beta_pcnt_24h?: number;
+    fx_risk_sentiment_pcnt_24h?: number;
+    fair_value_return_24h?: number;
+    real_close_price?: number;
+    real_close_time?: string;
+    hours_since_close?: number;
+    rtoken_return_since_close?: number;
+    futures_proxy_return_since_close?: number | null;
+    crypto_beta_return_since_close?: number | null;
+    fx_risk_sentiment_return_since_close?: number | null;
+    fair_value_return_since_close?: number;
+    fair_value_price?: number;
+    recent_daily_volatility?: number | null;
+    missing_proxies?: string[];
     spread: number;
     // Real, optional context from Bitget's own public bitget-signal MCP server
     // (gloaming_agent/bitget_signal.py) - null whenever its upstream sources had
