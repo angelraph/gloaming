@@ -1,14 +1,14 @@
 {
-  "cash_usd": 75820.27788300005,
+  "cash_usd": 75633.03579500005,
   "positions": {
     "RGOOGLUSDT": 0.2349000000000147,
     "RMSFTUSDT": 0.5110999999999986,
     "RSPYUSDT": 8.5369,
     "RQQQUSDT": 9.849999999999998,
-    "RMETAUSDT": -2.6174000000000035,
+    "RMETAUSDT": -2.8596000000000035,
     "RNVDAUSDT": 37.5535,
     "RTSLAUSDT": 1.6629000000000094,
-    "RAAPLUSDT": 0.7857999999999994,
+    "RAAPLUSDT": 1.9055999999999993,
     "RAMZNUSDT": 2.003
   },
   "fills": [
@@ -6374,6 +6374,24 @@
       "price": 779.5,
       "notional_usd": 201.5787,
       "rationale": "[Qwen3.8-max] RMETA is up 6.78% versus a blended synthetic fair-value return of only 1.82%, creating a 4.96% spread that suggests the rToken has significantly overshot its proxy-implied value while markets are closed. Selling $500 to cover part of the existing $1,839 short both captures this expected mean-reversion and reduces book net exposure from +22.8% toward the +25% net cap, which is prudent risk management. Recent small buys in this symbol have not closed the gap, so adding modest short pressure is warranted within the risk layer's $2,166 buy (cover) approval."
+    },
+    {
+      "timestamp": "2026-09-25T09:32:07.464320+00:00",
+      "symbol": "RAAPLUSDT",
+      "side": "buy",
+      "qty": 1.1198,
+      "price": 335.87,
+      "notional_usd": 376.10722599999997,
+      "rationale": "[Qwen3.8-max] The -2.13% spread (rToken flat at -0.07% vs synthetic fair value +2.06%) suggests RAAPL is lagging the bullish overnight proxies, but book net exposure is already +22.6% of equity, near the 25% cap, so adding long risk must be conservative. I already bought three times in the last 12 hours ($68, $350, $350) with no spread convergence, which tempers conviction; sizing down to $400 respects both the proximity to the net cap and the repeated-fill signal."
+    },
+    {
+      "timestamp": "2026-09-25T09:32:17.234617+00:00",
+      "symbol": "RMETAUSDT",
+      "side": "sell",
+      "qty": 0.2422,
+      "price": 779.79,
+      "notional_usd": 188.865138,
+      "rationale": "[Qwen3.8-max] RMETA's 24h return of 7.35% vastly exceeds the blended synthetic fair-value return of 2.06%, creating a 5.29% spread that suggests the rToken is overextended relative to live proxies while the real market is closed. Selling into this overperformance aligns with my existing $2,041 short and helps reduce the book's net long exposure of +$22,492 (+23.0%), which is approaching the +25% net cap. I am sizing conservatively at $500 given recent choppy fills (buy/sell oscillation in the last hour) and the risk that momentum could persist overnight."
     }
   ],
   "equity_at_day_start_usd": 97743.8921610001,
