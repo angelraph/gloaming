@@ -1,11 +1,11 @@
 {
-  "cash_usd": 73846.75274000008,
+  "cash_usd": 73706.56258000009,
   "positions": {
     "RGOOGLUSDT": 0.2349000000000147,
     "RMSFTUSDT": 1.9845999999999986,
     "RSPYUSDT": 8.5369,
     "RQQQUSDT": 9.849999999999998,
-    "RMETAUSDT": -2.306900000000004,
+    "RMETAUSDT": -2.1199000000000043,
     "RNVDAUSDT": 37.5535,
     "RTSLAUSDT": 2.4581000000000093,
     "RAAPLUSDT": 2.9712999999999994,
@@ -6599,6 +6599,15 @@
       "price": 750.0,
       "notional_usd": 170.4,
       "rationale": "[Qwen3.8-max] The -4.69% spread (rToken at -3.36% vs synthetic fair value +1.33%) suggests RMETA is cheap, and buying to cover part of the $1,901 short reduces book net exposure from +24.5% toward the 25% cap. However, I am sizing conservatively at $400 because I already bought $808 in the last 40 minutes with no spread compression, and the large divergence between the futures proxy (+2.74%) and crypto beta (-0.13%) makes the blended fair value less reliable."
+    },
+    {
+      "timestamp": "2026-09-25T21:02:32.780292+00:00",
+      "symbol": "RMETAUSDT",
+      "side": "buy",
+      "qty": 0.187,
+      "price": 749.68,
+      "notional_usd": 140.19016,
+      "rationale": "[Qwen3.8-max] The -4.62% spread (rToken at -3.37% vs synthetic fair value +1.25%) suggests RMETA is cheap, but the book's net exposure is already +24.7% against a 25% cap, leaving almost no room to add longs. I have already bought $765 in this symbol over the last 0.7 hours with no spread closure, so I am capping this buy at the risk layer's $324 limit rather than repeating aggressively near the net cap."
     }
   ],
   "equity_at_day_start_usd": 97743.8921610001,
