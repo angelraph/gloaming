@@ -1,11 +1,11 @@
 {
-  "cash_usd": 74755.83571600006,
+  "cash_usd": 75032.23707600006,
   "positions": {
     "RGOOGLUSDT": 0.2349000000000147,
     "RMSFTUSDT": 1.1973999999999987,
     "RSPYUSDT": 8.5369,
     "RQQQUSDT": 9.849999999999998,
-    "RMETAUSDT": -2.6311000000000035,
+    "RMETAUSDT": -2.9883000000000037,
     "RNVDAUSDT": 37.5535,
     "RTSLAUSDT": 1.6629000000000094,
     "RAAPLUSDT": 2.9712999999999994,
@@ -6464,6 +6464,15 @@
       "price": 778.0,
       "notional_usd": 210.449,
       "rationale": "[Qwen3.8-max] RMETA is up 6.70% vs a blended synthetic fair-value return of only 1.95%, creating a 4.75% spread that suggests the rToken has overshot during the closed session and should revert lower. Selling $500 to cover part of my existing $1,837 short reduces book net long exposure from +$23,367 (+23.9%) toward zero, which is prudent given we are near the +25% net cap. Recent fills (buy $413 just 0.2h ago) were pushing the wrong way against this spread; I am sizing conservatively at $500 rather than the $1,000 max because the stock's momentum is strong and I lack external context for the move."
+    },
+    {
+      "timestamp": "2026-09-25T11:17:18.387819+00:00",
+      "symbol": "RMETAUSDT",
+      "side": "sell",
+      "qty": 0.3572,
+      "price": 773.8,
+      "notional_usd": 276.40136,
+      "rationale": "[Qwen3.8-max] RMETA is up 5.81% vs a blended synthetic fair-value return of only 2.19%, creating a +3.62% spread that suggests the rToken has overshot during the closed window and should revert lower. Selling $500 increases my short from $2,036 toward the mean, which pushes book net exposure from +23.7% closer to the +25% cap rather than further away, aligning with risk management. Recent fills show choppy two-way flow, so I am sizing conservatively at $500 rather than using the full $1,000 limit."
     }
   ],
   "equity_at_day_start_usd": 97743.8921610001,
