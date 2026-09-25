@@ -1,11 +1,11 @@
 {
-  "cash_usd": 74612.62149400008,
+  "cash_usd": 74393.42182000008,
   "positions": {
     "RGOOGLUSDT": 0.2349000000000147,
     "RMSFTUSDT": 1.9845999999999986,
     "RSPYUSDT": 8.5369,
     "RQQQUSDT": 9.849999999999998,
-    "RMETAUSDT": -3.328300000000004,
+    "RMETAUSDT": -3.036100000000004,
     "RNVDAUSDT": 37.5535,
     "RTSLAUSDT": 2.4581000000000093,
     "RAAPLUSDT": 2.9712999999999994,
@@ -6572,6 +6572,15 @@
       "price": 371.82,
       "notional_usd": 295.671264,
       "rationale": "[Qwen3.8-max] The -2.71% spread (rToken at -1.39% vs synthetic fair value +1.32%, driven by a +2.77% futures proxy) suggests RTSLA is cheap relative to overnight signals, but I am sizing conservatively because book net exposure is already +23.6% of equity, near the 25% net cap, and I have already bought this symbol three times in the last 24h ($350, $350, $400) without the spread closing. A $400 buy stays within the risk layer's $1,397 buy allowance and avoids aggressively pushing the book over its net limit while adding modestly to an existing 0.6% position."
+    },
+    {
+      "timestamp": "2026-09-25T20:17:38.632954+00:00",
+      "symbol": "RMETAUSDT",
+      "side": "buy",
+      "qty": 0.2922,
+      "price": 750.17,
+      "notional_usd": 219.199674,
+      "rationale": "[Qwen3.8-max] The -4.56% spread (rToken at -3.27% vs synthetic fair value +1.30%) indicates RMETA is significantly underpriced relative to overnight proxies, favoring a buy to cover part of the existing $2,497 short. Buying $500 reduces the short and trims book net exposure from +23.9% toward the +25% cap, aligning with risk management; I sized conservatively at $500 rather than the $1,000 max because recent fills show choppy two-way action and I lack external context for META's specific overnight move."
     }
   ],
   "equity_at_day_start_usd": 97743.8921610001,
