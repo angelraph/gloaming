@@ -1,11 +1,11 @@
 {
-  "cash_usd": 73358.3377260001,
+  "cash_usd": 73592.0177220001,
   "positions": {
     "RGOOGLUSDT": 0.2349000000000147,
     "RMSFTUSDT": 0.5110999999999986,
     "RSPYUSDT": 9.187,
     "RQQQUSDT": 9.175999999999998,
-    "RMETAUSDT": 1.7036999999999953,
+    "RMETAUSDT": 1.4024999999999954,
     "RNVDAUSDT": 37.5535,
     "RTSLAUSDT": 0.6080000000000095,
     "RAAPLUSDT": 0.7857999999999994,
@@ -6023,10 +6023,19 @@
       "price": 776.0,
       "notional_usd": 16.6064,
       "rationale": "[Qwen3.8-max] RMETA is up 5.06% versus a blended synthetic fair-value return of only 1.21%, creating a +3.86% spread that indicates the rToken is overpriced relative to overnight proxies. The book's net exposure is already at +25.0% of equity, exactly hitting the net cap, so adding long risk is prohibited and reducing net exposure is required; my recent sells ($356, $366, $7) correctly reflect this. I propose selling the maximum $32 the risk layer would approve for a buy/sell decision in this direction to trim the position without exceeding limits."
+    },
+    {
+      "timestamp": "2026-09-25T00:02:18.531433+00:00",
+      "symbol": "RMETAUSDT",
+      "side": "sell",
+      "qty": 0.3012,
+      "price": 775.83,
+      "notional_usd": 233.67999600000002,
+      "rationale": "[Qwen3.8-max] RMETA is up 5.40% versus a blended synthetic fair-value return of only 1.12%, creating a +4.28% spread that suggests the rToken has overshot during the closed window. Our book net exposure is +$24,386 (+24.9% of equity), essentially at the 25% net cap, so adding long risk is prohibited and reducing net exposure is the priority; selling aligns with both the mispricing signal and book management. I am sizing conservatively at $500 (below the $1,000 decision cap) given we already hold a $1,322 long and have been trimming recently."
     }
   ],
-  "equity_at_day_start_usd": 97833.22629900009,
-  "day_start_date": "2026-09-24",
+  "equity_at_day_start_usd": 97743.8921610001,
+  "day_start_date": "2026-09-25",
   "net_over_cap_cycles": 0,
   "net_over_cap_baseline_usd": 0.0
 }
