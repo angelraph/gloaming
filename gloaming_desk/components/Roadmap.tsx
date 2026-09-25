@@ -8,6 +8,12 @@ type Entry = { when?: string; title: string; detail: string };
 const SHIPPED: Entry[] = [
   {
     when: "Sep 25",
+    title: "A multi-page Desk with a decision inspector",
+    detail:
+      "Separate pages for the desk, the agent and its performance, a page per symbol, an inspector on every decision, downloadable records, and keyboard and screen-reader support.",
+  },
+  {
+    when: "Sep 25",
     title: "Signal anchored to the real close",
     detail:
       "The spread is now measured from each real share's last regular-session close, with every input over the same window. Replaces a signal that mostly measured the session's own move. Disclosed in the docs.",
@@ -50,9 +56,9 @@ const SHIPPED: Entry[] = [
 
 const IN_PROGRESS: Entry[] = [
   {
-    title: "Verifying the anchored signal on live cycles",
+    title: "Watching how quiet the anchored signal is over a full night and a weekend",
     detail:
-      "The first production cycles on the new signal are the real test: data reaching the runner, spreads of a realistic size, holds with reasoning, and how sparse trading becomes.",
+      "The first production cycles ran clean: every record carried the new signal, every decision came from Qwen with a written reason, and spreads stayed under half a percent. The open question is how sparse trading becomes over a weekend.",
   },
 ];
 
@@ -78,8 +84,8 @@ const PLANNED: Entry[] = [
     detail: "Fills are at the last price today.",
   },
   {
-    title: "A \"what Qwen saw\" panel on every decision",
-    detail: "The context is already logged on each snapshot; surface it here.",
+    title: "Log the book context Qwen sees",
+    detail: "The inspector shows each decision's market inputs. Qwen's own-book context (position, exposure against the caps) is not stored per record yet.",
   },
 ];
 

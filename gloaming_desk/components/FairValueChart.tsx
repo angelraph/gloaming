@@ -50,7 +50,29 @@ export default function FairValueChart({ events }: { events: SnapshotEvent[] }) 
     return <div className="text-sm text-text-tertiary">No snapshot data yet.</div>;
   }
 
+  const summary = `Latest spread for ${data.length} symbols: ${data
+    .map((d) => `${d.symbol} ${d.spread.toFixed(2)}%`)
+    .join(", ")}.`;
+
   return (
+    <div role="img" aria-label={summary}>
+    <table className="sr-only">
+      <caption>Latest spread by symbol</caption>
+      <thead>
+        <tr>
+          <th scope="col">Symbol</th>
+          <th scope="col">Spread</th>
+        </tr>
+      </thead>
+      <tbody>
+        {data.map((d) => (
+          <tr key={d.symbol}>
+            <th scope="row">{d.symbol}</th>
+            <td>{d.spread.toFixed(3)}%</td>
+          </tr>
+        ))}
+      </tbody>
+    </table>
     <ResponsiveContainer width="100%" height={280}>
       <BarChart data={data} margin={{ top: 8, right: 8, left: 0, bottom: 4 }}>
         <defs>
@@ -91,5 +113,6 @@ export default function FairValueChart({ events }: { events: SnapshotEvent[] }) 
         </Bar>
       </BarChart>
     </ResponsiveContainer>
+    </div>
   );
 }

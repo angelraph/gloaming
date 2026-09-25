@@ -1,43 +1,25 @@
 "use client";
 
-import { useEffect, useState } from "react";
+import Link from "next/link";
+import { usePathname } from "next/navigation";
 import StatusPill from "@/components/StatusPill";
 
-export const NAV_SECTIONS = [
-  { id: "desk", label: "Desk" },
-  { id: "signal", label: "Signal" },
-  { id: "activity", label: "Activity" },
-  { id: "stress", label: "Stress test" },
-  { id: "faq", label: "FAQ" },
-  { id: "roadmap", label: "Roadmap" },
-] as const;
+import { NAV_LINKS } from "@/lib/nav";
 
-// A flat top bar: wordmark left, section links, live status right. The active section gets
-// a 2px mint underline (mint is a live signal, so the nav says "you are here, and it is
-// live"); everything else stays achromatic.
+function isActive(pathname: string, href: string) {
+  return href === "/" ? pathname === "/" : pathname === href || pathname.startsWith(`${href}/`);
+}
+
+// A flat top bar: wordmark left, page links, live status right. The current page carries a
+// 2px mint underline and aria-current="page" (mint is a live signal, so the nav says "you are
+// here, and it is live"); everything else stays achromatic. Every link is at least 44px tall.
 export default function SiteNav() {
-  const [active, setActive] = useState<string>("desk");
-
-  useEffect(() => {
-    const observer = new IntersectionObserver(
-      (entries) => {
-        // the section whose top has passed the upper part of the viewport wins
-        const visible = entries.filter((e) => e.isIntersecting).sort((a, b) => a.boundingClientRect.top - b.boundingClientRect.top);
-        if (visible[0]) setActive(visible[0].target.id);
-      },
-      { rootMargin: "-30% 0px -60% 0px", threshold: 0 }
-    );
-    NAV_SECTIONS.forEach(({ id }) => {
-      const el = document.getElementById(id);
-      if (el) observer.observe(el);
-    });
-    return () => observer.disconnect();
-  }, []);
+  const pathname = usePathname();
 
   return (
-    <div className="sticky top-0 z-40 border-b border-border-subtle bg-background">
-      <div className="mx-auto flex max-w-[1216px] flex-wrap items-center justify-between gap-x-4 gap-y-1 px-4 sm:px-6 md:flex-nowrap lg:gap-x-6 lg:px-10">
-        <a href="#desk" className="flex items-center gap-3 py-3.5">
+    <header className="sticky top-0 z-40 border-b border-border-subtle bg-background">
+      <div className="mx-auto flex max-w-[1216px] flex-wrap items-center justify-between gap-x-4 gap-y-0 px-4 sm:px-6 md:flex-nowrap lg:gap-x-6 lg:px-10">
+        <Link href="/" className="flex min-h-11 items-center gap-3 py-2" aria-label="Gloaming home">
           <span
             aria-hidden
             className="h-7 w-7 shrink-0 rounded-full"
@@ -47,36 +29,39 @@ export default function SiteNav() {
             }}
           />
           <span className="font-display text-[22px] leading-none text-heading">Gloaming</span>
-        </a>
+        </Link>
 
         <nav
-          aria-label="Sections"
+          aria-label="Main"
           className="order-3 -mx-1 flex w-full items-center gap-1 overflow-x-auto md:order-2 md:mx-0 md:w-auto md:min-w-0 md:flex-1 md:justify-center"
         >
-          {NAV_SECTIONS.map(({ id, label }) => (
-            <a
-              key={id}
-              href={`#${id}`}
-              aria-current={active === id ? "true" : undefined}
-              className={`relative whitespace-nowrap px-3 py-3.5 text-sm transition-colors ${
-                active === id ? "text-heading" : "text-text-secondary hover:text-heading"
-              }`}
-            >
-              {label}
-              <span
-                aria-hidden
-                className={`absolute inset-x-3 bottom-0 h-0.5 rounded-full bg-mint transition-opacity ${
-                  active === id ? "opacity-100" : "opacity-0"
+          {NAV_LINKS.map(({ href, label }) => {
+            const active = isActive(pathname, href);
+            return (
+              <Link
+                key={href}
+                href={href}
+                aria-current={active ? "page" : undefined}
+                className={`relative flex min-h-11 items-center whitespace-nowrap px-3 text-sm transition-colors ${
+                  active ? "text-heading" : "text-text-secondary hover:text-heading"
                 }`}
-              />
-            </a>
-          ))}
+              >
+                {label}
+                <span
+                  aria-hidden
+                  className={`absolute inset-x-3 bottom-0 h-0.5 rounded-full bg-mint transition-opacity ${
+                    active ? "opacity-100" : "opacity-0"
+                  }`}
+                />
+              </Link>
+            );
+          })}
         </nav>
 
         <div className="order-2 shrink-0 md:order-3">
           <StatusPill />
         </div>
       </div>
-    </div>
+    </header>
   );
 }
