@@ -1,11 +1,11 @@
 {
-  "cash_usd": 75324.84984000007,
+  "cash_usd": 75115.44118200007,
   "positions": {
     "RGOOGLUSDT": 0.2349000000000147,
     "RMSFTUSDT": 0.5110999999999986,
     "RSPYUSDT": 9.187,
     "RQQQUSDT": 9.849999999999998,
-    "RMETAUSDT": -2.6251000000000038,
+    "RMETAUSDT": -2.356400000000004,
     "RNVDAUSDT": 37.5535,
     "RTSLAUSDT": 1.6629000000000094,
     "RAAPLUSDT": 0.7857999999999994,
@@ -6275,6 +6275,15 @@
       "price": 780.78,
       "notional_usd": 201.05085,
       "rationale": "[Qwen3.8-max] RMETA is up 6.21% versus a blended synthetic fair-value return of only 1.23%, creating a +4.97% spread that suggests the rToken has overshot during the closed window and is likely to revert lower. Selling adds to my existing $1,849 short but also reduces the book's net long exposure from +$22,738 (+23.2%) toward zero, which is prudent given we are near the +25% net cap. I am sizing conservatively at $500 (well under the $1,000 decision cap and risk layer's $12,831 sell allowance) because recent fills show choppy two-way action and the large 24h move could reflect news I cannot verify while markets are closed."
+    },
+    {
+      "timestamp": "2026-09-25T07:02:30.211197+00:00",
+      "symbol": "RMETAUSDT",
+      "side": "buy",
+      "qty": 0.2687,
+      "price": 779.34,
+      "notional_usd": 209.408658,
+      "rationale": "[Qwen3.8-max] RMETA is up 6.03% vs a blended synthetic fair-value return of only 1.26%, creating a 4.77% spread that suggests the rToken has overshot while the real market is closed, favoring mean reversion via a buy to cover part of my $2,046 short. However, book net exposure is already +23.0% (near the 25% cap), so buying here pushes net further from zero; I am sizing conservatively at $500\u2014well within the risk layer's $1,928 buy allowance and the $1,000 per-decision limit\u2014rather than aggressively covering. Recent small fills ($201-$212) show chop without conviction, reinforcing a measured approach to this wide but potentially noisy overnight spread."
     }
   ],
   "equity_at_day_start_usd": 97743.8921610001,
