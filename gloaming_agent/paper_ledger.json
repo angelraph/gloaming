@@ -1,11 +1,11 @@
 {
-  "cash_usd": 74690.41552800009,
+  "cash_usd": 74903.62927200008,
   "positions": {
     "RGOOGLUSDT": 0.2349000000000147,
     "RMSFTUSDT": 0.5110999999999986,
     "RSPYUSDT": 9.187,
     "RQQQUSDT": 9.849999999999998,
-    "RMETAUSDT": -1.8119000000000045,
+    "RMETAUSDT": -2.0855000000000046,
     "RNVDAUSDT": 37.5535,
     "RTSLAUSDT": 1.6629000000000094,
     "RAAPLUSDT": 0.7857999999999994,
@@ -6212,6 +6212,15 @@
       "price": 778.41,
       "notional_usd": 218.57752799999997,
       "rationale": "[Qwen3.8-max] RMETA is up 5.72% vs a blended synthetic fair-value return of only 1.15%, creating a 4.58% spread that suggests the rToken is overextended relative to live proxies while the real market is closed. Our book net exposure is already +23.8% of equity, near the 25% net cap, so adding more long would be reckless; selling into this overperformance modestly reduces net toward zero and aligns with the risk layer's $13,477 sell allowance. I am sizing conservatively at $500 (below the $1,000 max) given recent choppy fills in this symbol and the possibility that idiosyncratic news I cannot verify drove the 5.72% move."
+    },
+    {
+      "timestamp": "2026-09-25T05:17:24.181059+00:00",
+      "symbol": "RMETAUSDT",
+      "side": "sell",
+      "qty": 0.2736,
+      "price": 779.29,
+      "notional_usd": 213.213744,
+      "rationale": "[Qwen3.8-max] RMETA is up 5.78% versus a blended synthetic fair-value return of only 1.09%, creating a 4.69% spread that suggests the rToken has overshot during the closed session and is likely to revert lower. Selling adds to my existing $1,412 short and modestly reduces the book's +$23,118 (+23.6%) net long exposure, which is approaching the 25% net cap. I am sizing conservatively at $500 (below the $1,334 buy/$13,259 sell risk limits) because recent fills show choppy two-way activity and I lack external context for META's outsized move."
     }
   ],
   "equity_at_day_start_usd": 97743.8921610001,
