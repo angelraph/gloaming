@@ -1,11 +1,11 @@
 {
-  "cash_usd": 74545.38671600007,
+  "cash_usd": 74755.83571600006,
   "positions": {
     "RGOOGLUSDT": 0.2349000000000147,
     "RMSFTUSDT": 1.1973999999999987,
     "RSPYUSDT": 8.5369,
     "RQQQUSDT": 9.849999999999998,
-    "RMETAUSDT": -2.3606000000000034,
+    "RMETAUSDT": -2.6311000000000035,
     "RNVDAUSDT": 37.5535,
     "RTSLAUSDT": 1.6629000000000094,
     "RAAPLUSDT": 2.9712999999999994,
@@ -6455,6 +6455,15 @@
       "price": 778.01,
       "notional_usd": 413.434514,
       "rationale": "[Qwen3.8-max] RMETA is up 6.90% versus a blended synthetic fair-value return of only 2.06%, creating a 4.84% spread that suggests the rToken has overshot while the real market is closed. Buying $1,000 covers part of our existing $2,250 short and reduces book net exposure from +$22,956 (+23.4%) toward zero, which is prudent given we are near the +25% net cap. Recent small fills (buys of $168/$188 and a sell of $195) indicate choppy price action, so I am sizing at the $1,000 decision cap rather than the full $1,523 risk-layer buy allowance."
+    },
+    {
+      "timestamp": "2026-09-25T11:02:20.397101+00:00",
+      "symbol": "RMETAUSDT",
+      "side": "sell",
+      "qty": 0.2705,
+      "price": 778.0,
+      "notional_usd": 210.449,
+      "rationale": "[Qwen3.8-max] RMETA is up 6.70% vs a blended synthetic fair-value return of only 1.95%, creating a 4.75% spread that suggests the rToken has overshot during the closed session and should revert lower. Selling $500 to cover part of my existing $1,837 short reduces book net long exposure from +$23,367 (+23.9%) toward zero, which is prudent given we are near the +25% net cap. Recent fills (buy $413 just 0.2h ago) were pushing the wrong way against this spread; I am sizing conservatively at $500 rather than the $1,000 max because the stock's momentum is strong and I lack external context for the move."
     }
   ],
   "equity_at_day_start_usd": 97743.8921610001,
