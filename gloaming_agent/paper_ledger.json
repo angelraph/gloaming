@@ -1,11 +1,11 @@
 {
-  "cash_usd": 75651.28911600004,
+  "cash_usd": 75463.31641600005,
   "positions": {
     "RGOOGLUSDT": 0.2349000000000147,
     "RMSFTUSDT": 0.5110999999999986,
     "RSPYUSDT": 8.5369,
     "RQQQUSDT": 9.849999999999998,
-    "RMETAUSDT": -2.8831000000000033,
+    "RMETAUSDT": -2.6418000000000035,
     "RNVDAUSDT": 37.5535,
     "RTSLAUSDT": 1.6629000000000094,
     "RAAPLUSDT": 1.9055999999999993,
@@ -6410,6 +6410,15 @@
       "price": 778.57,
       "notional_usd": 168.015406,
       "rationale": "[Qwen3.8-max] RMETA is up 7.89% vs a blended synthetic fair-value return of only 1.94%, creating a 5.95% spread that suggests the rToken has overshot during the closed window. Buying to cover part of my existing $2,413 short both captures this mean-reversion edge and reduces the book's net long exposure from +22.6% toward the +25% cap. I am sizing conservatively at $500 rather than repeating my recent small sells ($202, $189, $186), which were adding to a losing short against momentum."
+    },
+    {
+      "timestamp": "2026-09-25T10:17:22.026112+00:00",
+      "symbol": "RMETAUSDT",
+      "side": "buy",
+      "qty": 0.2413,
+      "price": 779.0,
+      "notional_usd": 187.9727,
+      "rationale": "[Qwen3.8-max] RMETA is up 7.25% vs a blended fair-value return of 1.93%, creating a 5.32% spread suggesting the rToken has overshot while the real market is closed. Buying to cover part of my existing $2,246 short both captures this mean-reversion edge and reduces book net exposure from +22.8% toward the +25% cap, which is prudent risk management. I am sizing conservatively at $500 (within the $2,199 buy approval) because recent fills show choppy two-way action and I lack external context for META's outsized overnight move."
     }
   ],
   "equity_at_day_start_usd": 97743.8921610001,
