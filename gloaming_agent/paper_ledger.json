@@ -1,11 +1,11 @@
 {
-  "cash_usd": 75115.44118200007,
+  "cash_usd": 75335.34041400006,
   "positions": {
     "RGOOGLUSDT": 0.2349000000000147,
     "RMSFTUSDT": 0.5110999999999986,
     "RSPYUSDT": 9.187,
     "RQQQUSDT": 9.849999999999998,
-    "RMETAUSDT": -2.356400000000004,
+    "RMETAUSDT": -2.638800000000004,
     "RNVDAUSDT": 37.5535,
     "RTSLAUSDT": 1.6629000000000094,
     "RAAPLUSDT": 0.7857999999999994,
@@ -6284,6 +6284,15 @@
       "price": 779.34,
       "notional_usd": 209.408658,
       "rationale": "[Qwen3.8-max] RMETA is up 6.03% vs a blended synthetic fair-value return of only 1.26%, creating a 4.77% spread that suggests the rToken has overshot while the real market is closed, favoring mean reversion via a buy to cover part of my $2,046 short. However, book net exposure is already +23.0% (near the 25% cap), so buying here pushes net further from zero; I am sizing conservatively at $500\u2014well within the risk layer's $1,928 buy allowance and the $1,000 per-decision limit\u2014rather than aggressively covering. Recent small fills ($201-$212) show chop without conviction, reinforcing a measured approach to this wide but potentially noisy overnight spread."
+    },
+    {
+      "timestamp": "2026-09-25T07:17:17.912742+00:00",
+      "symbol": "RMETAUSDT",
+      "side": "sell",
+      "qty": 0.2824,
+      "price": 778.68,
+      "notional_usd": 219.89923199999998,
+      "rationale": "[Qwen3.8-max] RMETA is up 5.74% vs a blended synthetic fair-value return of only 1.19%, creating a +4.55% spread that suggests the rToken is overextended relative to overnight proxies. Selling into this premium both captures the expected mean-reversion and reduces our book's net long exposure (+$22,759 / +23.2%), which is approaching the +25% net cap. I am sizing conservatively at $500 (well within the $1,710 buy/sell risk approval) because my last three fills in the past hour were small alternating buys and sells, indicating choppy conditions that warrant caution."
     }
   ],
   "equity_at_day_start_usd": 97743.8921610001,
