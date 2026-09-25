@@ -1,11 +1,11 @@
 {
-  "cash_usd": 74040.51531300011,
+  "cash_usd": 74184.91749000011,
   "positions": {
     "RGOOGLUSDT": 0.2349000000000147,
     "RMSFTUSDT": 0.5110999999999986,
     "RSPYUSDT": 9.187,
     "RQQQUSDT": 9.175999999999998,
-    "RMETAUSDT": -0.3331000000000046,
+    "RMETAUSDT": -0.5188000000000046,
     "RNVDAUSDT": 37.5535,
     "RTSLAUSDT": 1.6629000000000094,
     "RAAPLUSDT": 0.7857999999999994,
@@ -6095,6 +6095,15 @@
       "price": 777.8,
       "notional_usd": 250.14048,
       "rationale": "[Qwen3.8-max] RMETA is up 4.95% versus a blended synthetic fair-value return of only 1.46%, leaving it 3.49% overvalued and justifying a short to capture mean reversion. The book's net exposure is +24.6% against a 25% cap, so I am constrained from adding shorts that would increase net long; I size this sell at exactly $437, which is the maximum buy/short-add the risk layer will approve for this symbol right now. My three recent sells ($253, $396, $275) confirm the persistent overvaluation thesis, and this final permitted tranche completes the position within limits."
+    },
+    {
+      "timestamp": "2026-09-25T02:17:24.845482+00:00",
+      "symbol": "RMETAUSDT",
+      "side": "sell",
+      "qty": 0.1857,
+      "price": 777.61,
+      "notional_usd": 144.402177,
+      "rationale": "[Qwen3.8-max] RMETA is up 5.02% vs a blended synthetic fair-value return of only 1.56%, creating a +3.46% spread that suggests the rToken has overshot during the closed window and is likely to revert lower. Selling adds to my existing $259 short, which aligns with my last three fills (selling $396, $275, $250) as the mispricing persists. Although book net exposure is already +24.3% near the 25% cap, adding a small $250 short nudges net slightly toward zero while staying well within the risk layer's $14,413 sell allowance."
     }
   ],
   "equity_at_day_start_usd": 97743.8921610001,
