@@ -1,5 +1,5 @@
 {
-  "cash_usd": 74415.6229170001,
+  "cash_usd": 73915.6147030001,
   "positions": {
     "RGOOGLUSDT": 0.2349000000000147,
     "RMSFTUSDT": 0.5110999999999986,
@@ -9,7 +9,7 @@
     "RNVDAUSDT": 37.5535,
     "RTSLAUSDT": 0.6080000000000095,
     "RAAPLUSDT": 0.7857999999999994,
-    "RAMZNUSDT": -0.0007999999999999119
+    "RAMZNUSDT": 2.003
   },
   "fills": [
     {
@@ -6059,6 +6059,15 @@
       "price": 776.0,
       "notional_usd": 395.52720000000005,
       "rationale": "[Qwen3.8-max] RMETA is up 4.75% versus a blended synthetic fair-value return of only 1.21%, creating a +3.54% spread that indicates the rToken is overpriced relative to overnight proxies. The book's net exposure is already +24.3% of equity, just 0.7% below the 25% net cap, so adding long exposure is prohibited and selling aligns with risk management; I recently sold three times ($234, $175, $253) which confirms this direction. I propose selling $700, within the risk layer's $14,662 sell allowance and my own $1,000 per-decision limit, to trim the rich spread while reducing net exposure away from the cap."
+    },
+    {
+      "timestamp": "2026-09-25T01:17:20.337225+00:00",
+      "symbol": "RAMZNUSDT",
+      "side": "buy",
+      "qty": 2.0038,
+      "price": 249.53,
+      "notional_usd": 500.008214,
+      "rationale": "[Qwen3.8-max] The -0.86% spread indicates RAMZN is lagging the 1.27% blended synthetic fair-value return (driven by a strong 2.27% futures proxy), suggesting modest upside while NYSE is closed. However, book net exposure is already +23.9% of equity against a 25% cap, and the risk layer limits buys to $1,072, so I am sizing conservatively at $500 rather than pressing a correlated long bet near the net limit."
     }
   ],
   "equity_at_day_start_usd": 97743.8921610001,
