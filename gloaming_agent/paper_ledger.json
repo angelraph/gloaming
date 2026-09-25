@@ -1,13 +1,13 @@
 {
-  "cash_usd": 73915.6147030001,
+  "cash_usd": 73790.37483300011,
   "positions": {
     "RGOOGLUSDT": 0.2349000000000147,
     "RMSFTUSDT": 0.5110999999999986,
     "RSPYUSDT": 9.187,
     "RQQQUSDT": 9.175999999999998,
-    "RMETAUSDT": 0.3412999999999954,
+    "RMETAUSDT": -0.011500000000004618,
     "RNVDAUSDT": 37.5535,
-    "RTSLAUSDT": 0.6080000000000095,
+    "RTSLAUSDT": 1.6629000000000094,
     "RAAPLUSDT": 0.7857999999999994,
     "RAMZNUSDT": 2.003
   },
@@ -6068,6 +6068,24 @@
       "price": 249.53,
       "notional_usd": 500.008214,
       "rationale": "[Qwen3.8-max] The -0.86% spread indicates RAMZN is lagging the 1.27% blended synthetic fair-value return (driven by a strong 2.27% futures proxy), suggesting modest upside while NYSE is closed. However, book net exposure is already +23.9% of equity against a 25% cap, and the risk layer limits buys to $1,072, so I am sizing conservatively at $500 rather than pressing a correlated long bet near the net limit."
+    },
+    {
+      "timestamp": "2026-09-25T01:47:14.568375+00:00",
+      "symbol": "RMETAUSDT",
+      "side": "sell",
+      "qty": 0.3528,
+      "price": 778.79,
+      "notional_usd": 274.757112,
+      "rationale": "[Qwen3.8-max] RMETA is up 4.95% versus a blended synthetic fair-value return of only 1.31%, creating a +3.64% spread that suggests the rToken is overextended relative to overnight proxies. Book net exposure is already +24.4% of equity, just 0.6% below the 25% net cap, so adding long exposure is imprudent; selling reduces net toward zero and aligns with my recent sells ($175, $253, $396) that were correctly trimming this rich premium. I propose a $500 sell, within the risk layer's $14,672 sell allowance, to capture mean-reversion while respecting book limits."
+    },
+    {
+      "timestamp": "2026-09-25T01:47:19.136323+00:00",
+      "symbol": "RTSLAUSDT",
+      "side": "buy",
+      "qty": 1.0549,
+      "price": 379.18,
+      "notional_usd": 399.996982,
+      "rationale": "[Qwen3.8-max] The -1.42% spread (rToken flat at -0.12% vs synthetic fair value +1.31%, driven by a +2.44% futures proxy) suggests RTSLA is lagging overnight, but I am sizing conservatively because book net exposure is already +24.1% of equity against a 25% cap. I propose $400 to add modestly to the existing $231 long rather than repeating the recent pattern of two $350 buys 5 hours ago that failed to close the gap."
     }
   ],
   "equity_at_day_start_usd": 97743.8921610001,
