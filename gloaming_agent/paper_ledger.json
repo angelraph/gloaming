@@ -1,11 +1,11 @@
 {
-  "cash_usd": 74964.7441260001,
+  "cash_usd": 74251.8069360001,
   "positions": {
     "RGOOGLUSDT": 0.2349000000000147,
     "RMSFTUSDT": 0.5110999999999986,
     "RSPYUSDT": 9.187,
-    "RQQQUSDT": 9.175999999999998,
-    "RMETAUSDT": -1.5223000000000046,
+    "RQQQUSDT": 9.849999999999998,
+    "RMETAUSDT": -1.2484000000000046,
     "RNVDAUSDT": 37.5535,
     "RTSLAUSDT": 1.6629000000000094,
     "RAAPLUSDT": 0.7857999999999994,
@@ -6176,6 +6176,24 @@
       "price": 777.59,
       "notional_usd": 221.146596,
       "rationale": "[Qwen3.8-max] RMETA is up 5.72% versus a blended synthetic fair-value return of only 1.20%, creating a +4.52% spread that suggests the rToken is overextended while the market is closed; selling into this premium to add to my existing $963 short captures mean-reversion edge. Book net exposure is already +23.6% (near the 25% cap), so I am sizing conservatively at $500 rather than using the full $1,000 limit, and recent fills show I have already been trimming this position with sells in the last 0.5h."
+    },
+    {
+      "timestamp": "2026-09-25T04:32:27.568388+00:00",
+      "symbol": "RMETAUSDT",
+      "side": "buy",
+      "qty": 0.2739,
+      "price": 777.5,
+      "notional_usd": 212.95725,
+      "rationale": "[Qwen3.8-max] RMETA is up 5.88% versus a blended synthetic fair-value return of only 1.18%, creating a 4.70% spread that suggests the rToken has overshot during the closed session and is likely to mean-revert lower. Buying also covers part of my existing $1,184 short and reduces the book's net long exposure from +$22,828 (+23.3%) toward zero, which is prudent given we are near the +25% net cap. I am sizing conservatively at $500 (well under the $1,620 risk-layer buy approval and $1,000 per-decision cap) because my last three fills were sells in this symbol, indicating I was recently adding to the short, so I will not aggressively reverse course on one spread reading."
+    },
+    {
+      "timestamp": "2026-09-25T04:32:49.816804+00:00",
+      "symbol": "RQQQUSDT",
+      "side": "buy",
+      "qty": 0.674,
+      "price": 741.81,
+      "notional_usd": 499.97994,
+      "rationale": "[Qwen3.8-max] The -0.82% spread indicates RQQQUSDT is lagging the 1.18% blended synthetic fair-value return, driven largely by a 2.26% futures proxy move, suggesting mild overnight cheapness. However, book net exposure is already +23.6% against a 25% cap, leaving minimal room to add longs, and I have sold this symbol three times recently ($500 each), so adding back aggressively contradicts that flow. I propose a conservative $500 buy\u2014within the risk layer's $1,407 buy allowance\u2014to partially capture the reversion without pushing net exposure over the cap."
     }
   ],
   "equity_at_day_start_usd": 97743.8921610001,
