@@ -1,11 +1,11 @@
 {
-  "cash_usd": 75120.47951600008,
+  "cash_usd": 75332.25022200008,
   "positions": {
     "RGOOGLUSDT": 0.2349000000000147,
     "RMSFTUSDT": 0.5110999999999986,
     "RSPYUSDT": 9.187,
     "RQQQUSDT": 9.849999999999998,
-    "RMETAUSDT": -2.363500000000004,
+    "RMETAUSDT": -2.634900000000004,
     "RNVDAUSDT": 37.5535,
     "RTSLAUSDT": 1.6629000000000094,
     "RAAPLUSDT": 0.7857999999999994,
@@ -6248,6 +6248,15 @@
       "price": 779.95,
       "notional_usd": 214.95422000000002,
       "rationale": "[Qwen3.8-max] RMETA is up 5.95% vs a blended synthetic fair-value return of only 1.30%, creating a +4.65% spread that suggests the rToken is overextended relative to live proxies while the NYSE is closed. Our book net exposure is already +23.4% (near the 25% cap), so adding more long would be reckless; selling into this rich spread modestly reduces net toward zero and aligns with mean-reversion logic. I am sizing conservatively at $500 (well under the $1,000 decision cap and within the $13,048 sell approval) because recent fills show choppy back-and-forth action and I lack external context for META's outsized move."
+    },
+    {
+      "timestamp": "2026-09-25T06:17:24.102583+00:00",
+      "symbol": "RMETAUSDT",
+      "side": "sell",
+      "qty": 0.2714,
+      "price": 780.29,
+      "notional_usd": 211.77070599999996,
+      "rationale": "[Qwen3.8-max] RMETA's 5.94% 24h return vastly exceeds the blended synthetic fair-value return of 1.21%, creating a +4.72% spread that suggests the rToken is overextended relative to live proxies while the real market is closed. Our book net exposure is already +23.2% of equity, near the 25% net cap, so adding long exposure is undesirable; selling into this rich print both captures the mean-reversion edge and modestly reduces net long toward zero. I am sizing conservatively at $500 (below the $1,726 risk-layer buy cap and well within sell capacity) because recent fills show choppy two-way activity in the last hour, suggesting uncertainty around short-term direction."
     }
   ],
   "equity_at_day_start_usd": 97743.8921610001,
