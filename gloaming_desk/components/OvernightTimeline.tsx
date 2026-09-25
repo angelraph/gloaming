@@ -61,74 +61,62 @@ export default function OvernightTimeline({ events }: { events: TimelineEvent[] 
 
   if (withSignals.length === 0) {
     return (
-      <div className="rounded-lg border border-border-subtle bg-layer-1 p-4 text-sm text-text-tertiary">
-        No decisions yet in the recent window - the Agent only trades while NYSE is
-        closed, and needs at least one cycle to show anything here.
+      <div className="rounded-xl border border-border-subtle bg-layer-1 p-5 text-sm text-text-tertiary">
+        No decisions yet in the recent window. The agent only works while NYSE is closed, and needs
+        at least one cycle to show anything here.
       </div>
     );
   }
 
   return (
-    <ul className="flex max-h-[520px] flex-col gap-2.5 overflow-y-auto pr-1">
+    <ul className="flex max-h-[560px] flex-col gap-3 overflow-y-auto pr-1">
       {withSignals.map((e, i) => {
         const isBuy = e.decision?.side === "buy";
         const isHold = !e.decision && !e.error;
         return (
           <li
             key={`${e.timestamp}-${e.underlying}-${i}`}
-            className="rounded-lg border border-border-subtle bg-layer-1 p-3.5"
-            style={{
-              borderLeft: `3px solid ${
-                e.error ? "var(--warning)" : isHold ? "var(--text-tertiary)" : isBuy ? "var(--positive)" : "var(--negative)"
-              }`,
-            }}
+            className="rounded-xl border border-border-subtle bg-layer-1 p-4 sm:p-5"
           >
-            <div className="flex items-center justify-between gap-2 text-xs text-text-tertiary">
-              <span className="tabular-nums">{fmtTime(e.timestamp)}</span>
-              <span className="rounded bg-layer-2 px-2 py-0.5 font-mono text-[11px]">
+            <div className="flex items-center justify-between gap-3">
+              <span className="micro-label tabular-nums">{fmtTime(e.timestamp)}</span>
+              <span className="truncate rounded-full border border-border-subtle px-2.5 py-1 text-[11px] text-text-tertiary">
                 {e.decision_source ?? "unknown"}
               </span>
             </div>
 
             {e.error ? (
-              <p className="mt-2 text-sm text-warning">Error: {e.error}</p>
-            ) : e.decision ? (
-              <>
-                <div className="mt-1.5 flex flex-wrap items-baseline gap-2">
-                  <span className="font-semibold tracking-tight">{e.underlying}</span>
-                  <span
-                    className={
-                      isBuy
-                        ? "rounded bg-positive-soft px-2 py-0.5 font-mono text-xs font-medium text-positive"
-                        : "rounded bg-negative-soft px-2 py-0.5 font-mono text-xs font-medium text-negative"
-                    }
-                  >
-                    {e.decision.side.toUpperCase()} ${e.decision.notional_usd.toFixed(0)}
-                  </span>
-                  {e.snapshot && (
-                    <span className="font-mono text-xs text-text-tertiary">
-                      spread {fmtPct(e.snapshot.spread)}
-                    </span>
-                  )}
-                </div>
-                <p className="mt-2 text-sm leading-relaxed text-text-secondary">{e.decision.rationale}</p>
-              </>
+              <p className="mt-3 text-sm text-warning">Error: {e.error}</p>
             ) : (
               <>
-                <div className="mt-1.5 flex flex-wrap items-baseline gap-2">
-                  <span className="font-semibold tracking-tight">{e.underlying}</span>
-                  <span className="rounded bg-layer-2 px-2 py-0.5 font-mono text-xs font-medium text-text-secondary">
-                    HOLD
-                  </span>
+                <div className="mt-3 flex flex-wrap items-center gap-x-3 gap-y-2">
+                  <span className="text-base font-medium text-heading">{e.underlying}</span>
+                  {e.decision ? (
+                    <span
+                      className={`rounded-full border px-3 py-1 text-xs font-medium tracking-wide tabular-nums ${
+                        isBuy
+                          ? "border-mint/40 bg-mint-soft text-mint"
+                          : "border-negative/40 bg-negative-soft text-negative"
+                      }`}
+                    >
+                      {e.decision.side.toUpperCase()} ${e.decision.notional_usd.toFixed(0)}
+                    </span>
+                  ) : (
+                    <span className="rounded-full border border-border px-3 py-1 text-xs font-medium tracking-wide text-text-secondary">
+                      HOLD
+                    </span>
+                  )}
                   {e.snapshot && (
-                    <span className="font-mono text-xs text-text-tertiary">
+                    <span className="text-xs text-text-tertiary tabular-nums">
                       spread {fmtPct(e.snapshot.spread)}
                       {e.snapshot.hours_since_close !== undefined &&
-                        ` | ${e.snapshot.hours_since_close.toFixed(1)}h since close`}
+                        ` · ${e.snapshot.hours_since_close.toFixed(1)}h since close`}
                     </span>
                   )}
                 </div>
-                <p className="mt-2 text-sm leading-relaxed text-text-secondary">{e.hold_rationale}</p>
+                <p className="mt-3 text-sm leading-relaxed text-text-secondary">
+                  {isHold ? e.hold_rationale : e.decision?.rationale}
+                </p>
               </>
             )}
           </li>

@@ -45,50 +45,53 @@ export default function SignalContextCard({ context }: { context: SignalContext 
   const hasData = hasFearGreed || hasLongShort || hasNews || hasMacro;
 
   return (
-    <div className="rounded-lg border border-border-subtle bg-layer-1 p-3.5 sm:p-4">
-      <div className="flex items-center justify-between gap-2">
-        <h3 className="text-sm font-medium text-text-secondary">Bitget signal (latest cycle)</h3>
-        <span className="rounded bg-layer-2 px-2 py-0.5 font-mono text-[11px] text-text-tertiary">
+    <div className="h-full rounded-xl border border-border-subtle bg-layer-1 p-5 sm:p-6">
+      <div className="flex items-center justify-between gap-3">
+        <p className="eyebrow">Bitget signal</p>
+        <span className="rounded-full border border-border-subtle px-2.5 py-1 text-[11px] text-text-tertiary">
           bitget-signal MCP
         </span>
       </div>
 
       {hasData ? (
-        <div className="mt-2.5 flex flex-col gap-1.5 text-sm">
+        <dl className="mt-5 space-y-4 text-sm">
           {hasFearGreed && (
             <div>
-              <span className="text-text-tertiary">Crypto sentiment: </span>
-              <span className="font-mono text-text-primary">{fmtEntries(context!.fear_greed!)}</span>
+              <dt className="micro-label">Crypto sentiment</dt>
+              <dd className="mt-2 tabular-nums text-heading">{fmtEntries(context!.fear_greed!)}</dd>
             </div>
           )}
           {hasLongShort && (
             <div>
-              <span className="text-text-tertiary">BTC long/short: </span>
-              <span className="font-mono text-text-primary">{fmtEntries(context!.long_short!)}</span>
+              <dt className="micro-label">BTC long/short</dt>
+              <dd className="mt-2 tabular-nums text-heading">{fmtEntries(context!.long_short!)}</dd>
             </div>
           )}
           {hasMacro && (
             <div>
-              <span className="text-text-tertiary">Yield curve: </span>
-              <span className="font-mono text-text-primary">{fmtEntries(realYields)}</span>
+              <dt className="micro-label">Yield curve</dt>
+              <dd className="mt-2 tabular-nums text-heading">{fmtEntries(realYields)}</dd>
             </div>
           )}
           {hasNews && (
             <div>
-              <span className="text-text-tertiary">News: </span>
-              <span className="font-mono text-text-primary">
+              <dt className="micro-label">News</dt>
+              <dd className="mt-2 text-heading">
                 {newsWithItems.reduce((n, e) => n + (e.items?.length ?? 0), 0)} real item(s) across{" "}
                 {newsWithItems.map((e) => e.feed).join(", ")}
-              </span>
+              </dd>
             </div>
           )}
-        </div>
+        </dl>
       ) : (
-        <p className="mt-2.5 text-sm text-text-tertiary">
-          No real sentiment, derivatives, news, or yield-curve data available this cycle.
-          Bitget&apos;s public signal server responded, but its own upstream sources had
-          nothing to return - shown here as-is, never filled in with a placeholder.
-        </p>
+        <>
+          <h3 className="font-display mt-5 text-[24px] leading-tight text-heading">Nothing to report.</h3>
+          <p className="mt-3 text-sm leading-relaxed text-text-secondary">
+            No sentiment, derivatives, news or yield-curve data this cycle. Bitget&apos;s public
+            signal server responded, but its own upstream sources had nothing to return. Shown
+            as-is, never filled in with a placeholder.
+          </p>
+        </>
       )}
     </div>
   );

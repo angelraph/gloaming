@@ -1,49 +1,65 @@
 @import "tailwindcss";
 
 /*
-  Color system: researched from Bitget's own live CSS custom properties
-  (bitget.com, checked directly via getComputedStyle - not guessed), adapted
-  into a distinct "Gloaming" identity rather than copied wholesale.
+  Design system: two references merged, not stacked.
 
-  Kept from Bitget's real tokens (recognizable, exchange-native, why reinvent
-  what traders already read correctly at a glance):
-    - buy/positive  #01bc8d, sell/negative #f1493f
-    - dark-mode neutral scale is close to their --ds-color-neutral-* ramp
+  From the "midnight vault" system: the near-black canvas with a faint cool undertone, a
+  four-step surface stack, a serif for display type and large numerals, copper as the only
+  editorial accent, and the gilded gradient reserved for data-visualization lines.
 
-  Changed deliberately, so this doesn't read as a clone of Bitget's own site:
-    - a cool near-black base (#09090b) instead of their true-neutral black,
-      giving every surface a faint dusk-purple undertone - "gloaming" is
-      literally the dim light between color and dark, so the palette should
-      feel like that, not like a generic dashboard
-    - brand accent is a narrower, slightly deeper teal (#0ea5b7) than
-      Bitget's brighter #03aac7 - present in the same hue family (exchange
-      brand-teal is a legible, intentional nod) without matching it exactly
-    - typography carries the rest of the distinction: see app/layout.tsx
+  From the "DeFi command terminal" system: flat surfaces where depth is a colour step and
+  a 1px hairline (never a shadow), a single vivid mint used ONLY as a live signal, a
+  technical positive tracking on small uppercase labels, and comfortable section rhythm
+  for a product that handles money.
+
+  Where they disagree the choice is deliberate:
+    - accent roles are split: copper marks editorial/category labels, mint marks things
+      that are live (active nav underline, the live-money card border, the agent status)
+    - radii: 12px cards, full pills for every control (both agree on hairlines)
+    - letter-spacing: +0.06-0.08em on uppercase micro-labels only; body copy stays at
+      normal tracking so long model rationales stay readable
+    - one exception to "no other chromatic colour": a muted coral for the sell/negative
+      side, because a trading UI needs a sell colour and neither reference has one
 */
 
 :root {
-  --background: #09090b;
-  --foreground: #f4f5f7;
+  /* Surfaces: void -> card -> panel, each a colour step, never a shadow */
+  --background: #08080a;
+  --layer-1: #0d0e11;
+  --layer-2: #14151a;
 
-  --layer-1: #131318;
-  --layer-2: #1c1c23;
-  --border: #26262e;
-  --border-subtle: #1c1c23;
+  /* Hairlines */
+  --border-subtle: #1c1d22;
+  --border: #2e3038;
+  --border-strong: #464853;
 
-  --text-primary: #f4f5f7;
-  --text-secondary: #9a9aa4;
-  --text-tertiary: #6b6b74;
+  /* Text */
+  --text-heading: #ffffff;
+  --text-primary: #e2e3e9;
+  --text-secondary: #9194a1;
+  --text-tertiary: #777a88;
 
-  --brand: #0ea5b7;
-  --brand-hover: #14b8cc;
-  --brand-soft: #0ea5b71a;
+  /* Accents */
+  --copper: #cc9166;
+  --copper-soft: rgba(204, 145, 102, 0.12);
+  --mint: #3fe280;
+  --mint-soft: rgba(63, 226, 128, 0.1);
 
-  --positive: #01bc8d;
-  --positive-soft: #01bc8d1a;
-  --negative: #f1493f;
-  --negative-soft: #f1493f1a;
-  --warning: #ff9142;
-  --warning-soft: #ff91421a;
+  /* Trading semantics */
+  --positive: #3fe280;
+  --positive-soft: rgba(63, 226, 128, 0.1);
+  --negative: #e5786d;
+  --negative-soft: rgba(229, 120, 109, 0.12);
+  --warning: #cc9166;
+  --warning-soft: rgba(204, 145, 102, 0.12);
+
+  /* Aliases kept for existing components */
+  --foreground: var(--text-primary);
+  --brand: var(--mint);
+  --brand-hover: #63eb9b;
+  --brand-soft: var(--mint-soft);
+
+  --gilded: linear-gradient(103deg, #ae9357, #fff0cc 40%, #ae9357 70%, rgba(189, 157, 79, 0));
 }
 
 @theme inline {
@@ -53,9 +69,15 @@
   --color-layer-2: var(--layer-2);
   --color-border: var(--border);
   --color-border-subtle: var(--border-subtle);
+  --color-border-strong: var(--border-strong);
+  --color-heading: var(--text-heading);
   --color-text-primary: var(--text-primary);
   --color-text-secondary: var(--text-secondary);
   --color-text-tertiary: var(--text-tertiary);
+  --color-copper: var(--copper);
+  --color-copper-soft: var(--copper-soft);
+  --color-mint: var(--mint);
+  --color-mint-soft: var(--mint-soft);
   --color-brand: var(--brand);
   --color-brand-hover: var(--brand-hover);
   --color-brand-soft: var(--brand-soft);
@@ -65,17 +87,91 @@
   --color-negative-soft: var(--negative-soft);
   --color-warning: var(--warning);
   --color-warning-soft: var(--warning-soft);
-  --font-sans: var(--font-sans);
-  --font-mono: var(--font-mono);
+  --font-sans: var(--font-inter);
+  --font-mono: var(--font-inter);
+}
+
+html {
+  scroll-behavior: smooth;
+  scroll-padding-top: 84px; /* clears the sticky nav for anchor jumps */
 }
 
 body {
   background: var(--background);
-  color: var(--foreground);
-  font-family: var(--font-sans), Arial, Helvetica, sans-serif;
+  color: var(--text-primary);
+  font-family: var(--font-sans), ui-sans-serif, system-ui, sans-serif;
+  font-size: 15px;
+  line-height: 1.55;
 }
 
-code, kbd, .tabular-nums {
-  font-family: var(--font-mono), ui-monospace, monospace;
+/* Serif for display: the headline face, and big numerals */
+.font-display {
+  font-family: var(--font-display), Georgia, serif;
+  font-weight: 400;
+  letter-spacing: 0.01em;
+}
+
+/* Section-above-section label: a small, precise period before a block of content */
+.eyebrow {
+  font-size: 12px;
+  font-weight: 600;
+  line-height: 1;
+  letter-spacing: 0.08em;
+  text-transform: uppercase;
+  color: var(--copper);
+}
+
+/* Micro-label for stats and table heads */
+.micro-label {
+  font-size: 11px;
+  font-weight: 500;
+  line-height: 1;
+  letter-spacing: 0.07em;
+  text-transform: uppercase;
+  color: var(--text-tertiary);
+}
+
+/* Figures line up in columns; Inter carries them (no separate mono face) */
+.font-mono,
+.tabular-nums,
+code,
+kbd {
+  font-family: var(--font-sans), ui-sans-serif, system-ui, sans-serif;
   font-variant-numeric: tabular-nums;
+}
+
+::selection {
+  background: var(--copper-soft);
+  color: var(--text-heading);
+}
+
+:focus-visible {
+  outline: 2px solid var(--copper);
+  outline-offset: 3px;
+  border-radius: 6px;
+}
+
+/* FAQ accordion: native <details>, custom marker */
+details > summary {
+  list-style: none;
+  cursor: pointer;
+}
+details > summary::-webkit-details-marker {
+  display: none;
+}
+details[open] .faq-plus {
+  transform: rotate(45deg);
+}
+
+@media (prefers-reduced-motion: reduce) {
+  html {
+    scroll-behavior: auto;
+  }
+  *,
+  *::before,
+  *::after {
+    animation-duration: 0.01ms !important;
+    animation-iteration-count: 1 !important;
+    transition-duration: 0.01ms !important;
+  }
 }

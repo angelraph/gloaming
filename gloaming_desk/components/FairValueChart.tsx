@@ -1,6 +1,6 @@
 "use client";
 
-import { Bar, BarChart, CartesianGrid, Cell, ResponsiveContainer, Tooltip, XAxis, YAxis } from "recharts";
+import { Bar, BarChart, CartesianGrid, Cell, ReferenceLine, ResponsiveContainer, Tooltip, XAxis, YAxis } from "recharts";
 
 type SnapshotEvent = {
   timestamp: string;
@@ -12,7 +12,8 @@ type SnapshotEvent = {
 };
 
 // Latest spread per symbol, from whichever event is most recent - this IS the
-// "actual vs fair value" gap the whole project is built on, in chart form.
+// "actual vs fair value" gap the whole project is built on, in chart form. Since Sept 25
+// it is the rToken's return since the real close minus the proxies' return since the close.
 function latestSpreadBySymbol(events: SnapshotEvent[]) {
   const bySymbol = new Map<string, { symbol: string; spread: number; timestamp: string }>();
   for (const e of events) {
@@ -30,16 +31,16 @@ function latestSpreadBySymbol(events: SnapshotEvent[]) {
 }
 
 // Recharts renders to SVG and doesn't reliably resolve CSS custom properties in
-// every context, so these mirror app/globals.css's --negative/--positive/etc.
-// literally - keep in sync if the palette changes there.
+// every context, so these mirror app/globals.css literally - keep in sync if the
+// palette changes there.
 const COLORS = {
-  grid: "#26262e",
-  axis: "#6b6b74",
-  tooltipBg: "#1c1c23",
-  tooltipBorder: "#26262e",
-  tooltipLabel: "#f4f5f7",
-  rich: "#f1493f", // positive spread -> overpriced vs. fair value -> the sell side
-  cheap: "#01bc8d", // negative spread -> underpriced vs. fair value -> the buy side
+  grid: "#1c1d22",
+  axis: "#777a88",
+  tooltipBg: "#14151a",
+  tooltipBorder: "#2e3038",
+  tooltipLabel: "#ffffff",
+  rich: "#e5786d", // positive spread -> overpriced vs. fair value -> the sell side
+  cheap: "#3fe280", // negative spread -> underpriced vs. fair value -> the buy side
 };
 
 export default function FairValueChart({ events }: { events: SnapshotEvent[] }) {
@@ -50,22 +51,40 @@ export default function FairValueChart({ events }: { events: SnapshotEvent[] }) 
   }
 
   return (
-    <ResponsiveContainer width="100%" height={260}>
-      <BarChart data={data} margin={{ top: 8, right: 8, left: 8, bottom: 8 }}>
-        <CartesianGrid strokeDasharray="3 3" stroke={COLORS.grid} />
-        <XAxis dataKey="symbol" stroke={COLORS.axis} fontSize={12} />
+    <ResponsiveContainer width="100%" height={280}>
+      <BarChart data={data} margin={{ top: 8, right: 8, left: 0, bottom: 4 }}>
+        <defs>
+          {/* the gilded gradient, reserved for data-visualization lines: here, the zero baseline */}
+          <linearGradient id="gilded" gradientUnits="userSpaceOnUse" x1="0%" y1="0" x2="100%" y2="0">
+            <stop offset="0%" stopColor="#ae9357" />
+            <stop offset="40%" stopColor="#fff0cc" />
+            <stop offset="70%" stopColor="#ae9357" />
+            <stop offset="100%" stopColor="#bd9d4f" stopOpacity={0.1} />
+          </linearGradient>
+        </defs>
+        <CartesianGrid vertical={false} stroke={COLORS.grid} />
+        <XAxis dataKey="symbol" stroke={COLORS.axis} fontSize={12} tickLine={false} axisLine={false} />
         <YAxis
           stroke={COLORS.axis}
           fontSize={12}
-          tickFormatter={(v: number) => `${v.toFixed(1)}%`}
-          label={{ value: "Spread (actual vs. fair value)", angle: -90, position: "insideLeft", fill: COLORS.axis, fontSize: 11 }}
+          tickLine={false}
+          axisLine={false}
+          width={52}
+          tickFormatter={(v: number) => `${v.toFixed(2)}%`}
         />
         <Tooltip
-          contentStyle={{ background: COLORS.tooltipBg, border: `1px solid ${COLORS.tooltipBorder}`, borderRadius: 8 }}
+          cursor={{ fill: "rgba(255,255,255,0.03)" }}
+          contentStyle={{
+            background: COLORS.tooltipBg,
+            border: `1px solid ${COLORS.tooltipBorder}`,
+            borderRadius: 12,
+            fontSize: 12,
+          }}
           labelStyle={{ color: COLORS.tooltipLabel }}
-          formatter={(value) => [`${Number(value).toFixed(2)}%`, "spread"]}
+          formatter={(value) => [`${Number(value).toFixed(3)}%`, "spread"]}
         />
-        <Bar dataKey="spread" radius={[4, 4, 0, 0]}>
+        <ReferenceLine y={0} stroke="url(#gilded)" strokeWidth={1.5} />
+        <Bar dataKey="spread" radius={[4, 4, 4, 4]} maxBarSize={44}>
           {data.map((d) => (
             <Cell key={d.symbol} fill={d.spread > 0 ? COLORS.rich : COLORS.cheap} />
           ))}

@@ -57,25 +57,28 @@ export default function DecisionStressTest() {
   if (data.scenarios.every((s) => s.positions.length === 0)) {
     return (
       <div className="text-sm text-text-tertiary">
-        No open positions to stress-test right now - the Agent&apos;s current book is
-        flat. Scenarios will populate once it holds a position.
+        No open positions to stress-test right now: the agent&apos;s current book is flat.
+        Scenarios will populate once it holds a position.
       </div>
     );
   }
 
   const scenario = data.scenarios[selected];
+  const up = scenario.totalHypotheticalPnlUsd >= 0;
 
   return (
     <div>
-      <div className="mb-3 flex flex-wrap gap-2">
+      <div className="flex flex-wrap gap-2" role="tablist" aria-label="Stress scenarios">
         {data.scenarios.map((s, i) => (
           <button
             key={s.id}
+            role="tab"
+            aria-selected={i === selected}
             onClick={() => setSelected(i)}
             className={
               i === selected
-                ? "rounded-md bg-brand px-3 py-1.5 text-xs font-medium text-white"
-                : "rounded-md border border-border px-3 py-1.5 text-xs text-text-secondary hover:border-text-tertiary"
+                ? "rounded-full border border-heading bg-heading px-4 py-2 text-xs font-medium tracking-wide text-background"
+                : "rounded-full border border-border px-4 py-2 text-xs tracking-wide text-text-secondary transition-colors hover:border-border-strong hover:text-heading"
             }
           >
             {s.label}
@@ -83,51 +86,41 @@ export default function DecisionStressTest() {
         ))}
       </div>
 
-      <p className="mb-3 text-xs text-text-tertiary">{scenario.description}</p>
+      <p className="mt-5 max-w-2xl text-sm leading-relaxed text-text-secondary">{scenario.description}</p>
 
-      <div className="mb-3 flex flex-wrap items-baseline gap-x-3 gap-y-1">
-        <span className="text-xs text-text-tertiary">If this happened tonight:</span>
-        <span
-          className={
-            scenario.totalHypotheticalPnlUsd >= 0
-              ? "font-mono text-lg font-semibold tabular-nums text-positive"
-              : "font-mono text-lg font-semibold tabular-nums text-negative"
-          }
-        >
-          {fmtUsd(scenario.totalHypotheticalPnlUsd)}
-        </span>
-        <span className="text-xs text-text-tertiary">
-          equity would be {fmtUsd(scenario.hypotheticalEquityUsd)}
-        </span>
+      <div className="mt-6 flex flex-wrap items-end gap-x-6 gap-y-2">
+        <div>
+          <div className="micro-label">If this happened tonight</div>
+          <div className={`font-display mt-3 text-[40px] leading-none tabular-nums ${up ? "text-positive" : "text-negative"}`}>
+            {fmtUsd(scenario.totalHypotheticalPnlUsd)}
+          </div>
+        </div>
+        <div className="pb-1 text-sm text-text-tertiary">equity would be {fmtUsd(scenario.hypotheticalEquityUsd)}</div>
       </div>
 
       {scenario.positions.length === 0 ? (
-        <p className="text-sm text-text-tertiary">No held symbols have data for this scenario.</p>
+        <p className="mt-6 text-sm text-text-tertiary">No held symbols have data for this scenario.</p>
       ) : (
-        <div className="-mx-1 overflow-x-auto px-1">
-          <table className="w-full min-w-[420px] text-left text-xs">
-            <thead className="text-text-tertiary">
-              <tr>
-                <th className="py-1 pr-3 font-medium">Symbol</th>
-                <th className="py-1 pr-3 font-medium">Position</th>
-                <th className="py-1 pr-3 font-medium">Scenario move</th>
-                <th className="py-1 text-right font-medium">Hypothetical P&amp;L</th>
+        <div className="-mx-1 mt-6 overflow-x-auto px-1">
+          <table className="w-full min-w-[460px] text-left text-sm">
+            <thead>
+              <tr className="border-b border-border-subtle">
+                <th className="micro-label py-3 pr-4 font-medium">Symbol</th>
+                <th className="micro-label py-3 pr-4 font-medium">Position</th>
+                <th className="micro-label py-3 pr-4 text-right font-medium">Scenario move</th>
+                <th className="micro-label py-3 text-right font-medium">Hypothetical P&amp;L</th>
               </tr>
             </thead>
             <tbody>
               {scenario.positions.map((p) => (
-                <tr key={p.symbol} className="border-t border-border-subtle">
-                  <td className="py-1.5 pr-3 font-medium">{p.underlying}</td>
-                  <td className="py-1.5 pr-3 font-mono text-text-secondary tabular-nums">
+                <tr key={p.symbol} className="border-b border-border-subtle last:border-b-0">
+                  <td className="py-3 pr-4 font-medium text-heading">{p.underlying}</td>
+                  <td className="py-3 pr-4 tabular-nums text-text-secondary">
                     {p.qty >= 0 ? "long" : "short"} {fmtUsd(Math.abs(p.currentNotional))}
                   </td>
-                  <td className="py-1.5 pr-3 font-mono text-text-secondary tabular-nums">{fmtPct(p.scenarioReturn)}</td>
+                  <td className="py-3 pr-4 text-right tabular-nums text-text-secondary">{fmtPct(p.scenarioReturn)}</td>
                   <td
-                    className={
-                      p.hypotheticalPnlUsd >= 0
-                        ? "py-1.5 text-right font-mono tabular-nums text-positive"
-                        : "py-1.5 text-right font-mono tabular-nums text-negative"
-                    }
+                    className={`py-3 text-right tabular-nums ${p.hypotheticalPnlUsd >= 0 ? "text-positive" : "text-negative"}`}
                   >
                     {fmtUsd(p.hypotheticalPnlUsd)}
                   </td>
