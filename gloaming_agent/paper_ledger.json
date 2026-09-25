@@ -1,11 +1,11 @@
 {
-  "cash_usd": 73790.37483300011,
+  "cash_usd": 74040.51531300011,
   "positions": {
     "RGOOGLUSDT": 0.2349000000000147,
     "RMSFTUSDT": 0.5110999999999986,
     "RSPYUSDT": 9.187,
     "RQQQUSDT": 9.175999999999998,
-    "RMETAUSDT": -0.011500000000004618,
+    "RMETAUSDT": -0.3331000000000046,
     "RNVDAUSDT": 37.5535,
     "RTSLAUSDT": 1.6629000000000094,
     "RAAPLUSDT": 0.7857999999999994,
@@ -6086,6 +6086,15 @@
       "price": 379.18,
       "notional_usd": 399.996982,
       "rationale": "[Qwen3.8-max] The -1.42% spread (rToken flat at -0.12% vs synthetic fair value +1.31%, driven by a +2.44% futures proxy) suggests RTSLA is lagging overnight, but I am sizing conservatively because book net exposure is already +24.1% of equity against a 25% cap. I propose $400 to add modestly to the existing $231 long rather than repeating the recent pattern of two $350 buys 5 hours ago that failed to close the gap."
+    },
+    {
+      "timestamp": "2026-09-25T02:02:23.676957+00:00",
+      "symbol": "RMETAUSDT",
+      "side": "sell",
+      "qty": 0.3216,
+      "price": 777.8,
+      "notional_usd": 250.14048,
+      "rationale": "[Qwen3.8-max] RMETA is up 4.95% versus a blended synthetic fair-value return of only 1.46%, leaving it 3.49% overvalued and justifying a short to capture mean reversion. The book's net exposure is +24.6% against a 25% cap, so I am constrained from adding shorts that would increase net long; I size this sell at exactly $437, which is the maximum buy/short-add the risk layer will approve for this symbol right now. My three recent sells ($253, $396, $275) confirm the persistent overvaluation thesis, and this final permitted tranche completes the position within limits."
     }
   ],
   "equity_at_day_start_usd": 97743.8921610001,
