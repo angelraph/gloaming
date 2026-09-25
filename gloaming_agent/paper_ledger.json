@@ -1,11 +1,11 @@
 {
-  "cash_usd": 75815.20248300004,
+  "cash_usd": 75618.69918300005,
   "positions": {
     "RGOOGLUSDT": 0.2349000000000147,
     "RMSFTUSDT": 0.5110999999999986,
     "RSPYUSDT": 8.5369,
     "RQQQUSDT": 9.849999999999998,
-    "RMETAUSDT": -2.6117000000000035,
+    "RMETAUSDT": -2.3588000000000036,
     "RNVDAUSDT": 37.5535,
     "RTSLAUSDT": 1.6629000000000094,
     "RAAPLUSDT": 0.7857999999999994,
@@ -6356,6 +6356,15 @@
       "price": 777.43,
       "notional_usd": 195.13493,
       "rationale": "[Qwen3.8-max] RMETA is up 6.73% vs a blended synthetic fair-value return of only 1.60%, creating a 5.12% spread that suggests the rToken is significantly overextended relative to live proxies. I am already short $1,835 and have bought three times in the last hour ($232, $218, $219) against this move with no convergence, so repeating buys is not supported by the data; instead I will add to the short to capture mean-reversion. Selling $500 increases my short position (reducing net long exposure from +$22,306 / +22.8% toward zero), which is beneficial given the book is near its +25% net cap."
+    },
+    {
+      "timestamp": "2026-09-25T09:02:21.977082+00:00",
+      "symbol": "RMETAUSDT",
+      "side": "buy",
+      "qty": 0.2529,
+      "price": 777.0,
+      "notional_usd": 196.50330000000002,
+      "rationale": "[Qwen3.8-max] RMETA's 6.73% 24h return vastly exceeds the blended synthetic fair-value return of 1.64%, creating a 5.09% spread that suggests the rToken is overextended while the market is closed. Buying to cover part of my existing $2,029 short reduces book net long exposure from +22.6% toward zero, which is prudent given we are near the +25% net cap. I am sizing conservatively at $500 rather than repeating the recent small buys aggressively, as I lack external context for META's outsized move and want to respect the risk layer's $2,355 buy approval limit."
     }
   ],
   "equity_at_day_start_usd": 97743.8921610001,
