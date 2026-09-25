@@ -12,3 +12,4 @@ gloaming_agent/scheduler.log
 *.log
 engine/data/cache/rtoken_universe.json
 instruments_spot.json
+gloaming_agent/decision_log/dry_run/

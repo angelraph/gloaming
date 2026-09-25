@@ -93,6 +93,13 @@ def _save(state: LedgerState) -> None:
     kv_sync.push_ledger_state(state_dict)  # best-effort mirror for the deployed Desk; no-ops if unconfigured
 
 
+def sync_mirror() -> None:
+    """Pushes the current local ledger to the Redis mirror, unchanged. The local file is
+    the source of truth; this only makes the mirror agree with it. Best-effort."""
+    if LEDGER_PATH.exists():
+        kv_sync.push_ledger_state(asdict(_load()))
+
+
 def recent_fills(symbol: str, limit: int = 3) -> list[dict]:
     """The last `limit` real fills in `symbol`, oldest first, for showing the LLM what
     it has recently done in that symbol."""

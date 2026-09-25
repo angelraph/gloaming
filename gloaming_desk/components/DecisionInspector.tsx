@@ -19,9 +19,9 @@ function opt(n: number | null | undefined, f: (x: number) => string) {
 
 // A modal built on the native <dialog>: showModal() gives focus trapping, Escape to close and
 // an inert background for free, so keyboard and screen-reader users are not stranded.
-// It shows what the record actually holds: the market inputs, the model's stated reasoning, the
-// risk layer's verdict and what execution did. The book context Qwen also sees each cycle
-// (its own position and exposure) is not stored per record, and this panel says so.
+// It shows what the record actually holds: the market inputs, the book context Qwen was shown,
+// the model's stated reasoning, the risk layer's verdict and what execution did. Records from
+// before Sep 24 carry no book context, and the panel says so rather than leaving a gap.
 export default function DecisionInspector({ record, onClose }: { record: DecisionRecord | null; onClose: () => void }) {
   const ref = useRef<HTMLDialogElement>(null);
 
@@ -116,6 +116,51 @@ export default function DecisionInspector({ record, onClose }: { record: Decisio
                 </section>
               )}
 
+              {s?.book_context && (
+                <section className="mt-7">
+                  <h3 className="micro-label">Its own book, as Qwen saw it</h3>
+                  <dl className="mt-3">
+                    <Row
+                      label={`Position in ${record.underlying}`}
+                      value={
+                        Math.abs(s.book_context.symbol_position_usd) < 0.005
+                          ? "flat"
+                          : `${s.book_context.symbol_position_usd > 0 ? "long" : "short"} ${fmtUsd(
+                              Math.abs(s.book_context.symbol_position_usd)
+                            )} (${fmtPct(Math.abs(s.book_context.symbol_position_pct), 1)}, cap ${fmtPct(s.book_context.symbol_cap_pct, 0)})`
+                      }
+                    />
+                    <Row
+                      label="Net exposure"
+                      value={
+                        <span className={s.book_context.over_net_cap ? "text-negative" : undefined}>
+                          {fmtSignedPct(s.book_context.net_exposure_pct, 1)} (cap {fmtPct(s.book_context.net_cap_pct, 0)})
+                          {s.book_context.over_net_cap ? " over cap" : ""}
+                        </span>
+                      }
+                    />
+                    <Row
+                      label="Gross exposure"
+                      value={`${fmtPct(s.book_context.gross_exposure_pct, 1)} (cap ${fmtPct(s.book_context.gross_cap_pct, 0)})`}
+                    />
+                    <Row label="Could still buy up to" value={fmtUsd(s.book_context.buy_capacity_usd)} />
+                    <Row label="Could still sell up to" value={fmtUsd(s.book_context.sell_capacity_usd)} />
+                    <Row label="Equity at that moment" value={fmtUsd(s.book_context.equity_usd)} />
+                  </dl>
+                  {s.book_context.recent_fills_this_symbol.length > 0 && (
+                    <p className="mt-3 text-xs text-text-tertiary">
+                      Its recent fills here:{" "}
+                      {s.book_context.recent_fills_this_symbol
+                        .map(
+                          (f) =>
+                            `${f.side} ${fmtUsd(f.notional_usd)}${f.hours_ago === null ? "" : ` ${f.hours_ago}h earlier`}`
+                        )
+                        .join("; ")}
+                    </p>
+                  )}
+                </section>
+              )}
+
               <section className="mt-7">
                 <h3 className="micro-label">Risk layer verdict</h3>
                 {record.risk_result ? (
@@ -153,10 +198,12 @@ export default function DecisionInspector({ record, onClose }: { record: Decisio
                 </section>
               )}
 
-              <p className="mt-7 border-t border-border-subtle pt-4 text-xs leading-relaxed text-text-tertiary">
-                Qwen is also shown its own book each cycle (its position, exposure against the caps and recent
-                fills). That context is not stored per record yet, so it is not shown here.
-              </p>
+              {!s?.book_context && (
+                <p className="mt-7 border-t border-border-subtle pt-4 text-xs leading-relaxed text-text-tertiary">
+                  This record predates the change that showed Qwen its own book (Sep 24), so there is no book context
+                  to display for it.
+                </p>
+              )}
             </>
           )}
         </div>

@@ -33,7 +33,23 @@ HISTORICAL_SCENARIOS_KEY = "gloaming:historical_scenarios"
 MAX_DECISION_LOG_ENTRIES = 500  # bounds Redis memory; local .jsonl keeps full history
 
 
+_disabled = False
+
+
+def disable() -> None:
+    """Turns every write in this module into a no-op for the rest of the process.
+
+    Called by dry runs. Confirmed live Sept 25: a local dry run, which loads the same
+    KV credentials from .env as production, pushed a stale local ledger and its own
+    records over the live ones, and the public Desk showed them until repaired by hand.
+    A dry run must never be able to write to the production mirror."""
+    global _disabled
+    _disabled = True
+
+
 def is_configured() -> bool:
+    if _disabled:
+        return False
     return bool(os.environ.get("KV_REST_API_URL") and os.environ.get("KV_REST_API_TOKEN"))
 
 

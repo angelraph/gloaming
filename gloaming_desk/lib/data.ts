@@ -47,6 +47,25 @@ export type DecisionRecord = {
     fair_value_price?: number;
     recent_daily_volatility?: number | null;
     missing_proxies?: string[];
+    // What Qwen was shown about its own book when it decided (agent_loop.build_book_context),
+    // stored on the snapshot. Real ledger state at that moment, not reconstructed.
+    book_context?: {
+      equity_usd: number;
+      daily_pnl_pct: number;
+      symbol_position_usd: number;
+      symbol_position_pct: number;
+      net_exposure_usd: number;
+      net_exposure_pct: number;
+      gross_exposure_usd: number;
+      gross_exposure_pct: number;
+      net_cap_pct: number;
+      gross_cap_pct: number;
+      symbol_cap_pct: number;
+      over_net_cap: boolean;
+      buy_capacity_usd: number;
+      sell_capacity_usd: number;
+      recent_fills_this_symbol: Array<{ side: string; notional_usd: number; hours_ago: number | null }>;
+    };
     spread: number;
     // Real, optional context from Bitget's own public bitget-signal MCP server
     // (gloaming_agent/bitget_signal.py) - null whenever its upstream sources had

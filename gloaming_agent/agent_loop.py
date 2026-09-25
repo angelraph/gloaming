@@ -487,8 +487,15 @@ def run_once(dry_run: bool = False, force: bool = False) -> list[dict]:
     system power log), and the old batch-at-the-end write meant a cycle cut short
     lost every record it had already computed, even ones from minutes earlier.
     Writing incrementally bounds the loss to at most the one record in flight."""
-    DECISION_LOG_DIR.mkdir(parents=True, exist_ok=True)
-    log_path = DECISION_LOG_DIR / f"{datetime.now(timezone.utc):%Y-%m-%d}.jsonl"
+    if dry_run:
+        # A dry run must not touch anything the public Desk or the committed record reads:
+        # no Redis writes, and its records go to a git-ignored folder the Desk never lists.
+        kv_sync.disable()
+        log_dir = DECISION_LOG_DIR / "dry_run"
+    else:
+        log_dir = DECISION_LOG_DIR
+    log_dir.mkdir(parents=True, exist_ok=True)
+    log_path = log_dir / f"{datetime.now(timezone.utc):%Y-%m-%d}.jsonl"
 
     def _emit(record: dict) -> None:
         """Writes one record to disk and mirrors it to Redis immediately, so a
@@ -646,6 +653,10 @@ def scheduled_run() -> None:
     n_decisions = sum(1 for r in records if r.get("decision"))
     n_fills = sum(1 for r in records if isinstance(r.get("execution"), dict) and "qty" in r["execution"])
     skipped_market_open = len(records) == 1 and records[0].get("underlying") is None
+    if not skipped_market_open:
+        # Re-assert the ledger mirror every active cycle, so a stale or missed push heals on
+        # its own within 15 minutes instead of waiting for the next fill to overwrite it.
+        paper_ledger.sync_mirror()
     summary = (
         "market open, skipped" if skipped_market_open
         else f"{len(records)} symbols checked, {n_decisions} signals, {n_fills} fills"
@@ -670,7 +681,7 @@ if __name__ == "__main__":
             else:
                 print(f"  {u}: {r['decision']['side']} ${r['decision']['notional_usd']:.0f} "
                       f"[{r.get('decision_source', '?')}] - {r['execution']}")
-        print(f"\nLogged to {DECISION_LOG_DIR}")
+        print(f"\nLogged to {DECISION_LOG_DIR / 'dry_run'} (git-ignored; nothing was written to Redis)")
     elif "--run" in sys.argv:
         # The scheduled-task entry point - quiet on purpose (no stdout expected
         # under Task Scheduler), all output goes to scheduler.log.

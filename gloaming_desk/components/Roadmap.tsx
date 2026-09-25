@@ -10,7 +10,13 @@ const SHIPPED: Entry[] = [
     when: "Sep 25",
     title: "A multi-page Desk with a decision inspector",
     detail:
-      "Separate pages for the desk, the agent and its performance, a page per symbol, an inspector on every decision, downloadable records, and keyboard and screen-reader support.",
+      "Separate pages for the desk, the agent and its performance, a page per symbol, an inspector on every decision showing the market inputs and the book Qwen was shown, downloadable records, and keyboard and screen-reader support.",
+  },
+  {
+    when: "Sep 26",
+    title: "Dry runs can no longer touch the live Desk",
+    detail:
+      "A local test run once overwrote the public ledger mirror with stale data. Dry runs now write nothing to Redis, and each live cycle re-asserts the ledger mirror so any missed push heals itself within 15 minutes.",
   },
   {
     when: "Sep 25",
@@ -82,10 +88,6 @@ const PLANNED: Entry[] = [
   {
     title: "Fees and slippage in the paper ledger",
     detail: "Fills are at the last price today.",
-  },
-  {
-    title: "Log the book context Qwen sees",
-    detail: "The inspector shows each decision's market inputs. Qwen's own-book context (position, exposure against the caps) is not stored per record yet.",
   },
 ];
 
