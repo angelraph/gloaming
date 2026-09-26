@@ -1,5 +1,6 @@
 import { NextResponse } from "next/server";
 import { readDecisionLog, readLedger } from "@/lib/data";
+import { computePerformance } from "@/lib/performance";
 
 export const dynamic = "force-dynamic";
 
@@ -29,15 +30,25 @@ export async function GET(request: Request) {
   let rows: Array<Record<string, unknown>>;
   if (dataset === "fills") {
     const ledger = await readLedger();
-    rows = (ledger?.fills ?? []).map((f) => ({
-      timestamp: f.timestamp,
-      symbol: f.symbol,
-      side: f.side,
-      qty: f.qty,
-      price: f.price,
-      notional_usd: f.notional_usd,
-      rationale: f.rationale,
-    }));
+    // Running balance after each fill: cash exactly as the ledger keeps it (costs included), and
+    // equity re-marked at each symbol's latest fill price (the same basis as the Performance page).
+    const curve = ledger ? computePerformance(ledger, {}).curve : [];
+    let cash = 100_000;
+    rows = (ledger?.fills ?? []).map((f, i) => {
+      cash += (f.side === "buy" ? -f.notional_usd : f.notional_usd) - (f.cost_usd ?? 0);
+      return {
+        timestamp: f.timestamp,
+        symbol: f.symbol,
+        side: f.side,
+        qty: f.qty,
+        price: f.price,
+        notional_usd: f.notional_usd,
+        cost_usd: f.cost_usd ?? 0,
+        cash_balance_usd: Math.round(cash * 100) / 100,
+        equity_marked_at_fills_usd: Math.round((curve[i]?.equity ?? 0) * 100) / 100,
+        rationale: f.rationale,
+      };
+    });
   } else {
     const records = await readDecisionLog(3);
     rows = records
