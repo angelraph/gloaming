@@ -309,3 +309,22 @@ def test_run_once_carries_the_backstop_records_alongside_the_llm_ones():
     sources = [r.get("decision_source", "") for r in records]
     assert any("risk_backstop_trim" in s for s in sources)
     assert any("rule_based" in s for s in sources)  # the per-symbol pass still ran
+
+
+# --- Qwen is told the trading costs the ledger actually charges ---
+
+def test_the_book_prompt_states_the_ledger_trading_cost(monkeypatch):
+    monkeypatch.setattr(paper_ledger, "TRADING_COST_RATE", 0.0015)
+    book = agent_loop.build_book_context(
+        paper_ledger.get_portfolio_state({}), "RAAPLUSDT", []
+    )
+    text = agent_loop._book_prompt_lines(book)
+    assert "0.15% of its notional" in text and "0.30% for a round trip" in text
+
+
+def test_the_system_prompt_cost_figures_match_the_ledger_constants():
+    prompt = (Path(agent_loop.__file__).parent / "prompts" / "system_prompt.md").read_text(encoding="utf-8")
+    per_fill = paper_ledger.FEE_RATE + paper_ledger.SLIPPAGE_RATE  # the real rate, not the zeroed test fixture's
+    assert f"{per_fill:.2%}" in prompt  # "0.15%"
+    assert f"{2 * per_fill:.2%}" in prompt  # "0.30%"
+    assert f"{paper_ledger.FEE_RATE:.2%} fee" in prompt and f"{paper_ledger.SLIPPAGE_RATE:.2%} slippage" in prompt

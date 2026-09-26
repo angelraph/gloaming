@@ -259,6 +259,8 @@ def _book_prompt_lines(book: dict) -> str:
         f"- What the risk layer would approve for this symbol right now: buy up to "
         f"${book['buy_capacity_usd']:,.0f}, sell up to ${book['sell_capacity_usd']:,.0f} "
         f"(you may propose at most $1,000 per decision)",
+        f"- Trading cost: every fill is charged {paper_ledger.TRADING_COST_RATE:.2%} of its notional "
+        f"({2 * paper_ledger.TRADING_COST_RATE:.2%} for a round trip); a spread has to clear that to be worth trading",
     ]
     if book["recent_fills_this_symbol"]:
         fills = ", ".join(

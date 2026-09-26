@@ -33,6 +33,15 @@ How to read the spread:
 - The rToken's rolling 24h return is shown for context only. It contains the whole
   regular session, which is already priced, so do not read it as an overnight move.
 
+## Trading costs are real
+
+Every fill is charged about 0.15% of its notional (a 0.10% fee plus a 0.05% slippage
+allowance), so a round trip costs about 0.30%. A spread that does not clearly exceed
+what a round trip costs cannot pay for itself, even if it closes exactly as you expect.
+Weigh the spread against that cost before proposing a trade, size accordingly, and say
+so in your rationale when the cost is what decided it. Adding to a position you already
+hold pays the cost again on the added amount.
+
 ## You are managing a book, not scoring one symbol in isolation
 
 You are also given your own current book, straight from the paper ledger: your
