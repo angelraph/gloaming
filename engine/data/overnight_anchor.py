@@ -56,6 +56,31 @@ def session_close_utc(session_date: date) -> datetime:
     return datetime.combine(session_date, SESSION_CLOSE_ET, tzinfo=NYSE_TZ).astimezone(timezone.utc)
 
 
+# NYSE full-day holidays for 2026 (the year this runs in). A date past this list is treated
+# as a trading day, and the check below then fails SAFE: a missing bar means no signal for
+# the cycle, never a silent fall back to an older session.
+NYSE_HOLIDAYS = {
+    date(2026, 1, 1), date(2026, 1, 19), date(2026, 2, 16), date(2026, 4, 3), date(2026, 5, 25),
+    date(2026, 6, 19), date(2026, 7, 3), date(2026, 9, 7), date(2026, 11, 26), date(2026, 12, 25),
+}
+
+
+def expected_last_session(now_utc: datetime) -> date:
+    """The session that SHOULD be the anchor right now, from the calendar alone: the most
+    recent weekday, not a holiday, whose 16:00 ET close has already happened.
+
+    Why the calendar and not "the newest bar Yahoo returned": on Sept 26 the daily data for
+    SPY lacked Friday's bar from about 00:00 to 01:40 UTC (it was back by the next cycle),
+    so "the newest bar" was Thursday's. Every symbol was then priced against Thursday's close,
+    the Friday session's own move read as a 4% "weekend dislocation", and the agent traded on
+    it. The anchor must come from the calendar, and the data must then prove it has that day."""
+    d = now_utc.astimezone(NYSE_TZ).date()
+    while True:
+        if d.weekday() < 5 and d not in NYSE_HOLIDAYS and session_close_utc(d) <= now_utc:
+            return d
+        d -= timedelta(days=1)
+
+
 def last_completed_session(session_dates, now_utc: datetime) -> date | None:
     """The most recent trading date whose 16:00 ET close has already happened. A daily
     bar for a session still in progress is never used as an anchor."""
@@ -146,9 +171,13 @@ def fetch_equity_closes(underlyings: list[str], now_utc: datetime) -> tuple[date
     if data is None or data.empty:
         raise AnchorUnavailable("no daily price data returned")
     reference = _flatten(data, REFERENCE_TICKER).dropna()
-    session = last_completed_session(reference.index, now_utc)
-    if session is None:
-        raise AnchorUnavailable(f"no completed session found for {REFERENCE_TICKER}")
+    session = expected_last_session(now_utc)
+    if session not in {pd.Timestamp(x).date() for x in reference.index}:
+        raise AnchorUnavailable(
+            f"the {session} session's daily bar is not in the {REFERENCE_TICKER} data yet "
+            f"(newest bar: {pd.Timestamp(reference.index[-1]).date() if len(reference) else 'none'}); "
+            "refusing to anchor to an older session"
+        )
 
     closes, vols = {}, {}
     for t in underlyings:

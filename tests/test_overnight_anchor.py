@@ -1,4 +1,4 @@
-"""
+﻿"""
 The window arithmetic behind the since-close signal, plus how build_snapshot and the
 cycle behave when data is missing. Pure functions over hand-built price series, so no
 network: the point is to prove every input is measured over the SAME window (from the
@@ -15,8 +15,11 @@ sys.path.insert(0, str(Path(__file__).resolve().parents[1] / "gloaming_agent"))
 
 import agent_loop  # noqa: E402  (also puts engine/ on sys.path)
 from data.overnight_anchor import (  # noqa: E402
+    AnchorUnavailable,
     OvernightAnchor,
     daily_volatility,
+    expected_last_session,
+    fetch_equity_closes,
     last_completed_session,
     return_since,
     session_close_utc,
@@ -57,6 +60,44 @@ def test_over_a_weekend_the_anchor_stays_fridays_close():
 
 def test_no_completed_session_gives_none_not_a_guess():
     assert last_completed_session([date(2026, 9, 25)], datetime(2026, 9, 25, 15, 0, tzinfo=UTC)) is None
+
+
+# --- the anchor comes from the calendar, and the data must prove it has that day ---
+
+def test_expected_session_is_fridays_all_weekend_and_from_the_close_onward():
+    fri = date(2026, 9, 25)
+    assert expected_last_session(datetime(2026, 9, 25, 20, 1, tzinfo=UTC)) == fri
+    assert expected_last_session(datetime(2026, 9, 26, 0, 30, tzinfo=UTC)) == fri  # the Sept 26 failure window
+    assert expected_last_session(datetime(2026, 9, 27, 23, 0, tzinfo=UTC)) == fri
+    assert expected_last_session(datetime(2026, 9, 25, 15, 0, tzinfo=UTC)) == date(2026, 9, 24)  # session still open
+
+
+def test_expected_session_skips_a_holiday():
+    # Monday Sept 7, 2026 is Labor Day: Tuesday evening's anchor is Friday Sept 4
+    assert expected_last_session(datetime(2026, 9, 7, 23, 0, tzinfo=UTC)) == date(2026, 9, 4)
+
+
+def _fake_daily(monkeypatch, dates):
+    import yfinance
+
+    idx = pd.to_datetime([str(d) for d in dates])
+    cols = pd.MultiIndex.from_product([["SPY", "META"], ["Close"]])
+    df = pd.DataFrame(100.0, index=idx, columns=cols)
+    monkeypatch.setattr(yfinance, "download", lambda *a, **kw: df)
+
+
+def test_a_missing_fridays_bar_refuses_to_anchor_to_thursday(monkeypatch):
+    # Regression for Sept 26 00:00-01:40 UTC: Yahoo's daily data briefly lacked Friday's bar,
+    # the newest bar was Thursday's, and the agent priced every symbol against Thursday's close.
+    _fake_daily(monkeypatch, [date(2026, 9, 23), date(2026, 9, 24)])
+    with pytest.raises(AnchorUnavailable):
+        fetch_equity_closes(["META"], datetime(2026, 9, 26, 0, 30, tzinfo=UTC))
+
+
+def test_with_fridays_bar_present_the_anchor_is_friday(monkeypatch):
+    _fake_daily(monkeypatch, [date(2026, 9, 24), date(2026, 9, 25)])
+    session, closes, _ = fetch_equity_closes(["META"], datetime(2026, 9, 26, 0, 30, tzinfo=UTC))
+    assert session == date(2026, 9, 25) and closes == {"META": 100.0}
 
 
 # --- return since the close ---
@@ -207,3 +248,4 @@ def test_no_anchor_means_no_decisions_and_an_error_per_symbol_never_a_trade(monk
     assert all("real-close anchor unavailable" in r["error"] for r in records)
     assert not any(r.get("decision") for r in records)
     assert paper_ledger._load().fills == []
+
