@@ -7,6 +7,18 @@ type Entry = { when?: string; title: string; detail: string };
 // is presented as done.
 const SHIPPED: Entry[] = [
   {
+    when: "Sep 26",
+    title: "Trading costs in the ledger, and the model knows them",
+    detail:
+      "Every fill is charged a stated 0.10% fee plus 0.05% slippage, recorded per fill. Qwen is told a round trip costs about 0.30%, so it holds spreads that cannot pay for themselves. Earlier fills are left as they were.",
+  },
+  {
+    when: "Sep 26",
+    title: "The anchor comes from the calendar",
+    detail:
+      "Found on the first weekend: a Yahoo data gap made the agent anchor to Thursday's close for about 90 minutes and trade on a false 4% spread. The anchor is now the calendar's last session, and a missing bar means no trades that cycle. Regression-tested; the affected fills are flagged, not removed.",
+  },
+  {
     when: "Sep 25",
     title: "A multi-page Desk with a decision inspector",
     detail:
@@ -84,10 +96,6 @@ const PLANNED: Entry[] = [
   {
     title: "Company-specific inputs",
     detail: "The proxies are broad-market signals with no view on one company. News and earnings context, when the Bitget signal sources return data.",
-  },
-  {
-    title: "Fees and slippage in the paper ledger",
-    detail: "Fills are at the last price today.",
   },
 ];
 

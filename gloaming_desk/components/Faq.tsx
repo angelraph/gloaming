@@ -25,7 +25,8 @@ const ITEMS: Item[] = [
         not list rToken symbols (an order for RAAPLUSDT is rejected while BTCUSDT works, checked
         on Sept 11), so fills are simulated against real, live rToken prices. Only the exchange
         accepting the order is simulated: prices, timing, decisions and risk checks are real.
-        Fees and slippage are not modeled.
+        Since Sept 26 each fill is also charged a stated cost assumption (0.10% fee plus 0.05%
+        slippage), and the model is told about it.
       </>
     ),
   },
@@ -117,10 +118,13 @@ const ITEMS: Item[] = [
     q: "What are the known limitations?",
     a: (
       <>
-        Paper fills at the last price with no fees or slippage. The close is modeled as 16:00 ET on
-        every trading day, so early closes and holidays are not handled. The blend weights are a
-        heuristic prior, not calibrated. Closes, futures and DXY come from Yahoo Finance. The live
-        window is short.
+        Paper fills at the last price, with the cost of a fee and slippage charged on top from Sept 26
+        (a stated assumption, not Bitget&apos;s measured rToken schedule); fills before that carried no
+        cost. The close is modeled as 16:00 ET on every trading day: full-day 2026 holidays are
+        listed, early closes are not handled. The blend weights are a heuristic prior, not calibrated.
+        Closes, futures and DXY come from Yahoo Finance, whose data can lag: on Sept 26 a missing
+        daily bar briefly made the agent anchor to the wrong close, which is now refused by design.
+        The live window under the corrected signal is short.
       </>
     ),
   },

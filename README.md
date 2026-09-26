@@ -123,7 +123,7 @@ control inventory in [docs/risk_controls.md](docs/risk_controls.md).
 ## Tests
 
 ```bash
-python -m pytest tests/            # 153 tests: risk layer, signal window arithmetic, ledger, cycle behavior
+python -m pytest tests/            # 158 tests: risk layer, signal window arithmetic, ledger, cycle behavior
 cd gloaming_desk && npm run build && npm run lint
 ```
 

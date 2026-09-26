@@ -152,6 +152,24 @@ export default function PerformanceView() {
         </Band>
       )}
 
+      {p && (
+        <Band label="Trading costs">
+          <SectionHeader
+            eyebrow="Costs"
+            title="What trading costs, and what it would have cost."
+            description="A 0.15% charge per fill (0.10% fee plus 0.05% slippage, a stated assumption) is deducted from cash from Sept 26. Earlier fills were recorded without a cost."
+          />
+          <div className="mt-10 grid grid-cols-2 gap-3 sm:gap-4">
+            <StatTile label="Charged in the ledger" value={fmtUsd(p.costs.recordedUsd)} sub="fills from Sept 26, in the totals above" />
+            <StatTile
+              label="Estimated on earlier fills"
+              value={fmtUsd(p.costs.estimatedOnEarlierFillsUsd)}
+              sub="an estimate at the same rate, not in the ledger"
+            />
+          </div>
+        </Band>
+      )}
+
       <Band label="Equity curve">
         <SectionHeader
           eyebrow="Equity"
@@ -202,7 +220,11 @@ export default function PerformanceView() {
           <li>Equity is re-marked at each fill using each symbol&apos;s last fill price. Between fills it does not move, so drawdown is understated; the final point uses live prices.</li>
           <li>Win rate counts closing fills that realized a gain (average-cost basis, shorts included), not complete round trips.</li>
           <li>Sharpe uses one equity value per UTC day and √365, because the agent works nights and weekends. With only a couple of weeks of days it is an indication, not a statistic.</li>
-          <li>Fills carry no fees or slippage yet. Real execution would cost more than this record shows.</li>
+          <li>
+            From Sept 26 every fill is charged a stated cost: a 0.10% fee plus 0.05% slippage. That rate is an
+            assumption, not Bitget&apos;s measured rToken schedule. Earlier fills carry no cost; the estimate for them
+            is shown separately below and is not in the ledger or the totals.
+          </li>
           <li>The window includes the earlier rolling-24h signal, which a later check found was mostly measuring the session&apos;s own move. That is disclosed in the docs; the record is not edited to hide it.</li>
         </ul>
       </Band>
