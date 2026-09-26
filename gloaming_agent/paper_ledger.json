@@ -1,11 +1,11 @@
 {
-  "cash_usd": 73584.18441700008,
+  "cash_usd": 73554.64434200009,
   "positions": {
     "RGOOGLUSDT": 0.2349000000000147,
     "RMSFTUSDT": 1.9845999999999986,
     "RSPYUSDT": 8.5369,
     "RQQQUSDT": 9.849999999999998,
-    "RMETAUSDT": -1.9568000000000043,
+    "RMETAUSDT": -1.9173000000000042,
     "RNVDAUSDT": 37.5535,
     "RTSLAUSDT": 2.4581000000000093,
     "RAAPLUSDT": 2.9712999999999994,
@@ -6626,10 +6626,19 @@
       "price": 750.99,
       "notional_usd": 40.328162999999996,
       "rationale": "[Qwen3.8-max] The -4.41% spread (rToken at -3.19% vs synthetic fair value +1.22%) indicates RMETA is significantly cheap relative to overnight proxies, warranting a buy to cover part of the $1,510 short. However, book net exposure is already +24.9% against a 25% cap, and the risk layer restricts buys to $89, so I am sizing exactly to that limit rather than pushing further. I have already bought $392 in the last hour with no spread closure, suggesting slow mean-reversion; capping at $89 respects both the binding constraint and the repeated-fill signal."
+    },
+    {
+      "timestamp": "2026-09-26T00:02:24.434517+00:00",
+      "symbol": "RMETAUSDT",
+      "side": "buy",
+      "qty": 0.0395,
+      "price": 747.85,
+      "notional_usd": 29.540075,
+      "rationale": "[Qwen3.8-max] The -4.05% spread (rToken -3.82% vs fair value +0.23%) over 28 hours is large enough to suggest a genuine weekend dislocation rather than noise, but book net exposure is already +24.9% against a 25% cap and the risk layer limits buys to $56, so I size at that maximum. My recent small buys ($140, $82, $40) have not closed the gap, supporting one more conservative attempt to capture mean reversion without breaching the net cap."
     }
   ],
-  "equity_at_day_start_usd": 97743.8921610001,
-  "day_start_date": "2026-09-25",
+  "equity_at_day_start_usd": 98037.98054500009,
+  "day_start_date": "2026-09-26",
   "net_over_cap_cycles": 0,
   "net_over_cap_baseline_usd": 0.0
 }
