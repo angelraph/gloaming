@@ -94,6 +94,64 @@ export default function PerformanceView() {
         )}
       </Band>
 
+      {p && (
+        <Band label="Two signal eras">
+          <SectionHeader
+            eyebrow="Two eras"
+            title="The record, split where the signal changed."
+            description="On Sept 25 the project found that its first signal mostly measured each session's own move, and rebuilt it. The two eras are different systems, so they are shown separately rather than blended into one number."
+          />
+          <div className="mt-10 grid gap-4 md:grid-cols-2">
+            {(
+              [
+                ["Earlier signal", "Sept 11 to Sept 25, 21:32 UTC", p.eras.earlier, false],
+                ["Anchored signal", "From Sept 25, 22:00 UTC", p.eras.anchored, true],
+              ] as const
+            ).map(([name, span, e, current]) => (
+              <div
+                key={name}
+                className={`rounded-xl border bg-layer-1 p-6 ${current ? "border-mint/50" : "border-border-subtle"}`}
+              >
+                <div className="flex items-baseline justify-between gap-3">
+                  <h3 className="font-display text-[24px] leading-tight text-heading">{name}</h3>
+                  {current && <span className="micro-label text-mint">current</span>}
+                </div>
+                <p className="mt-1 text-xs text-text-tertiary">{span}</p>
+                <dl className="mt-5">
+                  {[
+                    ["Fills", String(e.fills)],
+                    ["Position-reducing fills", String(e.closingFills)],
+                    [
+                      "Win rate",
+                      e.winRate === null
+                        ? "n/a yet"
+                        : e.closingFills < 10
+                          ? `${e.winningFills} of ${e.closingFills}, too few to judge`
+                          : fmtPct(e.winRate, 1),
+                    ],
+                    ["Realized P&L", e.closingFills === 0 ? "n/a yet" : fmtSignedUsd(e.realizedPnlUsd)],
+                  ].map(([k, v]) => (
+                    <div key={k} className="flex items-baseline justify-between gap-4 border-b border-border-subtle py-2.5 last:border-0">
+                      <dt className="text-sm text-text-secondary">{k}</dt>
+                      <dd className="text-sm tabular-nums text-heading">{v}</dd>
+                    </div>
+                  ))}
+                </dl>
+                {current && p.eras.incident.fills > 0 && (
+                  <p className="mt-4 text-xs leading-relaxed text-warning">
+                    Not counted above: {p.eras.incident.fills} fills ({p.eras.incident.closingFills} position-reducing,{" "}
+                    {fmtSignedUsd(p.eras.incident.realizedPnlUsd)} realized) from a data gap on Sept 26, 00:00 to 01:40
+                    UTC, when the agent briefly anchored to Thursday&apos;s close. Fixed the same day. They are in the
+                    ledger and in the totals at the top, and are kept out of both eras so they cannot flatter or
+                    penalize either signal.
+                  </p>
+                )}
+              </div>
+            ))}
+          </div>
+        </Band>
+      )}
+
       <Band label="Equity curve">
         <SectionHeader
           eyebrow="Equity"

@@ -15,6 +15,22 @@ import type { LedgerState } from "@/lib/data";
 
 export type EquityPoint = { t: string; equity: number };
 
+// The signal was rebuilt on Sept 25 (records from 22:00 UTC carry signal_spec
+// "since_last_close_v2"); everything before it was produced by the earlier specification.
+export const ANCHORED_SIGNAL_START = "2026-09-25T22:00:00";
+// Sept 26, 00:00 to 01:40 UTC: Yahoo's daily data lacked Friday's bar and the agent anchored
+// to Thursday's close (fixed the same day; disclosed in docs/architecture.md). Fills in this
+// window are flagged, never removed.
+export const ANCHOR_INCIDENT = { from: "2026-09-26T00:00:00", to: "2026-09-26T01:45:00" };
+
+export type EraStats = {
+  fills: number;
+  closingFills: number;
+  winningFills: number;
+  winRate: number | null;
+  realizedPnlUsd: number;
+};
+
 export type PerformanceSummary = {
   startingEquityUsd: number;
   currentEquityUsd: number;
@@ -32,6 +48,10 @@ export type PerformanceSummary = {
   lastFillAt: string | null;
   bySymbol: Array<{ symbol: string; fills: number; realizedPnlUsd: number }>;
   curve: EquityPoint[];
+  // The incident window is counted on its own, in neither era: those fills were made against
+  // the wrong close, so folding them into the anchored era (where they would look like wins)
+  // would misstate what that signal does.
+  eras: { earlier: EraStats; anchored: EraStats; incident: EraStats };
 };
 
 export function computePerformance(
@@ -48,6 +68,8 @@ export function computePerformance(
   let closing = 0;
   let winning = 0;
   const curve: EquityPoint[] = [];
+  const era = (): EraStats => ({ fills: 0, closingFills: 0, winningFills: 0, winRate: null, realizedPnlUsd: 0 });
+  const eras = { earlier: era(), anchored: era(), incident: era() };
 
   const equityNow = (m: Record<string, number>) =>
     cash + Object.entries(pos).reduce((s, [sym, q]) => s + (m[sym] !== undefined ? q * m[sym] : 0), 0);
@@ -59,6 +81,14 @@ export function computePerformance(
     const a = avg[f.symbol] ?? 0;
     per[f.symbol] ??= { fills: 0, realizedPnlUsd: 0 };
     per[f.symbol].fills += 1;
+    const ts = f.timestamp.slice(0, 19);
+    const e =
+      ts >= ANCHOR_INCIDENT.from && ts <= ANCHOR_INCIDENT.to
+        ? eras.incident
+        : ts >= ANCHORED_SIGNAL_START
+          ? eras.anchored
+          : eras.earlier;
+    e.fills += 1;
 
     if (p === 0 || Math.sign(p) === Math.sign(dq)) {
       avg[f.symbol] = (Math.abs(p) * a + Math.abs(dq) * f.price) / (Math.abs(p) + Math.abs(dq));
@@ -69,7 +99,12 @@ export function computePerformance(
       realized += pnl;
       per[f.symbol].realizedPnlUsd += pnl;
       closing += 1;
-      if (pnl > 0) winning += 1;
+      e.closingFills += 1;
+      e.realizedPnlUsd += pnl;
+      if (pnl > 0) {
+        winning += 1;
+        e.winningFills += 1;
+      }
       pos[f.symbol] = p + dq;
       if (Math.abs(dq) > Math.abs(p)) avg[f.symbol] = f.price; // flipped through zero: new cost basis
     }
@@ -112,6 +147,8 @@ export function computePerformance(
     if (sd > 0) sharpe = (mean / sd) * Math.sqrt(365);
   }
 
+  for (const e of [eras.earlier, eras.anchored, eras.incident]) e.winRate = e.closingFills > 0 ? e.winningFills / e.closingFills : null;
+
   const first = ledger.fills[0]?.timestamp ?? null;
   const last = ledger.fills[ledger.fills.length - 1]?.timestamp ?? null;
   const observedDays = first ? Math.max(1, Math.ceil((Date.now() - new Date(first).getTime()) / 86_400_000)) : 0;
@@ -135,5 +172,6 @@ export function computePerformance(
       .map(([symbol, v]) => ({ symbol, ...v }))
       .sort((a, b) => b.realizedPnlUsd - a.realizedPnlUsd),
     curve,
+    eras,
   };
 }
