@@ -1,11 +1,11 @@
 {
-  "cash_usd": 73554.64434200009,
+  "cash_usd": 73541.47619800009,
   "positions": {
     "RGOOGLUSDT": 0.2349000000000147,
     "RMSFTUSDT": 1.9845999999999986,
     "RSPYUSDT": 8.5369,
     "RQQQUSDT": 9.849999999999998,
-    "RMETAUSDT": -1.9173000000000042,
+    "RMETAUSDT": -1.8997000000000042,
     "RNVDAUSDT": 37.5535,
     "RTSLAUSDT": 2.4581000000000093,
     "RAAPLUSDT": 2.9712999999999994,
@@ -6635,6 +6635,15 @@
       "price": 747.85,
       "notional_usd": 29.540075,
       "rationale": "[Qwen3.8-max] The -4.05% spread (rToken -3.82% vs fair value +0.23%) over 28 hours is large enough to suggest a genuine weekend dislocation rather than noise, but book net exposure is already +24.9% against a 25% cap and the risk layer limits buys to $56, so I size at that maximum. My recent small buys ($140, $82, $40) have not closed the gap, supporting one more conservative attempt to capture mean reversion without breaching the net cap."
+    },
+    {
+      "timestamp": "2026-09-26T00:17:22.174919+00:00",
+      "symbol": "RMETAUSDT",
+      "side": "buy",
+      "qty": 0.0176,
+      "price": 748.19,
+      "notional_usd": 13.168144000000002,
+      "rationale": "[Qwen3.8-max] The -4.01% spread (rToken -3.78% vs fair value +0.23%) over 28.3 hours is large, but likely reflects company-specific news rather than a proxy-driven dislocation, so I am sizing conservatively. Book net exposure is already at the +25.0% cap, and I have been buying small amounts repeatedly ($82, $40, $30 in the last 3 hours) with no spread improvement, which argues against adding aggressively. I propose the risk layer's maximum approved buy of $25 to slightly reduce the short position without pushing net exposure further beyond the cap."
     }
   ],
   "equity_at_day_start_usd": 98037.98054500009,
