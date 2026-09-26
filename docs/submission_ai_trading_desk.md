@@ -8,7 +8,8 @@ Copy each section into the corresponding field on the submission form
 **AI Trading Desk** - **Decision Stress Testing** (its own description is
 "historical scenario retrieval" - an exact match to the Desk's stress-test
 panel, which replays real historical overnight moves, retrieved from the same
-~90-day price history the backtest uses, against the current live book).
+~90-day price history the backtest uses, against the current live book, and
+now sits alongside per-symbol research pages and a decision inspector).
 
 This is a stronger categorical fit than the "Personalized Research Workbench"
 framing an earlier draft of this doc used - that undersold the one feature
@@ -22,13 +23,31 @@ though they don't drive the sub-theme choice.
 
 Traders holding Bitget rToken exposure need a fast, explainable answer to
 "what happened to my book overnight and why" - not another black-box
-auto-trader deciding for them. Gloaming Desk is a read-only dashboard over
+auto-trader deciding for them. Gloaming Desk is a read-only, multi-page app over
 the exact same real data Gloaming Agent (the companion Agentic Trading
-submission) produces: a fair-value-vs-actual spread chart, a full overnight
-decision timeline with the reasoning behind every signal, a decision stress
-test that replays real historical overnight moves against the current book,
-and a chat panel that answers follow-up questions grounded only in that real
-data. It never places a trade - the human always makes the final call.
+submission) produces:
+
+- **Desk**: the live book against each risk cap, a positions table, a spread-vs-
+  real-close chart with a text-table alternative, the overnight timeline, a chat
+  panel grounded only in the real data, and a stress test that replays real
+  historical overnight moves against the current book.
+- **A page per symbol** (`/desk/TSLA` and eight more): the rToken against the
+  real share's last close, spread history, the position, every recent decision
+  with its reasoning, and every paper fill. This is the worked research task
+  as a page.
+- **Decision inspector**: open any decision to see the market inputs recorded,
+  the exact book context the model was shown, its written reasoning, the risk
+  layer's verdict and what execution did.
+- **Agent, Performance and Method pages**: the loop and its hard limits, a
+  paper-trading record derived only from real fills with its method and limits
+  stated beside the numbers, and how the signal works, including two failures
+  the project found in its own data and fixed in the open.
+- **Downloads and verification**: fills and decisions as CSV or JSON, and links
+  to the public repository, the per-cycle logs and the unattended run history.
+
+It never places a trade - the human always makes the final call. Built to be
+usable by everyone: keyboard navigation, a skip link, chart data available as
+tables, modal dialogs with focus trapping, and 44px touch targets.
 
 ### Target user & product value
 
@@ -52,15 +71,31 @@ answer against the real decision log independently.
   those exact timestamps: **exact match on every figure**.
 
 Nothing in the chat's answer was invented; every number traced back to a real
-logged event.
+logged event. (That check was run on Sept 14 against the decision log as it
+stood then; the method is repeatable against the current log.)
+
+A second, structural check: the Performance page reconstructs paper equity
+from the ledger's fills alone, and its final figure matches the live portfolio
+figure to the cent (verified Sept 25: $98,046.16 from fills, $98,046.16 from the
+portfolio endpoint). The Desk's numbers are derived, not asserted, and the
+inspector shows the recorded inputs behind any single decision.
+
+Reading the same decision records the Desk displays is also how two real
+problems in the underlying data were found: the first signal mostly measured
+each session's own move (Sept 25), and a Yahoo data gap made the agent anchor to
+Thursday's close on the first Saturday (Sept 26). Both are disclosed in
+`docs/architecture.md`, and the second is why `hours_since_close` is shown on
+every decision and in the inspector.
 
 ### Progress / build status
 
 Fully built and deployed, live right now at https://gloamingdesk.vercel.app,
 reading real-time data from the same source the Agent writes to (Upstash
-Redis, synced from the Agent's every cycle, which now runs on real cloud
-infrastructure rather than a local machine - see `docs/architecture.md` for
-why there is no separate FastAPI/SQLite layer underneath either side).
+Redis, synced from the Agent's every cycle, which runs on GitHub Actions rather
+than a local machine - see `docs/architecture.md` for why there is no separate
+FastAPI/SQLite layer underneath either side). Dry runs are structurally
+prevented from writing to that mirror, and each live cycle re-asserts the
+ledger mirror so a missed push heals itself within 15 minutes.
 Public repo: https://github.com/angelraph/gloaming
 
 ### Deliverables

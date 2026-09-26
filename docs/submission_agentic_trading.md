@@ -44,50 +44,47 @@ during exactly that window.
 
 ### Validation data & key metrics
 
-- **Backtest** (`alpha_factory/`, `engine/backtest/run_backtest.py`), on real
-  ~90-day rToken price history across a 9-symbol universe (AAPL, AMZN, META,
-  TSLA, GOOGL, NVDA, MSFT, QQQ, SPY), 54+ days in-sample / 30 days
-  out-of-sample per symbol:
-  - Portfolio Sharpe **2.09**, Sortino **2.29**
-  - Max drawdown **-3.51%**
-  - Win rate **57%**
-  - Total return **+4.65%** over the 84-day window
-- **Live paper-trading log** (`gloaming_agent/decision_log/`, mirrored live to
-  Redis): **180 real fills** since Sept 11, running unattended every 15
-  minutes on real cloud infrastructure (a GitHub Actions workflow, triggered
-  externally so it never depends on any one machine being on) that self-gates
-  on NYSE hours. Across the full decision history, **1,492 of 1,707 (87%)**
-  decisions were generated directly by Qwen3.8-max (the remainder are the
-  disclosed deterministic fallback, used only when a Qwen call is slow or
-  fails). Every fill is marked to a real, live rToken price at decision time
-  (see LLM role disclosure and "Execution model" below) - not synthetic or
-  simulated prices.
-- **Honest limitation, stated plainly rather than glossed over**: as of this
-  draft, across several days of continuous real operation, no position has
-  round-tripped to a close yet - the overnight premium has stayed
-  one-directional long enough that risk controls capped total exposure at 60%
-  of equity and have correctly rejected every new signal past that cap rather
-  than let the book grow unbounded. A Sharpe/win-rate computed from the live
-  log alone would still be statistically meaningless (zero closed trades, not
-  just few), so the **backtest above remains the statistically grounded
-  quantitative evidence** (84 real days); the live log is the running proof
-  the same logic executes correctly and continuously against real prices,
-  and that the risk layer holds under real, sustained one-sided conditions
-  rather than only in a clean backtest. It keeps growing through the Sept 21
-  deadline - check `gloaming_agent/decision_log/` or the live Desk for the
-  current count at submission time.
-
-- **Signal correction, disclosed (Sept 25)**: checking why one symbol's spread was not
-  closing showed the live spread was mostly the regular session's own move, not an
-  overnight gap. The rToken tracked each real share's last close within about +/-0.25%
-  (most within 0.1%) while the reported spreads reached -4.62% and +2.80%, and one input
-  labeled "24h" was a 5-day futures return (NQ +2.76% versus a true +0.60%). The live
-  paper-trading record through Sept 25 was produced by that earlier specification; the
-  signal is now anchored to each real share's last regular-session close (see
-  docs/architecture.md, "The signal, and a correction"), records carry
-  `signal_spec: "since_last_close_v2"`, and the corrected signal produces mostly holds
-  with Qwen's reasoning recorded for each. The backtest above uses a different
-  (daily close-to-close) specification and is not evidence for the corrected signal.
+- **Live paper-trading record** (`gloaming_agent/decision_log/`, mirrored live to Redis,
+  every cycle committed to the public repository): 15 days (Sept 11 to Sept 26), **746
+  paper fills**, running unattended every 15 minutes on GitHub Actions and self-gating on
+  NYSE hours. Across **9,561 logged decisions, 91.3% were made directly by Qwen3.8-max**;
+  the rest are the disclosed deterministic fallback, used only when a Qwen call is slow or
+  fails. Every fill is marked to a real, live rToken price at decision time (see "Execution
+  model" below). The live Desk's Performance page derives return, drawdown, win rate and
+  Sharpe from the ledger's real fills and states its method and limits next to the numbers.
+- **What the live record shows, stated plainly.** Through Sept 25 21:32 UTC the agent
+  produced 735 fills, and a snapshot of that period is a return of about -2%, a maximum
+  drawdown of about 2.6% (marked at fills), and 42 of 322 position-reducing fills gaining.
+  All of those fills came from the earlier signal specification, which the project itself
+  proved was mostly measuring each session's own move (next bullet). So the live record is
+  best read as the record of a specification that has since been replaced, not as the
+  performance of the current signal.
+- **The system found and fixed its own two data-quality failures from live operation.**
+  1. *Sept 25.* Asking why one symbol's spread was not closing led to a check against the
+     real closes: the rToken tracked each real share's last close within about +/-0.25%
+     (most within 0.1%) while the reported spreads reached -4.62% and +2.80%, and one input
+     labeled "24h" was a 5-day futures return (NQ +2.76% versus a true +0.60%). The signal was
+     rebuilt so every input is measured from each real share's last regular-session close
+     (docs/architecture.md, "The signal, and a correction"). Records carry
+     `signal_spec: "since_last_close_v2"`.
+  2. *Sept 26.* Monitoring the first weekend caught `hours_since_close` reading 28 where it
+     should have read 4 to 5: Yahoo's daily data briefly lacked Friday's bar and the anchor
+     fell back to Thursday's close, producing 9 paper fills on a false 4% "dislocation". The
+     anchor now comes from the calendar and the data must contain that day's bar, otherwise
+     the cycle makes no trades. Regression tests reproduce the failure. The 9 fills are left
+     in the ledger unedited.
+  Both are disclosed in the docs and were found by reading the system's own logs, which is
+  the point of keeping a complete, public, per-cycle decision trail.
+- **The corrected signal behaves as a quiet, honest signal should.** Under it, spreads are
+  normally a few tenths of a percent (0.28% to 0.59% in the first eight cycles), so most
+  decisions are holds, each with Qwen's written reasoning kept in `hold_rationale`.
+- **Backtest** (`alpha_factory/`, `engine/backtest/run_backtest.py`), on real ~90-day
+  rToken price history across a 9-symbol universe (AAPL, AMZN, META, TSLA, GOOGL, NVDA,
+  MSFT, QQQ, SPY), 54+ days in-sample / 30 days out-of-sample per symbol: portfolio Sharpe
+  **2.09**, Sortino **2.29**, max drawdown **-3.51%**, win rate **57%**, total return
+  **+4.65%** over the 84-day window. It uses daily close-to-close returns, a different
+  specification from the live signal, so it is supplementary evidence for the method's
+  shape, not a measurement of the current signal.
 
 ### Progress / build status
 

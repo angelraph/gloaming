@@ -86,8 +86,8 @@ listed in the snapshot's `missing_proxies`; a missing real close means that symb
 or the whole cycle, gets no decision rather than one made on an invented anchor.
 Each logged snapshot carries `signal_spec`, the close price and time, and the hours
 since the close. Simplifications, disclosed: the close is modeled as 16:00 ET every
-trading day (early closes and holidays are not modeled, as `is_nyse_closed()` already
-notes), and the blend weights are still the heuristic prior.
+trading day (early closes are not modeled, as `is_nyse_closed()` already notes; full-day
+2026 holidays are listed), and the blend weights are still the heuristic prior.
 
 **What it replaced, and why it was wrong.** From Sept 10 to Sept 25 the live spread
 was the rToken's rolling 24h return minus a blend of three proxy returns measured
@@ -121,6 +121,29 @@ realized daily volatility (last 10 sessions), so the control stays meaningful.
 The Alpha Factory backtest (`engine/backtest/`, `engine/fairvalue/model.py`) works on
 daily close-to-close return series, a different specification from the live signal
 above, so its statistics are not evidence for it.
+
+### A second failure, found on the first weekend (Sept 26)
+
+Monitoring the first Saturday cycles showed `hours_since_close` of 28 to 29 for about an
+hour and a half (00:02 to 01:32 UTC) where it should have been 4 to 5. Yahoo's daily data
+for SPY briefly did not contain Friday's bar; the anchor was "the newest bar returned", so
+it fell back to Thursday's close. Every symbol was then priced against Thursday's close,
+and Friday's own session move (META's real share fell about 3.8% that day) read as a 4%
+"weekend dislocation". From 01:47 UTC the data was complete again and spreads returned to
+about -0.6%.
+
+The agent made 9 paper fills on the bad reading (META buys and MSFT sells, about $3,580 of
+notional). They are left in the ledger unedited, since rewriting the record would defeat
+its purpose; the risk layer and later cycles manage them like any other position.
+
+The fix (`expected_last_session()` in `engine/data/overnight_anchor.py`): the anchor now
+comes from the calendar, the most recent weekday session that is not a 2026 NYSE holiday
+and whose 16:00 ET close has passed, and the data must contain that session's bar. If it
+does not, the cycle records an error per symbol and makes no trades, instead of trading
+against the wrong close. A date outside the holiday list is treated as a trading day, so an
+unlisted closure also skips trading until a bar appears: the failure direction is "no
+trade", never "trade on an older close". Regression tests reproduce the exact failure
+(`tests/test_overnight_anchor.py`).
 
 ## Data flow
 
