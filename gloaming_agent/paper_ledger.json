@@ -1,11 +1,11 @@
 {
-  "cash_usd": 74041.48125300009,
+  "cash_usd": 74278.04860900009,
   "positions": {
     "RGOOGLUSDT": 0.2349000000000147,
-    "RMSFTUSDT": 1.0184999999999986,
+    "RMSFTUSDT": 0.05239999999999867,
     "RSPYUSDT": 8.5369,
     "RQQQUSDT": 9.849999999999998,
-    "RMETAUSDT": -1.8997000000000042,
+    "RMETAUSDT": -1.547600000000004,
     "RNVDAUSDT": 37.5535,
     "RTSLAUSDT": 2.4581000000000093,
     "RAAPLUSDT": 2.9712999999999994,
@@ -6653,6 +6653,24 @@
       "price": 517.55,
       "notional_usd": 500.0050549999999,
       "rationale": "[Qwen3.8-max] The +3.71% spread (rToken +3.94% vs fair value +0.23%) over 28.5 hours indicates the rToken is significantly overextended relative to live proxies, likely reflecting idiosyncratic overnight news I cannot verify. The book's net exposure is already at +25.0% of equity, exactly at the net cap, and I have been repeatedly buying this symbol ($300, $341, $392 in recent fills) with no improvement in the picture; selling reduces both this overvalued position and the book's maxed-out net long exposure. The risk layer permits up to $14,706 in sells, so a $500 sell is well within limits and helps bring net exposure back under the cap."
+    },
+    {
+      "timestamp": "2026-09-26T00:47:27.718875+00:00",
+      "symbol": "RMETAUSDT",
+      "side": "buy",
+      "qty": 0.3521,
+      "price": 748.19,
+      "notional_usd": 263.437699,
+      "rationale": "[Qwen3.8-max] The -4.01% spread (rToken -3.78% vs fair value +0.23%) over 28.8 hours is large enough to suggest a genuine weekend dislocation rather than noise, as proxies moved mildly positive while the rToken dropped sharply without visible company-specific catalysts. Buying $500 reduces the book's net long exposure from +24.5% toward the +25% cap, aligning with risk management priorities, and stays within the risk layer's $523 buy approval for this symbol. Recent small buys ($40, $30, $13) indicate I've been nibbling; this larger fill is justified by the persistent wide spread and the need to trim net exposure."
+    },
+    {
+      "timestamp": "2026-09-26T00:47:45.003054+00:00",
+      "symbol": "RMSFTUSDT",
+      "side": "sell",
+      "qty": 0.9661,
+      "price": 517.55,
+      "notional_usd": 500.0050549999999,
+      "rationale": "[Qwen3.8-max] The +3.71% spread (rToken +3.94% vs fair value +0.23%) over 28.8 hours is large, but likely reflects company-specific news the proxies cannot capture rather than a pure mispricing; however, with book net exposure at +24.7% near the 25% cap, selling this rich rToken is the right risk-management trade to reduce net exposure. I already sold $500 just 0.2h ago and bought twice earlier, so I am sizing conservatively at $500 to trim the long without chasing a potentially justified move."
     }
   ],
   "equity_at_day_start_usd": 98037.98054500009,
