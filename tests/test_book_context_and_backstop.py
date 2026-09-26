@@ -51,6 +51,7 @@ def _fake_snapshot(underlying, anchor, bitget_signal_context=None):
 def isolated(tmp_path, monkeypatch):
     monkeypatch.setattr(agent_loop, "DECISION_LOG_DIR", tmp_path)
     monkeypatch.setattr(paper_ledger, "LEDGER_PATH", tmp_path / "paper_ledger.json")
+    monkeypatch.setattr(paper_ledger, "TRADING_COST_RATE", 0.0)  # these tests assert exposure arithmetic
     monkeypatch.setattr(paper_ledger.kv_sync, "push_ledger_state", lambda *a, **kw: None)
     monkeypatch.setattr(agent_loop.kv_sync, "push_decision_records", lambda records: None)
     monkeypatch.setattr(agent_loop.llm_client, "is_configured", lambda: False)

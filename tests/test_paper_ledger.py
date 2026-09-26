@@ -17,6 +17,9 @@ import paper_ledger  # noqa: E402
 @pytest.fixture(autouse=True)
 def isolated_ledger(tmp_path, monkeypatch):
     monkeypatch.setattr(paper_ledger, "LEDGER_PATH", tmp_path / "paper_ledger.json")
+    # these tests are about position and cash mechanics, so they run cost-free; the cost
+    # behavior has its own tests at the end of this file
+    monkeypatch.setattr(paper_ledger, "TRADING_COST_RATE", 0.0)
     monkeypatch.setattr(paper_ledger.kv_sync, "push_ledger_state", lambda *a, **kw: None)
     yield
 
@@ -113,3 +116,28 @@ def test_daily_baseline_resets_on_new_day(monkeypatch):
     # measured against day2's own baseline - not day1's.
     state2_after_move = paper_ledger.get_portfolio_state(mark_prices={"RAAPLUSDT": 350.0})
     assert state2_after_move.daily_realized_pnl_usd == pytest.approx(10 * (350.0 - 300.0))
+
+
+# --- trading costs ---
+
+def test_each_fill_charges_fee_and_slippage_against_cash_and_records_the_cost(monkeypatch):
+    monkeypatch.setattr(paper_ledger, "TRADING_COST_RATE", paper_ledger.FEE_RATE + paper_ledger.SLIPPAGE_RATE)
+    fill = paper_ledger.record_fill("RAAPLUSDT", "buy", qty=10, price=300.0, rationale="cost test")
+    assert fill.cost_usd == pytest.approx(3000.0 * 0.0015)  # $4.50
+    state = paper_ledger._load()
+    assert state.cash_usd == pytest.approx(100_000.0 - 3000.0 - 4.5)
+    assert state.fills[-1]["cost_usd"] == pytest.approx(4.5)
+
+
+def test_a_round_trip_at_an_unchanged_price_loses_the_cost_of_both_legs(monkeypatch):
+    monkeypatch.setattr(paper_ledger, "TRADING_COST_RATE", paper_ledger.FEE_RATE + paper_ledger.SLIPPAGE_RATE)
+    paper_ledger.record_fill("RAAPLUSDT", "buy", qty=10, price=300.0, rationale="open")
+    paper_ledger.record_fill("RAAPLUSDT", "sell", qty=10, price=300.0, rationale="close")
+    state = paper_ledger._load()
+    assert state.positions == {}
+    assert state.cash_usd == pytest.approx(100_000.0 - 2 * 4.5)
+
+
+def test_the_stated_cost_assumption_is_ten_bps_fee_plus_five_bps_slippage():
+    assert paper_ledger.FEE_RATE == pytest.approx(0.0010)
+    assert paper_ledger.SLIPPAGE_RATE == pytest.approx(0.0005)

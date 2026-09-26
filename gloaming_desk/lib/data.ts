@@ -107,6 +107,7 @@ export type LedgerState = {
     price: number;
     notional_usd: number;
     rationale: string;
+    cost_usd?: number; // fee + slippage charged on this fill; absent on fills before Sept 26
   }>;
   equity_at_day_start_usd: number;
   day_start_date: string;

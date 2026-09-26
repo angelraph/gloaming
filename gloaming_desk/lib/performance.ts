@@ -23,6 +23,11 @@ export const ANCHORED_SIGNAL_START = "2026-09-25T22:00:00";
 // window are flagged, never removed.
 export const ANCHOR_INCIDENT = { from: "2026-09-26T00:00:00", to: "2026-09-26T01:45:00" };
 
+// Mirrors gloaming_agent/paper_ledger.py: 0.10% fee + 0.05% slippage per fill. Stated
+// assumptions, charged for real from Sept 26; used here only to ESTIMATE what earlier fills would
+// have cost, which is shown as an estimate and never added to the ledger.
+export const ASSUMED_COST_RATE = 0.0015;
+
 export type EraStats = {
   fills: number;
   closingFills: number;
@@ -52,6 +57,7 @@ export type PerformanceSummary = {
   // the wrong close, so folding them into the anchored era (where they would look like wins)
   // would misstate what that signal does.
   eras: { earlier: EraStats; anchored: EraStats; incident: EraStats };
+  costs: { recordedUsd: number; estimatedOnEarlierFillsUsd: number };
 };
 
 export function computePerformance(
@@ -65,6 +71,8 @@ export function computePerformance(
   const marks: Record<string, number> = {};
   const per: Record<string, { fills: number; realizedPnlUsd: number }> = {};
   let realized = 0;
+  let recordedCosts = 0;
+  let estimatedEarlierCosts = 0;
   let closing = 0;
   let winning = 0;
   const curve: EquityPoint[] = [];
@@ -77,6 +85,10 @@ export function computePerformance(
   for (const f of ledger.fills) {
     const dq = f.side === "buy" ? f.qty : -f.qty;
     cash += f.side === "buy" ? -f.notional_usd : f.notional_usd;
+    const cost = f.cost_usd ?? 0; // fills before Sept 26 carry no cost field
+    cash -= cost;
+    if (f.cost_usd === undefined) estimatedEarlierCosts += f.notional_usd * ASSUMED_COST_RATE;
+    else recordedCosts += cost;
     const p = pos[f.symbol] ?? 0;
     const a = avg[f.symbol] ?? 0;
     per[f.symbol] ??= { fills: 0, realizedPnlUsd: 0 };
@@ -173,5 +185,6 @@ export function computePerformance(
       .sort((a, b) => b.realizedPnlUsd - a.realizedPnlUsd),
     curve,
     eras,
+    costs: { recordedUsd: recordedCosts, estimatedOnEarlierFillsUsd: estimatedEarlierCosts },
   };
 }

@@ -41,6 +41,15 @@ import kv_sync  # local import - see kv_sync.py; no-ops if KV isn't configured
 LEDGER_PATH = Path(__file__).resolve().parent / "paper_ledger.json"
 STARTING_EQUITY_USD = 100_000.0  # matches the scale Bitget's own demo seeding used
 
+# Trading costs, charged on every fill from Sept 26 on (fills before that were recorded at the
+# last price with no cost, and stay as they were). These are STATED ASSUMPTIONS, not measured
+# values: 0.10% is a typical spot taker fee and has not been checked against Bitget's rToken fee
+# schedule, and 0.05% is a modest allowance for crossing the spread. They are deducted from cash
+# as one number per fill, `cost_usd`, so the record shows what they were.
+FEE_RATE = 0.0010
+SLIPPAGE_RATE = 0.0005
+TRADING_COST_RATE = FEE_RATE + SLIPPAGE_RATE
+
 
 @dataclass
 class Fill:
@@ -51,6 +60,7 @@ class Fill:
     price: float
     notional_usd: float
     rationale: str
+    cost_usd: float = 0.0  # fee + slippage allowance charged on this fill (absent on pre-Sept 26 fills)
 
 
 @dataclass
@@ -124,9 +134,9 @@ def set_net_tracker(cycles: int, baseline_usd: float) -> None:
 
 
 def record_fill(symbol: str, side: str, qty: float, price: float, rationale: str) -> Fill:
-    """Simulates an immediate full fill at `price` (the real live price fetched by
-    the caller moments earlier) - no slippage/partial-fill modeling in v1, disclosed
-    as a simplification alongside everything else in docs/architecture.md."""
+    """Simulates an immediate full fill at `price` (the real live price fetched by the
+    caller moments earlier), charging TRADING_COST_RATE of the notional against cash as
+    `cost_usd`. Partial fills are not modeled, disclosed in docs/architecture.md."""
     if side not in ("buy", "sell"):
         raise ValueError(f"side must be 'buy' or 'sell', got {side!r}")
     if qty <= 0 or price <= 0:
@@ -139,10 +149,12 @@ def record_fill(symbol: str, side: str, qty: float, price: float, rationale: str
     prev_qty = state.positions.get(symbol, 0.0)
     new_qty = prev_qty + signed_qty
 
+    cost = notional * TRADING_COST_RATE
     if side == "buy":
         state.cash_usd -= notional
     else:
         state.cash_usd += notional
+    state.cash_usd -= cost
     # Realized P&L only accrues when a fill reduces/closes an existing position in
     # the opposite direction - v1 keeps this simple (no per-lot cost basis tracking
     # beyond net position size), which is a disclosed simplification, not a bug:
@@ -154,7 +166,7 @@ def record_fill(symbol: str, side: str, qty: float, price: float, rationale: str
     fill = Fill(
         timestamp=datetime.now(timezone.utc).isoformat(),
         symbol=symbol, side=side, qty=qty, price=price,
-        notional_usd=notional, rationale=rationale,
+        notional_usd=notional, rationale=rationale, cost_usd=round(cost, 6),
     )
     state.fills.append(asdict(fill))
     _save(state)
