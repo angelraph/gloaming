@@ -1,8 +1,8 @@
 {
-  "cash_usd": 73541.47619800009,
+  "cash_usd": 74041.48125300009,
   "positions": {
     "RGOOGLUSDT": 0.2349000000000147,
-    "RMSFTUSDT": 1.9845999999999986,
+    "RMSFTUSDT": 1.0184999999999986,
     "RSPYUSDT": 8.5369,
     "RQQQUSDT": 9.849999999999998,
     "RMETAUSDT": -1.8997000000000042,
@@ -6644,6 +6644,15 @@
       "price": 748.19,
       "notional_usd": 13.168144000000002,
       "rationale": "[Qwen3.8-max] The -4.01% spread (rToken -3.78% vs fair value +0.23%) over 28.3 hours is large, but likely reflects company-specific news rather than a proxy-driven dislocation, so I am sizing conservatively. Book net exposure is already at the +25.0% cap, and I have been buying small amounts repeatedly ($82, $40, $30 in the last 3 hours) with no spread improvement, which argues against adding aggressively. I propose the risk layer's maximum approved buy of $25 to slightly reduce the short position without pushing net exposure further beyond the cap."
+    },
+    {
+      "timestamp": "2026-09-26T00:33:22.794623+00:00",
+      "symbol": "RMSFTUSDT",
+      "side": "sell",
+      "qty": 0.9661,
+      "price": 517.55,
+      "notional_usd": 500.0050549999999,
+      "rationale": "[Qwen3.8-max] The +3.71% spread (rToken +3.94% vs fair value +0.23%) over 28.5 hours indicates the rToken is significantly overextended relative to live proxies, likely reflecting idiosyncratic overnight news I cannot verify. The book's net exposure is already at +25.0% of equity, exactly at the net cap, and I have been repeatedly buying this symbol ($300, $341, $392 in recent fills) with no improvement in the picture; selling reduces both this overvalued position and the book's maxed-out net long exposure. The risk layer permits up to $14,706 in sells, so a $500 sell is well within limits and helps bring net exposure back under the cap."
     }
   ],
   "equity_at_day_start_usd": 98037.98054500009,
