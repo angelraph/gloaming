@@ -1,7 +1,7 @@
 {
-  "cash_usd": 73666.58951178312,
+  "cash_usd": 73516.36490537263,
   "positions": {
-    "RGOOGLUSDT": 1.4008000000000147,
+    "RGOOGLUSDT": 1.8379000000000147,
     "RMSFTUSDT": -1.8798000000000012,
     "RSPYUSDT": 8.5369,
     "RQQQUSDT": 9.849999999999998,
@@ -6805,6 +6805,16 @@
       "notional_usd": 144.90340899999998,
       "rationale": "[Qwen3.8-max] The -0.74% spread (rToken at -0.58% vs fair value +0.16%) exceeds the 0.30% round-trip cost, suggesting the rToken is cheap relative to proxies over this 35.5-hour weekend window. However, book net exposure is already +24.7% against a 25% cap, and I've churned this symbol three times in the last hour, so I'm sizing conservatively at $300\u2014within the risk layer's $313 buy limit\u2014to avoid pushing net exposure over cap while capturing partial mean-reversion.",
       "cost_usd": 0.217355
+    },
+    {
+      "timestamp": "2026-09-27T08:02:36.490331+00:00",
+      "symbol": "RGOOGLUSDT",
+      "side": "buy",
+      "qty": 0.4371,
+      "price": 343.17,
+      "notional_usd": 149.999607,
+      "rationale": "[Qwen3.8-max] The -0.49% spread (rToken -0.22% vs fair value +0.27%) exceeds the 0.30% round-trip cost, suggesting mild undervaluation over this 36-hour weekend window, though crypto beta (+0.94%) driving fair value may overstate GOOGL's true move. Book net exposure is already +24.8% against a 25% cap, and I bought $400 just 1 hour ago, so I am sizing conservatively at $150 to stay within the risk layer's $165 buy allowance rather than pushing the book over its net limit.",
+      "cost_usd": 0.224999
     }
   ],
   "equity_at_day_start_usd": 97985.05913302212,
