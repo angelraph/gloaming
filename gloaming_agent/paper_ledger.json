@@ -1,12 +1,12 @@
 {
-  "cash_usd": 73707.36670347714,
+  "cash_usd": 74206.60711787712,
   "positions": {
     "RGOOGLUSDT": 0.2349000000000147,
     "RMSFTUSDT": -1.8798000000000012,
     "RSPYUSDT": 8.5369,
     "RQQQUSDT": 9.849999999999998,
     "RMETAUSDT": 0.552599999999996,
-    "RNVDAUSDT": 37.5535,
+    "RNVDAUSDT": 35.3214,
     "RTSLAUSDT": 2.4581000000000093,
     "RAAPLUSDT": 2.9712999999999994,
     "RAMZNUSDT": 2.003
@@ -6755,6 +6755,16 @@
       "notional_usd": 193.22303,
       "rationale": "[Qwen3.8-max] The -0.72% spread (rToken at $746.90 vs fair value $752.32) exceeds the 0.30% round-trip cost, suggesting a modest actionable mispricing over this 28-hour weekend window. However, book net exposure is already +24.6% against a 25% cap, so I am sizing conservatively at $400 to avoid pushing the book over its limit. I have already bought this symbol three times in the last 21 hours with no spread improvement, which tempers conviction and keeps size well below the $1,000 max.",
       "cost_usd": 0.289835
+    },
+    {
+      "timestamp": "2026-09-27T03:02:41.586017+00:00",
+      "symbol": "RNVDAUSDT",
+      "side": "sell",
+      "qty": 2.2321,
+      "price": 224.0,
+      "notional_usd": 499.9904,
+      "rationale": "[Qwen3.8-max] The rToken is -0.48% from Friday's close while proxies justify +0.10%, creating a -0.57% spread that exceeds the 0.30% round-trip cost, suggesting mild overpricing. However, book net exposure is already at +24.8% versus the 25% cap, so adding long would be rejected and further increasing directional risk is undesirable; selling trims net toward the cap while capturing the edge. I size conservatively at $500 (matching recent sell fills) given the large existing $8,412 long position and the possibility this weekend drift reflects idiosyncratic NVDA sentiment rather than pure mispricing.",
+      "cost_usd": 0.749986
     }
   ],
   "equity_at_day_start_usd": 97985.05913302212,
