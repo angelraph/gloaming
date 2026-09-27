@@ -1,11 +1,11 @@
 {
-  "cash_usd": 74015.62147250712,
+  "cash_usd": 73822.12100152462,
   "positions": {
     "RGOOGLUSDT": 1.8379000000000147,
     "RMSFTUSDT": -1.8798000000000012,
     "RSPYUSDT": 8.5369,
     "RQQQUSDT": 9.849999999999998,
-    "RMETAUSDT": 0.738099999999996,
+    "RMETAUSDT": 0.9965999999999959,
     "RNVDAUSDT": 33.0941,
     "RTSLAUSDT": 2.4581000000000093,
     "RAAPLUSDT": 2.9712999999999994,
@@ -6825,6 +6825,16 @@
       "notional_usd": 500.00657700000005,
       "rationale": "[Qwen3.8-max] The -0.53% spread (rToken -0.26% vs fair value +0.27%) exceeds the 0.30% round-trip cost, justifying a trade to capture mean reversion as the rToken is cheap relative to proxies over this 36.8h weekend window. Book net exposure is already at the +25.0% cap, so buying is blocked by risk limits and would worsen directional exposure; selling aligns with recent fills ($500 sells) and reduces net toward the cap. Sizing conservatively at $500 given the modest edge and capped book.",
       "cost_usd": 0.75001
+    },
+    {
+      "timestamp": "2026-09-27T13:17:24.345202+00:00",
+      "symbol": "RMETAUSDT",
+      "side": "buy",
+      "qty": 0.2585,
+      "price": 747.43,
+      "notional_usd": 193.210655,
+      "rationale": "[Qwen3.8-max] The -0.77% spread (rToken at -0.56% vs fair value +0.21%) exceeds the 0.30% round-trip cost, suggesting mild undervaluation over this 41-hour weekend window. However, book net exposure is already +24.5% against a 25% cap, so adding significant long risk is constrained; I am sizing conservatively at $400 to stay within the risk layer's $522 buy approval while nudging toward fair value. Recent churn (sell then two buys in the last 6 hours) also argues for a small, disciplined add rather than a large new position.",
+      "cost_usd": 0.289816
     }
   ],
   "equity_at_day_start_usd": 97985.05913302212,
