@@ -1,12 +1,12 @@
 {
-  "cash_usd": 73822.12100152462,
+  "cash_usd": 74321.36284178261,
   "positions": {
     "RGOOGLUSDT": 1.8379000000000147,
     "RMSFTUSDT": -1.8798000000000012,
     "RSPYUSDT": 8.5369,
     "RQQQUSDT": 9.849999999999998,
     "RMETAUSDT": 0.9965999999999959,
-    "RNVDAUSDT": 33.0941,
+    "RNVDAUSDT": 30.859199999999998,
     "RTSLAUSDT": 2.4581000000000093,
     "RAAPLUSDT": 2.9712999999999994,
     "RAMZNUSDT": 2.003
@@ -6835,6 +6835,16 @@
       "notional_usd": 193.210655,
       "rationale": "[Qwen3.8-max] The -0.77% spread (rToken at -0.56% vs fair value +0.21%) exceeds the 0.30% round-trip cost, suggesting mild undervaluation over this 41-hour weekend window. However, book net exposure is already +24.5% against a 25% cap, so adding significant long risk is constrained; I am sizing conservatively at $400 to stay within the risk layer's $522 buy approval while nudging toward fair value. Recent churn (sell then two buys in the last 6 hours) also argues for a small, disciplined add rather than a large new position.",
       "cost_usd": 0.289816
+    },
+    {
+      "timestamp": "2026-09-27T17:17:40.326010+00:00",
+      "symbol": "RNVDAUSDT",
+      "side": "sell",
+      "qty": 2.2349,
+      "price": 223.72,
+      "notional_usd": 499.991828,
+      "rationale": "[Qwen3.8-max] The -0.64% spread (rToken at -0.60% vs fair value +0.04%) exceeds the 0.30% round-trip cost, justifying a trade, and selling reduces book net exposure from +24.6% toward the 25% cap while aligning with my recent pattern of three $500 sells over the past 69 hours. However, I size conservatively at $500 because NVDA-specific weekend news could explain the divergence that broad proxies cannot capture, and adding to an already 7.6%-of-equity long position requires caution near the net exposure limit.",
+      "cost_usd": 0.749988
     }
   ],
   "equity_at_day_start_usd": 97985.05913302212,
