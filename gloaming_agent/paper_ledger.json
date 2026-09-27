@@ -1,11 +1,11 @@
 {
-  "cash_usd": 73811.71027589664,
+  "cash_usd": 73666.58951178312,
   "positions": {
     "RGOOGLUSDT": 1.4008000000000147,
     "RMSFTUSDT": -1.8798000000000012,
     "RSPYUSDT": 8.5369,
     "RQQQUSDT": 9.849999999999998,
-    "RMETAUSDT": 0.544199999999996,
+    "RMETAUSDT": 0.738099999999996,
     "RNVDAUSDT": 35.3214,
     "RTSLAUSDT": 2.4581000000000093,
     "RAAPLUSDT": 2.9712999999999994,
@@ -6795,6 +6795,16 @@
       "notional_usd": 193.179635,
       "rationale": "[Qwen3.8-max] The -0.74% spread (rToken at -0.58% vs fair value +0.16%) exceeds the 0.30% round-trip cost, suggesting the rToken is cheap relative to proxies over this 35.3-hour weekend window. However, book net exposure is already +24.5% against a 25% cap, so I am sizing conservatively at $400 rather than using the full $508 risk-layer allowance. Recent fills show repeated buys with a sell just 0.2h ago, indicating choppy action, so I keep confidence moderate and size small.",
       "cost_usd": 0.289769
+    },
+    {
+      "timestamp": "2026-09-27T07:33:04.037601+00:00",
+      "symbol": "RMETAUSDT",
+      "side": "buy",
+      "qty": 0.1939,
+      "price": 747.31,
+      "notional_usd": 144.90340899999998,
+      "rationale": "[Qwen3.8-max] The -0.74% spread (rToken at -0.58% vs fair value +0.16%) exceeds the 0.30% round-trip cost, suggesting the rToken is cheap relative to proxies over this 35.5-hour weekend window. However, book net exposure is already +24.7% against a 25% cap, and I've churned this symbol three times in the last hour, so I'm sizing conservatively at $300\u2014within the risk layer's $313 buy limit\u2014to avoid pushing net exposure over cap while capturing partial mean-reversion.",
+      "cost_usd": 0.217355
     }
   ],
   "equity_at_day_start_usd": 97985.05913302212,
