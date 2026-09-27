@@ -1,11 +1,11 @@
 {
-  "cash_usd": 74206.60711787712,
+  "cash_usd": 74005.17968034913,
   "positions": {
-    "RGOOGLUSDT": 0.2349000000000147,
+    "RGOOGLUSDT": 1.4008000000000147,
     "RMSFTUSDT": -1.8798000000000012,
     "RSPYUSDT": 8.5369,
     "RQQQUSDT": 9.849999999999998,
-    "RMETAUSDT": 0.552599999999996,
+    "RMETAUSDT": 0.28569999999999596,
     "RNVDAUSDT": 35.3214,
     "RTSLAUSDT": 2.4581000000000093,
     "RAAPLUSDT": 2.9712999999999994,
@@ -6765,6 +6765,26 @@
       "notional_usd": 499.9904,
       "rationale": "[Qwen3.8-max] The rToken is -0.48% from Friday's close while proxies justify +0.10%, creating a -0.57% spread that exceeds the 0.30% round-trip cost, suggesting mild overpricing. However, book net exposure is already at +24.8% versus the 25% cap, so adding long would be rejected and further increasing directional risk is undesirable; selling trims net toward the cap while capturing the edge. I size conservatively at $500 (matching recent sell fills) given the large existing $8,412 long position and the possibility this weekend drift reflects idiosyncratic NVDA sentiment rather than pure mispricing.",
       "cost_usd": 0.749986
+    },
+    {
+      "timestamp": "2026-09-27T07:02:29.777250+00:00",
+      "symbol": "RMETAUSDT",
+      "side": "sell",
+      "qty": 0.2669,
+      "price": 747.31,
+      "notional_usd": 199.457039,
+      "rationale": "[Qwen3.8-max] The rToken is -0.74% below the synthetic fair value, a spread that comfortably exceeds the 0.30% round-trip cost, making it actionable. Selling the existing $413 long position both captures this mispricing and reduces book net exposure from +24.3% toward the +25% cap, which is prudent given I have already bought this symbol three times in the last 23 hours with no improvement in the spread.",
+      "cost_usd": 0.299186
+    },
+    {
+      "timestamp": "2026-09-27T07:02:38.806933+00:00",
+      "symbol": "RGOOGLUSDT",
+      "side": "buy",
+      "qty": 1.1659,
+      "price": 343.07,
+      "notional_usd": 399.98531299999996,
+      "rationale": "[Qwen3.8-max] The -0.41% spread (rToken at -0.25% vs fair value +0.16%) exceeds the 0.30% round-trip cost, suggesting mild undervaluation over this 35-hour weekend window. However, book net exposure is already +24.1% against a 25% cap, so I am sizing conservatively at $400 to avoid pushing the book into rejection territory while adding to the existing $81 long. The edge is thin and could reflect idiosyncratic weekend noise rather than a true dislocation, hence moderate confidence.",
+      "cost_usd": 0.599978
     }
   ],
   "equity_at_day_start_usd": 97985.05913302212,
