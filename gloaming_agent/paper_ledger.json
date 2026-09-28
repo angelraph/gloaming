@@ -1,12 +1,12 @@
 {
-  "cash_usd": 81855.8147824356,
+  "cash_usd": 82604.6872212831,
   "positions": {
     "RGOOGLUSDT": 1.8379000000000147,
     "RMSFTUSDT": -12.0477,
     "RSPYUSDT": 8.5369,
     "RQQQUSDT": 9.849999999999998,
     "RMETAUSDT": 1.2556999999999958,
-    "RNVDAUSDT": 24.233699999999995,
+    "RNVDAUSDT": 20.963599999999996,
     "RTSLAUSDT": 2.4581000000000093,
     "RAAPLUSDT": 0.03599999999999959,
     "RAMZNUSDT": 2.003
@@ -7215,6 +7215,16 @@
       "notional_usd": 499.99019999999996,
       "rationale": "[Qwen3.8-max] The +1.69% spread (rToken +0.86% vs fair value -0.83%) over 63.8 hours exceeds the 0.30% round-trip cost, and the rToken is trading $3.79 above the proxy-implied fair value of $223.21 while all three proxies are negative. I am continuing the recent pattern of $500 sells (three in the last 18.5h) to trim the existing $6,001 long position, which also helps reduce the book's +17.0% net exposure toward zero; sizing stays at $500 because the backtest shows spreads tend to continue (+0.25 correlation) rather than revert, so this is a conservative lean against the dislocation, not a high-conviction fade.",
       "cost_usd": 0.749985
+    },
+    {
+      "timestamp": "2026-09-28T12:47:34.235760+00:00",
+      "symbol": "RNVDAUSDT",
+      "side": "sell",
+      "qty": 3.2701,
+      "price": 229.35,
+      "notional_usd": 749.9974349999999,
+      "rationale": "[Qwen3.8-max] The +2.52% spread (rToken +1.90% vs fair value -0.62%) over 64.8 hours is large enough to clear the 0.30% round-trip cost, and all three proxies are negative while the rToken has drifted higher, suggesting an unjustified weekend dislocation rather than company-specific news. I am selling $750 to fade this rich print, which aligns with my last three fills (all sells within 3.2h) and helps trim the book's +16.6% net exposure toward zero; sizing conservatively at $750 given the backtest's tendency for spreads to slightly continue rather than revert.",
+      "cost_usd": 1.124996
     }
   ],
   "equity_at_day_start_usd": 98007.18303378261,
