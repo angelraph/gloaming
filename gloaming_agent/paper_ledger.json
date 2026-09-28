@@ -1,11 +1,11 @@
 {
-  "cash_usd": 77348.97927010962,
+  "cash_usd": 76606.35553490762,
   "positions": {
     "RGOOGLUSDT": 1.8379000000000147,
-    "RMSFTUSDT": -6.716900000000001,
+    "RMSFTUSDT": -5.750300000000001,
     "RSPYUSDT": 8.5369,
     "RQQQUSDT": 9.849999999999998,
-    "RMETAUSDT": 0.26669999999999583,
+    "RMETAUSDT": 0.5959999999999959,
     "RNVDAUSDT": 30.859199999999998,
     "RTSLAUSDT": 2.4581000000000093,
     "RAAPLUSDT": 2.9712999999999994,
@@ -6955,6 +6955,26 @@
       "notional_usd": 500.01636,
       "rationale": "[Qwen3.8-max] The rToken is +0.18% from Friday's close while proxies justify -0.65%, creating a +0.82% spread that clears the 0.30% round-trip cost, suggesting the rToken is overpriced relative to weekend market moves. Selling aligns with my existing $2,973 short and helps reduce the book's +21.5% net exposure toward the 25% cap; I size conservatively at $500 given recent churn (buy/sell fills in the last hour) and the possibility of MSFT-specific weekend news driving the divergence.",
       "cost_usd": 0.750025
+    },
+    {
+      "timestamp": "2026-09-28T05:17:28.967974+00:00",
+      "symbol": "RMETAUSDT",
+      "side": "buy",
+      "qty": 0.3293,
+      "price": 733.4,
+      "notional_usd": 241.50861999999998,
+      "rationale": "[Qwen3.8-max] The rToken is -2.43% from Friday's close versus a blended fair-value move of only -0.62%, producing a -1.80% spread that far exceeds the 0.30% round-trip cost, suggesting the weekend sell-off has overshot what live proxies justify. I just sold $536 in the last hour, so buying $500 now captures this mean-reversion edge while keeping the position small; book net exposure at +21.0% is near the 25% cap, so I am sizing conservatively rather than pushing limits.",
+      "cost_usd": 0.362263
+    },
+    {
+      "timestamp": "2026-09-28T05:17:49.436669+00:00",
+      "symbol": "RMSFTUSDT",
+      "side": "buy",
+      "qty": 0.9666,
+      "price": 517.28,
+      "notional_usd": 500.002848,
+      "rationale": "[Qwen3.8-max] The +0.84% spread (rToken +0.22% vs fair value -0.62%) exceeds the 0.30% round-trip cost, suggesting the rToken is overpriced relative to proxies that have drifted negative over this 57-hour weekend window. Buying $500 covers my recent short adds ($1,500 in the last hour) and modestly reduces the book's +21.2% net exposure toward zero, which is prudent near the 25% net cap. I am sizing conservatively at $500 because the blended proxy move could mask MSFT-specific weekend news I cannot verify.",
+      "cost_usd": 0.750004
     }
   ],
   "equity_at_day_start_usd": 98007.18303378261,
