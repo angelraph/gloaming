@@ -1,8 +1,8 @@
 {
-  "cash_usd": 79362.58690355365,
+  "cash_usd": 79861.83054510564,
   "positions": {
     "RGOOGLUSDT": 1.8379000000000147,
-    "RMSFTUSDT": -10.106800000000002,
+    "RMSFTUSDT": -11.076400000000001,
     "RSPYUSDT": 8.5369,
     "RQQQUSDT": 9.849999999999998,
     "RMETAUSDT": 1.2556999999999958,
@@ -7125,6 +7125,16 @@
       "notional_usd": 750.020805,
       "rationale": "[Qwen3.8-max] The +1.02% spread (rToken +0.09% vs fair value -0.92%) exceeds the 0.30% round-trip cost, and with 60 hours elapsed since Friday's close the proxies have had ample time to move, making this a genuine weekend dislocation rather than noise. Buying also reduces the book's +18.1% net long exposure toward zero, which is desirable; I am sizing at $750 (under the $1,000 cap) rather than repeating my recent sells, as adding to the short here would fight a statistically significant mean-reversion edge.",
       "cost_usd": 1.125031
+    },
+    {
+      "timestamp": "2026-09-28T08:17:35.382221+00:00",
+      "symbol": "RMSFTUSDT",
+      "side": "sell",
+      "qty": 0.9696,
+      "price": 515.67,
+      "notional_usd": 499.993632,
+      "rationale": "[Qwen3.8-max] The rToken is -0.10% from Friday's close while the blended fair-value proxy is -0.91%, creating a +0.81% spread that exceeds the 0.30% round-trip cost, suggesting the rToken is overpriced relative to proxies after 60 hours of weekend drift. I am already short $5,212 (5.3% of equity) and sold twice recently, but adding a small $500 sell still captures edge while respecting that repeated fills are information; this also nudges book net exposure (+18.9%) slightly higher toward the +25% cap, so I size conservatively.",
+      "cost_usd": 0.74999
     }
   ],
   "equity_at_day_start_usd": 98007.18303378261,
