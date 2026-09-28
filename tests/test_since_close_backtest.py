@@ -58,3 +58,39 @@ def test_trading_against_the_spread_earns_when_the_rtoken_reverts():
     assert row["n"] == 2 and row["hit_rate"] == 1.0
     assert row["mean_gross_bp"] == pytest.approx(100.0)
     assert row["mean_net_bp"] == pytest.approx(100.0 - 30.0)  # the 0.30% round trip
+
+
+# --- the system prompt's cited backtest figures stay tied to the checked-in results file ---
+
+def test_pooled_edge_function_matches_a_hand_built_case():
+    df = pd.DataFrame({
+        "session": ["a", "a", "b"], "h": [4, 8, 4], "underlying": ["X", "X", "Y"],
+        "r_tok": [-0.02, -0.006, 0.003], "fwd": [0.01, 0.002, -0.001],
+        "fut": [0.0, 0.0, 0.0], "crypto": [0.0, 0.0, 0.0], "fx": [0.0, 0.0, 0.0],
+    })
+    from backtest.since_close_backtest import pooled_edge
+
+    r = pooled_edge(df, (0.5, 0.3, 0.2), threshold=0.005)
+    assert r["all"]["n"] == 2  # only the two rows with |spread| >= 0.5% (0.003 does not qualify)
+    # row 1: cheap (-2%), bought, then +1% to the open -> +100bp. row 2: cheap (-0.6%), bought, +0.2% -> +20bp.
+    assert r["all"]["mean_gross_bp"] == pytest.approx((100.0 + 20.0) / 2)
+
+
+def test_the_system_prompt_cites_the_pooled_edge_figure_from_the_checked_in_backtest_results():
+    import json
+
+    results_path = Path(__file__).resolve().parents[1] / "alpha_factory" / "results" / "since_close_backtest.json"
+    prompt_path = Path(__file__).resolve().parents[1] / "gloaming_agent" / "prompts" / "system_prompt.md"
+    if not results_path.exists():
+        pytest.skip("regenerate with: python -m backtest.fetch_hourly && python -m backtest.since_close_backtest")
+
+    results = json.loads(results_path.read_text(encoding="utf-8"))
+    stat = results["pooled_edge_live_weights_thr_0.5pct"]["all"]
+    prompt = prompt_path.read_text(encoding="utf-8")
+
+    # the prompt states these to one decimal place; the number in the file must round to it,
+    # so the two can never silently drift out of sync with each other
+    assert f"{stat['n']} real symbol/session events" in prompt
+    assert f"{stat['mean_gross_bp']:.1f} basis points" in prompt
+    assert f"{stat['mean_net_bp']:.1f} bp after" in prompt
+    assert f"{round(stat['hit_rate'] * 100)}% of trades" in prompt

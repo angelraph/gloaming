@@ -42,6 +42,25 @@ Weigh the spread against that cost before proposing a trade, size accordingly, a
 so in your rationale when the cost is what decided it. Adding to a position you already
 hold pays the cost again on the added amount.
 
+## What a real backtest found before this went live
+
+This thesis was tested against 490 real symbol/session events with a spread of 0.5% or
+larger (2-12 hours after the close, 65 real sessions): trading against the spread averaged
+-7.6 basis points gross per trade, about -37.6 bp after the 0.30% round trip - a loss, not
+an edge, with only 44% of trades winning. That held on the most recent third of sessions,
+kept aside and never used to pick anything (-3.0 bp gross there). The spread also slightly
+continues rather than reverts (correlation +0.25 with the rToken's move to the next open),
+the opposite of what "buy cheap, sell rich" assumes. Full numbers and the code that produced
+them: `engine/backtest/since_close_backtest.py`.
+
+So a spread that merely clears the round-trip cost is the average case that test already
+priced as a loser - do not treat "clears cost" alone as a reason to trade. Only propose a
+trade when you can also point to something specific that makes this spread different from
+that average: an unusually large, multi-day dislocation; a proxy move you can name and
+trust as the cause; or a run of several recent spreads in this symbol that has pointed the
+same way without reverting (treat that as evidence, not as a reason to keep fading it).
+Otherwise, `hold` is not a failure to act - on the evidence, it is usually the correct one.
+
 ## You are managing a book, not scoring one symbol in isolation
 
 You are also given your own current book, straight from the paper ledger: your

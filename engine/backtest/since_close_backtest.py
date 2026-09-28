@@ -161,6 +161,33 @@ def edge(df: pd.DataFrame, wts: tuple) -> list[dict]:
     return out
 
 
+def pooled_edge(df: pd.DataFrame, wts: tuple, threshold: float = 0.005) -> dict:
+    """Every horizon pooled together at one threshold, on a time-ordered train/test split -
+    the single headline figure the system prompt cites, so it stays reproducible from this
+    file rather than a one-off scratch calculation."""
+    d = df.copy()
+    d["spread"] = d["r_tok"] - blend(d, *wts)
+    sessions = sorted(d["session"].unique())
+    cut = sessions[int(len(sessions) * 2 / 3)]
+
+    def stat(x: pd.DataFrame) -> dict:
+        if len(x) < 2:
+            return {"n": int(len(x))}
+        gross = -np.sign(x["spread"]) * x["fwd"]
+        return {
+            "n": int(len(x)), "sessions": int(x["session"].nunique()),
+            "mean_gross_bp": float(gross.mean() * 1e4), "mean_net_bp": float((gross.mean() - ROUND_TRIP_COST) * 1e4),
+            "se_bp": float(gross.std(ddof=1) / np.sqrt(len(x)) * 1e4), "hit_rate": float((gross > 0).mean()),
+        }
+
+    x = d[d["spread"].abs() >= threshold]
+    return {
+        "threshold": threshold, "split_at_session": cut,
+        "all": stat(x), "train": stat(x[x["session"] < cut]), "test": stat(x[x["session"] >= cut]),
+        "spread_persistence_corr": float(np.corrcoef(x["spread"], x["fwd"])[0, 1]) if len(x) > 2 else None,
+    }
+
+
 def main() -> None:
     df = build_events()
     live = (FAIRVALUE_WEIGHTS["futures_proxy_return"], FAIRVALUE_WEIGHTS["crypto_beta_return"], FAIRVALUE_WEIGHTS["fx_risk_sentiment_return"])
@@ -172,6 +199,7 @@ def main() -> None:
         "calibration": calibration(df),
         "edge_live_weights": edge(df, live),
         "edge_no_proxies_raw_move": edge(df, (0.0, 0.0, 0.0)),
+        "pooled_edge_live_weights_thr_0.5pct": pooled_edge(df, live, 0.005),
     }
     OUT.parent.mkdir(parents=True, exist_ok=True)
     OUT.write_text(json.dumps(result, indent=2, default=float), encoding="utf-8")
