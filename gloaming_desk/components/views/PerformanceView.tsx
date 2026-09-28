@@ -69,9 +69,9 @@ export default function PerformanceView() {
               />
               <StatTile
                 label="Realized P&L"
-                value={fmtSignedUsd(p.realizedPnlUsd)}
-                tone={p.realizedPnlUsd >= 0 ? "positive" : "negative"}
-                sub="from position-reducing fills"
+                value={fmtSignedUsd(p.realizedPnlUsd - p.costs.recordedUsd)}
+                tone={p.realizedPnlUsd - p.costs.recordedUsd >= 0 ? "positive" : "negative"}
+                sub={`from position-reducing fills, net of ${fmtUsd(p.costs.recordedUsd)} in charged costs`}
               />
               <StatTile label="Max drawdown" value={fmtPct(p.maxDrawdown)} sub="on the marked curve, see notes" />
               <StatTile
@@ -129,7 +129,10 @@ export default function PerformanceView() {
                           ? `${e.winningFills} of ${e.closingFills}, too few to judge`
                           : fmtPct(e.winRate, 1),
                     ],
-                    ["Realized P&L", e.closingFills === 0 ? "n/a yet" : fmtSignedUsd(e.realizedPnlUsd)],
+                    [
+                      "Realized P&L, net of costs",
+                      e.closingFills === 0 ? "n/a yet" : `${fmtSignedUsd(e.netPnlUsd)} (${fmtUsd(e.costUsd)} in costs)`,
+                    ],
                   ].map(([k, v]) => (
                     <div key={k} className="flex items-baseline justify-between gap-4 border-b border-border-subtle py-2.5 last:border-0">
                       <dt className="text-sm text-text-secondary">{k}</dt>
@@ -191,7 +194,7 @@ export default function PerformanceView() {
                 <tr className="border-b border-border-subtle">
                   <th scope="col" className="micro-label px-4 py-3 font-normal">Symbol</th>
                   <th scope="col" className="micro-label px-4 py-3 text-right font-normal">Fills</th>
-                  <th scope="col" className="micro-label px-4 py-3 text-right font-normal">Realized P&amp;L</th>
+                  <th scope="col" className="micro-label px-4 py-3 text-right font-normal">Realized P&amp;L, net of costs</th>
                 </tr>
               </thead>
               <tbody>
@@ -199,8 +202,8 @@ export default function PerformanceView() {
                   <tr key={s.symbol} className="border-b border-border-subtle last:border-0">
                     <th scope="row" className="px-4 py-3 font-medium text-heading">{underlyingFromRtoken(s.symbol)}</th>
                     <td className="px-4 py-3 text-right tabular-nums text-text-secondary">{s.fills}</td>
-                    <td className={`px-4 py-3 text-right tabular-nums ${s.realizedPnlUsd >= 0 ? "text-positive" : "text-negative"}`}>
-                      {fmtSignedUsd(s.realizedPnlUsd)}
+                    <td className={`px-4 py-3 text-right tabular-nums ${s.netPnlUsd >= 0 ? "text-positive" : "text-negative"}`}>
+                      {fmtSignedUsd(s.netPnlUsd)}
                     </td>
                   </tr>
                 ))}

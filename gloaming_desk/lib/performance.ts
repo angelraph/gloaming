@@ -33,7 +33,9 @@ export type EraStats = {
   closingFills: number;
   winningFills: number;
   winRate: number | null;
-  realizedPnlUsd: number;
+  realizedPnlUsd: number; // from price only (average-cost basis) - GROSS of trading cost
+  costUsd: number; // fee + slippage actually charged on this era's fills (0 for fills before Sept 26)
+  netPnlUsd: number; // realizedPnlUsd - costUsd - the one to read
 };
 
 export type PerformanceSummary = {
@@ -51,7 +53,7 @@ export type PerformanceSummary = {
   totalFills: number;
   firstFillAt: string | null;
   lastFillAt: string | null;
-  bySymbol: Array<{ symbol: string; fills: number; realizedPnlUsd: number }>;
+  bySymbol: Array<{ symbol: string; fills: number; realizedPnlUsd: number; costUsd: number; netPnlUsd: number }>;
   curve: EquityPoint[];
   // The incident window is counted on its own, in neither era: those fills were made against
   // the wrong close, so folding them into the anchored era (where they would look like wins)
@@ -69,14 +71,14 @@ export function computePerformance(
   const pos: Record<string, number> = {};
   const avg: Record<string, number> = {};
   const marks: Record<string, number> = {};
-  const per: Record<string, { fills: number; realizedPnlUsd: number }> = {};
+  const per: Record<string, { fills: number; realizedPnlUsd: number; costUsd: number }> = {};
   let realized = 0;
   let recordedCosts = 0;
   let estimatedEarlierCosts = 0;
   let closing = 0;
   let winning = 0;
   const curve: EquityPoint[] = [];
-  const era = (): EraStats => ({ fills: 0, closingFills: 0, winningFills: 0, winRate: null, realizedPnlUsd: 0 });
+  const era = (): EraStats => ({ fills: 0, closingFills: 0, winningFills: 0, winRate: null, realizedPnlUsd: 0, costUsd: 0, netPnlUsd: 0 });
   const eras = { earlier: era(), anchored: era(), incident: era() };
 
   const equityNow = (m: Record<string, number>) =>
@@ -91,8 +93,9 @@ export function computePerformance(
     else recordedCosts += cost;
     const p = pos[f.symbol] ?? 0;
     const a = avg[f.symbol] ?? 0;
-    per[f.symbol] ??= { fills: 0, realizedPnlUsd: 0 };
+    per[f.symbol] ??= { fills: 0, realizedPnlUsd: 0, costUsd: 0 };
     per[f.symbol].fills += 1;
+    per[f.symbol].costUsd += cost;
     const ts = f.timestamp.slice(0, 19);
     const e =
       ts >= ANCHOR_INCIDENT.from && ts <= ANCHOR_INCIDENT.to
@@ -101,6 +104,7 @@ export function computePerformance(
           ? eras.anchored
           : eras.earlier;
     e.fills += 1;
+    e.costUsd += cost;
 
     if (p === 0 || Math.sign(p) === Math.sign(dq)) {
       avg[f.symbol] = (Math.abs(p) * a + Math.abs(dq) * f.price) / (Math.abs(p) + Math.abs(dq));
@@ -159,7 +163,10 @@ export function computePerformance(
     if (sd > 0) sharpe = (mean / sd) * Math.sqrt(365);
   }
 
-  for (const e of [eras.earlier, eras.anchored, eras.incident]) e.winRate = e.closingFills > 0 ? e.winningFills / e.closingFills : null;
+  for (const e of [eras.earlier, eras.anchored, eras.incident]) {
+    e.winRate = e.closingFills > 0 ? e.winningFills / e.closingFills : null;
+    e.netPnlUsd = e.realizedPnlUsd - e.costUsd;
+  }
 
   const first = ledger.fills[0]?.timestamp ?? null;
   const last = ledger.fills[ledger.fills.length - 1]?.timestamp ?? null;
@@ -181,8 +188,8 @@ export function computePerformance(
     firstFillAt: first,
     lastFillAt: last,
     bySymbol: Object.entries(per)
-      .map(([symbol, v]) => ({ symbol, ...v }))
-      .sort((a, b) => b.realizedPnlUsd - a.realizedPnlUsd),
+      .map(([symbol, v]) => ({ symbol, ...v, netPnlUsd: v.realizedPnlUsd - v.costUsd }))
+      .sort((a, b) => b.netPnlUsd - a.netPnlUsd),
     curve,
     eras,
     costs: { recordedUsd: recordedCosts, estimatedOnEarlierFillsUsd: estimatedEarlierCosts },
