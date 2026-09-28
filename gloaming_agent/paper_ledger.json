@@ -1,14 +1,14 @@
 {
-  "cash_usd": 78615.99221552613,
+  "cash_usd": 79614.49504128113,
   "positions": {
     "RGOOGLUSDT": 1.8379000000000147,
-    "RMSFTUSDT": -10.590900000000001,
+    "RMSFTUSDT": -11.558500000000002,
     "RSPYUSDT": 8.5369,
     "RQQQUSDT": 9.849999999999998,
     "RMETAUSDT": 1.2556999999999958,
     "RNVDAUSDT": 30.859199999999998,
     "RTSLAUSDT": 2.4581000000000093,
-    "RAAPLUSDT": 2.9712999999999994,
+    "RAAPLUSDT": 1.5029999999999994,
     "RAMZNUSDT": 2.003
   },
   "fills": [
@@ -7085,6 +7085,26 @@
       "notional_usd": 500.004288,
       "rationale": "[Qwen3.8-max] The rToken is +0.95% above the blended fair-value return of -0.89% (sitting at +0.06% vs close while proxies imply -0.89%), a spread that clears the 0.30% round-trip cost and suggests the rToken is overpriced relative to broad-market moves over this 59.5h weekend window. I am already short $4,970 in RMSFTUSDT, so adding increases symbol risk, but the book's net exposure is +20.1% (near the +25% cap), meaning additional shorts help reduce net directional bias. Given my recent churn of small sells and buys in the last hour, I size conservatively at $500 rather than the $1,000 max.",
       "cost_usd": 0.750006
+    },
+    {
+      "timestamp": "2026-09-28T07:47:08.750778+00:00",
+      "symbol": "RAAPLUSDT",
+      "side": "sell",
+      "qty": 1.4683,
+      "price": 340.54,
+      "notional_usd": 500.014882,
+      "rationale": "[Qwen3.8-max] The rToken is -0.16% from Friday's close while the blended fair value is -0.89%, leaving a +0.74% spread (rToken ~$2.52 above fair value $338.02) that exceeds the 0.30% round-trip cost, justifying a trim of the existing $1,012 long. Book net exposure is already +19.6% toward the 25% cap, and I have bought this symbol three times over the weekend with no improvement in the picture, so selling $500 reduces correlated directional risk while capturing the mispricing.",
+      "cost_usd": 0.750022
+    },
+    {
+      "timestamp": "2026-09-28T07:47:33.675365+00:00",
+      "symbol": "RMSFTUSDT",
+      "side": "sell",
+      "qty": 0.9676,
+      "price": 516.73,
+      "notional_usd": 499.987948,
+      "rationale": "[Qwen3.8-max] The rToken is +0.11% from Friday's close while the blended fair-value proxy is -0.89%, creating a +1.00% spread that exceeds the 0.30% round-trip cost, suggesting the rToken has not yet repriced the weekend's broad risk-off moves. Selling $500 adds to my existing $5,473 short in RMSFTUSDT and nudges book net exposure down slightly from +19.1% toward zero, which aligns with managing the book's directional bias. I am sizing conservatively at $500 given my recent rapid buy/sell fills in this symbol over the last hour, indicating uncertainty about whether idiosyncratic MSFT news is offsetting the macro proxies.",
+      "cost_usd": 0.749982
     }
   ],
   "equity_at_day_start_usd": 98007.18303378261,
