@@ -1,8 +1,8 @@
 {
-  "cash_usd": 74820.63645630762,
+  "cash_usd": 74319.86615890713,
   "positions": {
     "RGOOGLUSDT": 1.8379000000000147,
-    "RMSFTUSDT": -2.847900000000001,
+    "RMSFTUSDT": -1.880200000000001,
     "RSPYUSDT": 8.5369,
     "RQQQUSDT": 9.849999999999998,
     "RMETAUSDT": 0.9965999999999959,
@@ -6855,6 +6855,16 @@
       "notional_usd": 500.02365,
       "rationale": "[Qwen3.8-max] The rToken is +0.06% from Friday's close while proxies justify -0.56%, creating a +0.63% spread that exceeds the 0.30% round-trip cost, suggesting the rToken is overpriced relative to fair value ($513.27). Selling adds to my existing $971 short and aligns with my three recent sells ~50h ago, while also helping reduce the book's +24.1% net exposure which is near the 25% cap. I size conservatively at $500 given the wide weekend window where company-specific news could explain the divergence.",
       "cost_usd": 0.750035
+    },
+    {
+      "timestamp": "2026-09-28T03:02:53.718701+00:00",
+      "symbol": "RMSFTUSDT",
+      "side": "buy",
+      "qty": 0.9677,
+      "price": 516.71,
+      "notional_usd": 500.02026700000005,
+      "rationale": "[Qwen3.8-max] The spread is +0.78% (rToken +0.10% vs fair value -0.68%), clearing the 0.30% round-trip cost, indicating the rToken is overpriced relative to proxies that have moved down significantly over this 55-hour weekend window. Buying $500 covers the existing $1,472 short and modestly reduces the book's +23.6% net exposure toward the 25% cap. I am sizing conservatively at $500 rather than adding aggressively because I already sold three times in the last 50 hours chasing this same divergence.",
+      "cost_usd": 0.75003
     }
   ],
   "equity_at_day_start_usd": 98007.18303378261,
