@@ -1,8 +1,8 @@
 {
-  "cash_usd": 75817.61228672412,
+  "cash_usd": 75316.87128420013,
   "positions": {
     "RGOOGLUSDT": 1.8379000000000147,
-    "RMSFTUSDT": -4.783100000000001,
+    "RMSFTUSDT": -3.815700000000001,
     "RSPYUSDT": 8.5369,
     "RQQQUSDT": 9.849999999999998,
     "RMETAUSDT": 0.9965999999999959,
@@ -6895,6 +6895,16 @@
       "notional_usd": 500.01387,
       "rationale": "[Qwen3.8-max] The rToken is +0.09% from Friday's close while proxies justify -0.72%, creating a +0.82% spread that exceeds the 0.30% round-trip cost, suggesting the rToken is overpriced relative to fair value ($512.43). Selling $500 adds to my existing $1,971 short and reduces the book's +23.0% net exposure toward zero, which is desirable near the +25% net cap. I am sizing conservatively at $500 given recent churn (buy/sell fills in the last hour) and because this 56-hour weekend window leaves room for idiosyncratic MSFT news I cannot verify.",
       "cost_usd": 0.750021
+    },
+    {
+      "timestamp": "2026-09-28T04:17:46.725412+00:00",
+      "symbol": "RMSFTUSDT",
+      "side": "buy",
+      "qty": 0.9674,
+      "price": 516.84,
+      "notional_usd": 499.99101600000006,
+      "rationale": "[Qwen3.8-max] The spread is +0.88% (rToken +0.13% vs fair value -0.75%), meaning the rToken is overpriced relative to proxies that have moved down significantly over this 56.3-hour weekend window, making a short entry attractive and well above the 0.30% round-trip cost. I already hold a $2,472 short and sold $500 three times in the last hour; adding another $500 keeps me within the risk layer's $2,406 buy-to-cover cap while modestly increasing the position. This trade also helps reduce the book's +22.5% net long exposure toward zero, which is prudent near the 25% net cap.",
+      "cost_usd": 0.749987
     }
   ],
   "equity_at_day_start_usd": 98007.18303378261,
