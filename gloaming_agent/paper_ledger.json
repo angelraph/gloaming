@@ -1,12 +1,12 @@
 {
-  "cash_usd": 81356.5745677356,
+  "cash_usd": 81855.8147824356,
   "positions": {
     "RGOOGLUSDT": 1.8379000000000147,
     "RMSFTUSDT": -12.0477,
     "RSPYUSDT": 8.5369,
     "RQQQUSDT": 9.849999999999998,
     "RMETAUSDT": 1.2556999999999958,
-    "RNVDAUSDT": 26.436299999999996,
+    "RNVDAUSDT": 24.233699999999995,
     "RTSLAUSDT": 2.4581000000000093,
     "RAAPLUSDT": 0.03599999999999959,
     "RAMZNUSDT": 2.003
@@ -7205,6 +7205,16 @@
       "notional_usd": 500.00787099999997,
       "rationale": "[Qwen3.8-max] The +1.94% spread (rToken +1.03% vs fair value -0.91%) over 63 hours is large enough to clear the 0.30% round-trip cost, and all three proxies have moved negatively since Friday's close while the rToken drifted higher, suggesting a genuine weekend dislocation rather than company-specific news. I am selling $500 to continue fading this rich print, consistent with my last three sells (most recent 1.5h ago), but keeping size small because the book is already net long +17.5% of equity and adding short here helps reduce that exposure toward the 25% net cap.",
       "cost_usd": 0.750012
+    },
+    {
+      "timestamp": "2026-09-28T11:47:44.806399+00:00",
+      "symbol": "RNVDAUSDT",
+      "side": "sell",
+      "qty": 2.2026,
+      "price": 227.0,
+      "notional_usd": 499.99019999999996,
+      "rationale": "[Qwen3.8-max] The +1.69% spread (rToken +0.86% vs fair value -0.83%) over 63.8 hours exceeds the 0.30% round-trip cost, and the rToken is trading $3.79 above the proxy-implied fair value of $223.21 while all three proxies are negative. I am continuing the recent pattern of $500 sells (three in the last 18.5h) to trim the existing $6,001 long position, which also helps reduce the book's +17.0% net exposure toward zero; sizing stays at $500 because the backtest shows spreads tend to continue (+0.25 correlation) rather than revert, so this is a conservative lean against the dislocation, not a high-conviction fade.",
+      "cost_usd": 0.749985
     }
   ],
   "equity_at_day_start_usd": 98007.18303378261,
