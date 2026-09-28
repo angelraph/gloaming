@@ -1,8 +1,20 @@
 # Submission form answers (paste-ready)
 
-Form: https://forms.gle/GyWZCMCPocgJdJon6 (Bitget AI Trading Competition Submission Form).
-**Deadline: October 8, 23:59 (UTC+8).** One response per project; this team enters two
-independent projects, so submit this twice, once per section below.
+Form: https://forms.gle/GyWZCMCPocgJdJon6 (Bitget AI Trading Competition Submission Form). One
+response per project; this team enters two independent projects, so submit this twice, once per
+section below.
+
+**Deadline - unresolved conflict, checked live Sept 28:** the form itself states "October 8, 23:59
+(UTC+8)"; the Developer Handbook (bitget-ai.gitbook.io/bitgetai_hackathons2) states September 27,
+with public voting running through Sept 28 and winners announced Oct 8. See
+[docs/x_post_draft.md](x_post_draft.md) for the full detail. Check the official Telegram or
+@Bitget_AI for an extension announcement; if you can't confirm quickly, submit now regardless -
+the form is live and accepting responses either way.
+
+**The X Promotional Post is required and has an exact form** (quoted from the live handbook):
+quote-tweet https://x.com/Bitget_AI/status/2100519318824055159, write your own introduction of the
+project in the quote text, and include `#BitgetHackathon` and `@Bitget_AI` in that text. A bare
+retweet or a reply does not satisfy this. Draft text: [docs/x_post_draft.md](x_post_draft.md).
 
 Every figure is labeled **observed** (measured from the real record), **estimated** (a stated
 assumption applied to observed data) or **targeted** (a goal, not a result). Numbers were
