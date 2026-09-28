@@ -1,5 +1,5 @@
 {
-  "cash_usd": 80358.06535158062,
+  "cash_usd": 80857.31670854212,
   "positions": {
     "RGOOGLUSDT": 1.8379000000000147,
     "RMSFTUSDT": -12.0477,
@@ -8,7 +8,7 @@
     "RMETAUSDT": 1.2556999999999958,
     "RNVDAUSDT": 28.635199999999998,
     "RTSLAUSDT": 2.4581000000000093,
-    "RAAPLUSDT": 1.5036999999999996,
+    "RAAPLUSDT": 0.03599999999999959,
     "RAMZNUSDT": 2.003
   },
   "fills": [
@@ -7185,6 +7185,16 @@
       "notional_usd": 499.99968,
       "rationale": "[Qwen3.8-max] The rToken is -0.11% from Friday's close while proxies justify -0.94%, creating a +0.83% spread (rToken ~$1.86 rich vs fair value $222.96) that comfortably exceeds the 0.30% round-trip cost. I am already long $6,938 (7.1% of equity) and book net exposure is +18.4% toward the 25% cap, so selling aligns with my recent pattern of three $500 sells over the past 30 hours to trim this overvaluation. Sizing conservatively at $500 because the 61.5-hour weekend window leaves room for unobserved company-specific news and further proxy drift.",
       "cost_usd": 0.75
+    },
+    {
+      "timestamp": "2026-09-28T09:47:21.098501+00:00",
+      "symbol": "RAAPLUSDT",
+      "side": "sell",
+      "qty": 1.4677,
+      "price": 340.67,
+      "notional_usd": 500.00135900000004,
+      "rationale": "[Qwen3.8-max] The rToken is -0.12% from Friday's close while proxies justify -0.96%, creating a +0.84% spread that exceeds the 0.30% round-trip cost, suggesting the rToken is overpriced relative to fair value (~$337.81). Selling $500 trims the existing long and modestly reduces the book's +17.9% net exposure toward the 25% cap. Confidence is tempered by recent churn (two buys and a sell in the last hour) and the possibility this reflects idiosyncratic weekend news rather than pure mispricing.",
+      "cost_usd": 0.750002
     }
   ],
   "equity_at_day_start_usd": 98007.18303378261,
