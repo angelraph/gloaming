@@ -1,14 +1,14 @@
 {
-  "cash_usd": 79359.56956724763,
+  "cash_usd": 80358.06535158062,
   "positions": {
     "RGOOGLUSDT": 1.8379000000000147,
     "RMSFTUSDT": -12.0477,
     "RSPYUSDT": 8.5369,
     "RQQQUSDT": 9.849999999999998,
     "RMETAUSDT": 1.2556999999999958,
-    "RNVDAUSDT": 30.859199999999998,
+    "RNVDAUSDT": 28.635199999999998,
     "RTSLAUSDT": 2.4581000000000093,
-    "RAAPLUSDT": 2.9715999999999996,
+    "RAAPLUSDT": 1.5036999999999996,
     "RAMZNUSDT": 2.003
   },
   "fills": [
@@ -7165,6 +7165,26 @@
       "notional_usd": 500.00187600000004,
       "rationale": "[Qwen3.8-max] The rToken is only -0.10% from Friday's close while proxies justify -0.97%, creating a +0.87% spread that exceeds the 0.30% round-trip cost, suggesting the rToken is underpriced relative to the weekend macro moves. Book net exposure is already elevated at +18.4% (cap 25%), so I am sizing conservatively at $500 rather than maxing out, which modestly adds to longs but stays within limits. Recent fills show choppy back-and-forth trading; this small buy aligns with the mean-reversion edge without overcommitting.",
       "cost_usd": 0.750003
+    },
+    {
+      "timestamp": "2026-09-28T09:32:14.908456+00:00",
+      "symbol": "RAAPLUSDT",
+      "side": "sell",
+      "qty": 1.4679,
+      "price": 340.62,
+      "notional_usd": 499.996098,
+      "rationale": "[Qwen3.8-max] The rToken is at $340.62, only -0.13% from Friday's close, while proxies justify a -0.94% move to ~$337.87, leaving an +0.81% spread where the rToken is overpriced relative to fair value. This 0.81% edge clears the 0.30% round-trip cost, but I am sizing conservatively at $500 because the book is already net long +18.9% (near the 25% cap) and my recent fills show choppy buy/sell activity in this symbol; selling trims the position and reduces net exposure toward zero.",
+      "cost_usd": 0.749994
+    },
+    {
+      "timestamp": "2026-09-28T09:32:40.386768+00:00",
+      "symbol": "RNVDAUSDT",
+      "side": "sell",
+      "qty": 2.224,
+      "price": 224.82,
+      "notional_usd": 499.99968,
+      "rationale": "[Qwen3.8-max] The rToken is -0.11% from Friday's close while proxies justify -0.94%, creating a +0.83% spread (rToken ~$1.86 rich vs fair value $222.96) that comfortably exceeds the 0.30% round-trip cost. I am already long $6,938 (7.1% of equity) and book net exposure is +18.4% toward the 25% cap, so selling aligns with my recent pattern of three $500 sells over the past 30 hours to trim this overvaluation. Sizing conservatively at $500 because the 61.5-hour weekend window leaves room for unobserved company-specific news and further proxy drift.",
+      "cost_usd": 0.75
     }
   ],
   "equity_at_day_start_usd": 98007.18303378261,
