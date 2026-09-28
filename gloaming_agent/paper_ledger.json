@@ -1,8 +1,8 @@
 {
-  "cash_usd": 74321.36284178261,
+  "cash_usd": 74820.63645630762,
   "positions": {
     "RGOOGLUSDT": 1.8379000000000147,
-    "RMSFTUSDT": -1.8798000000000012,
+    "RMSFTUSDT": -2.847900000000001,
     "RSPYUSDT": 8.5369,
     "RQQQUSDT": 9.849999999999998,
     "RMETAUSDT": 0.9965999999999959,
@@ -6845,6 +6845,16 @@
       "notional_usd": 499.991828,
       "rationale": "[Qwen3.8-max] The -0.64% spread (rToken at -0.60% vs fair value +0.04%) exceeds the 0.30% round-trip cost, justifying a trade, and selling reduces book net exposure from +24.6% toward the 25% cap while aligning with my recent pattern of three $500 sells over the past 69 hours. However, I size conservatively at $500 because NVDA-specific weekend news could explain the divergence that broad proxies cannot capture, and adding to an already 7.6%-of-equity long position requires caution near the net exposure limit.",
       "cost_usd": 0.749988
+    },
+    {
+      "timestamp": "2026-09-28T02:47:46.238050+00:00",
+      "symbol": "RMSFTUSDT",
+      "side": "sell",
+      "qty": 0.9681,
+      "price": 516.5,
+      "notional_usd": 500.02365,
+      "rationale": "[Qwen3.8-max] The rToken is +0.06% from Friday's close while proxies justify -0.56%, creating a +0.63% spread that exceeds the 0.30% round-trip cost, suggesting the rToken is overpriced relative to fair value ($513.27). Selling adds to my existing $971 short and aligns with my three recent sells ~50h ago, while also helping reduce the book's +24.1% net exposure which is near the 25% cap. I size conservatively at $500 given the wide weekend window where company-specific news could explain the divergence.",
+      "cost_usd": 0.750035
     }
   ],
   "equity_at_day_start_usd": 98007.18303378261,
