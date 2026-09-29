@@ -1,5 +1,5 @@
 {
-  "cash_usd": 82604.6872212831,
+  "cash_usd": 82103.93036100808,
   "positions": {
     "RGOOGLUSDT": 1.8379000000000147,
     "RMSFTUSDT": -12.0477,
@@ -8,7 +8,7 @@
     "RMETAUSDT": 1.2556999999999958,
     "RNVDAUSDT": 20.963599999999996,
     "RTSLAUSDT": 2.4581000000000093,
-    "RAAPLUSDT": 0.03599999999999959,
+    "RAAPLUSDT": 1.5185999999999995,
     "RAMZNUSDT": 2.003
   },
   "fills": [
@@ -7225,6 +7225,16 @@
       "notional_usd": 749.9974349999999,
       "rationale": "[Qwen3.8-max] The +2.52% spread (rToken +1.90% vs fair value -0.62%) over 64.8 hours is large enough to clear the 0.30% round-trip cost, and all three proxies are negative while the rToken has drifted higher, suggesting an unjustified weekend dislocation rather than company-specific news. I am selling $750 to fade this rich print, which aligns with my last three fills (all sells within 3.2h) and helps trim the book's +16.6% net exposure toward zero; sizing conservatively at $750 given the backtest's tendency for spreads to slightly continue rather than revert.",
       "cost_usd": 1.124996
+    },
+    {
+      "timestamp": "2026-09-29T12:02:15.676215+00:00",
+      "symbol": "RAAPLUSDT",
+      "side": "buy",
+      "qty": 1.4826,
+      "price": 337.25,
+      "notional_usd": 500.00685,
+      "rationale": "[Qwen3.8-max] The -1.04% spread (rToken -0.34% vs fair value +0.70%) over 16 hours clears the 0.30% round-trip cost, suggesting RAAPL is underpriced relative to the +0.42% index futures and +1.68% crypto beta moves since Monday's close. However, the backtest shows spreads like this average -37.6bp after costs and tend to continue rather than revert (+0.25 correlation), so I am sizing conservatively at $500. Adding long exposure pushes book net from +15.8% toward the 25% cap, but remains within limits and matches the scale of my recent fills in this symbol.",
+      "cost_usd": 0.75001
     }
   ],
   "equity_at_day_start_usd": 98058.6926582831,
