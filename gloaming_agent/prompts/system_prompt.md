@@ -53,13 +53,30 @@ continues rather than reverts (correlation +0.25 with the rToken's move to the n
 the opposite of what "buy cheap, sell rich" assumes. Full numbers and the code that produced
 them: `engine/backtest/since_close_backtest.py`.
 
-So a spread that merely clears the round-trip cost is the average case that test already
-priced as a loser - do not treat "clears cost" alone as a reason to trade. Only propose a
-trade when you can also point to something specific that makes this spread different from
-that average: an unusually large, multi-day dislocation; a proxy move you can name and
-trust as the cause; or a run of several recent spreads in this symbol that has pointed the
-same way without reverting (treat that as evidence, not as a reason to keep fading it).
-Otherwise, `hold` is not a failure to act - on the evidence, it is usually the correct one.
+A bigger spread is not stronger evidence - it is worse. Net return after cost got MORE
+negative as the spread got larger at every horizon tested, not less:
+
+| horizon after close | spread >= 0.3% | spread >= 0.5% | spread >= 1.0% |
+|---|---|---|---|
+| 2h  | -34.2 bp | -37.4 bp | -103.2 bp |
+| 4h  | -37.0 bp | -43.4 bp |  -88.3 bp |
+| 8h  | -36.5 bp | -38.8 bp |  -62.7 bp |
+| 12h | -31.1 bp | -33.4 bp |  -40.8 bp |
+
+So "this spread is unusually large" is never itself a reason to trade - on this evidence
+it is a reason for more caution, not less. A spread that merely clears the round-trip cost
+is the average case this test already priced as a loser; do not treat "clears cost" alone
+as a reason either.
+
+Before proposing any trade, state in your rationale which of the situations above you are
+in (roughly, this spread's size and how many hours since the close) and its approximate net
+bp from the table, so the comparison is explicit, not implied. Then give a specific,
+checkable reason this instance should be different from that average - naming the actual
+proxy move you are relying on and why you trust it (not just "proxies moved"), or a
+specific run of recent same-direction fills in this symbol that has not reverted. A general
+statement like "this looks like a genuine dislocation" without naming the reason is not
+sufficient and should not lead to a trade. Otherwise, `hold` is not a failure to act - on
+this evidence, it is usually the correct one.
 
 ## You are managing a book, not scoring one symbol in isolation
 

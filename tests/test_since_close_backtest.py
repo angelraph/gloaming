@@ -94,3 +94,8 @@ def test_the_system_prompt_cites_the_pooled_edge_figure_from_the_checked_in_back
     assert f"{stat['mean_gross_bp']:.1f} basis points" in prompt
     assert f"{stat['mean_net_bp']:.1f} bp after" in prompt
     assert f"{round(stat['hit_rate'] * 100)}% of trades" in prompt
+
+    # the prompt's per-horizon/threshold table (bigger spread = worse, not better) must match
+    # the checked-in edge_live_weights entries it is drawn from, at the same rounding
+    for r in results["edge_live_weights"]:
+        assert f"{r['mean_net_bp']:.1f} bp" in prompt, f"h={r['h']} thr={r['threshold']} missing from the prompt's table"
