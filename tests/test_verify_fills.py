@@ -33,6 +33,12 @@ def test_most_recent_matching_minute_wins():
     r = verify_fills.classify(100.5, FILL_MINUTE, candles)
     assert r["status"] == "matched"
     assert r["lag_minutes"] == 3
+    assert r["stale"] is False
+
+
+def test_old_match_is_flagged_stale():
+    r = verify_fills.classify(100.5, FILL_MINUTE, [candle(587, 100.0, 101.0), candle(0, 102.0, 103.0)])
+    assert (r["status"], r["lag_minutes"], r["stale"]) == ("matched", 587, True)
 
 
 def test_price_never_traded_is_a_mismatch_with_distance():
@@ -48,7 +54,7 @@ def test_no_candles_is_no_data():
 def test_summary_counts_every_outcome_and_pending():
     rows = [
         {"status": "matched", "lag_minutes": 0},
-        {"status": "matched", "lag_minutes": 4},
+        {"status": "matched", "lag_minutes": 40},
         {"status": "matched", "lag_minutes": 1},
         {"status": "mismatch"},
         {"status": "no_data"},
@@ -56,4 +62,5 @@ def test_summary_counts_every_outcome_and_pending():
     s = verify_fills.summarize(rows, total_fills=7)
     assert (s["checked"], s["pending"]) == (5, 2)
     assert (s["matched"], s["mismatch"], s["no_data"]) == (3, 1, 1)
-    assert (s["median_lag_minutes"], s["max_lag_minutes"]) == (1, 4)
+    assert (s["median_lag_minutes"], s["max_lag_minutes"]) == (1, 40)
+    assert s["stale"] == 1

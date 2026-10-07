@@ -5,12 +5,16 @@ can be verified by anyone rather than taken on trust.
 A fill's price is the rToken's lastPrice from the live Bitget ticker, taken at the start
 of the cycle; the fill's timestamp is written a little later, after Qwen has answered.
 So for each fill this script asks Bitget's public 1-minute candle endpoint for the
-WINDOW_MINUTES minutes up to and including the fill's minute, and records the most recent
-minute whose traded range [low, high] contains the fill price.
+WINDOW_MINUTES most recent traded minutes up to and including the fill's minute, and
+records the most recent minute whose traded range [low, high] contains the fill price.
+Bitget omits minutes with no trades, so on a quiet symbol that window can reach back
+hours; a match older than STALE_MINUTES is counted as stale: the price was really traded,
+but not recently, so a real order at that moment might not have filled there.
 
 Results, one per fill:
   matched   - the price sits inside a real Bitget minute's traded range in the window;
-              `lag_minutes` says how many minutes before the fill's own minute that was
+              `lag_minutes` says how many minutes before the fill's own minute that was,
+              and `stale` is true when that is more than STALE_MINUTES
   mismatch  - no minute in the window traded at that price; `nearest_bp` is how far the
               price sits outside the closest minute's range, in basis points
   no_data   - Bitget returned no candles for the window
@@ -38,6 +42,7 @@ VERIFICATION_PATH = HERE / "fill_verification.json"
 
 CANDLES_URL = "https://api.bitget.com/api/v2/spot/market/history-candles"
 WINDOW_MINUTES = 20
+STALE_MINUTES = 15  # one agent cycle
 MIN_AGE_SECONDS = 120  # the fill's own minute candle must be closed before it is checked
 REQUEST_PAUSE_SECONDS = 0.12  # well under Bitget's public rate limit
 RETRIES = 4
@@ -89,9 +94,11 @@ def classify(price: float, fill_minute_ms: int, candles: list[dict]) -> dict:
         return {"status": "no_data"}
     for c in reversed(candles):  # most recent minute first
         if c["low"] <= price <= c["high"]:
+            lag = (fill_minute_ms - c["minute_ms"]) // 60_000
             return {
                 "status": "matched",
-                "lag_minutes": (fill_minute_ms - c["minute_ms"]) // 60_000,
+                "lag_minutes": lag,
+                "stale": lag > STALE_MINUTES,
                 "candle_minute": datetime.fromtimestamp(c["minute_ms"] / 1000, timezone.utc).isoformat(),
                 "candle_low": c["low"],
                 "candle_high": c["high"],
@@ -115,11 +122,13 @@ def summarize(rows: list[dict], total_fills: int) -> dict:
     return {
         "checked_at": datetime.now(timezone.utc).isoformat(),
         "source": CANDLES_URL + " (granularity=1min, public)",
-        "window_minutes": WINDOW_MINUTES,
+        "window_traded_minutes": WINDOW_MINUTES,
+        "stale_after_minutes": STALE_MINUTES,
         "total_fills": total_fills,
         "checked": len(rows),
         "pending": total_fills - len(rows),
         **counts,
+        "stale": sum(1 for r in rows if r["status"] == "matched" and r["lag_minutes"] > STALE_MINUTES),
         "median_lag_minutes": lags[len(lags) // 2] if lags else None,
         "max_lag_minutes": lags[-1] if lags else None,
     }

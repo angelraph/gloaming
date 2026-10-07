@@ -271,6 +271,7 @@ export type FillCheck = {
   price: number;
   status: "matched" | "mismatch" | "no_data";
   lag_minutes?: number;
+  stale?: boolean;
   nearest_bp?: number;
   candle_minute?: string;
   candle_low?: number;
@@ -280,7 +281,9 @@ export type FillVerification = {
   summary: {
     checked_at: string;
     source: string;
-    window_minutes: number;
+    window_traded_minutes: number;
+    stale_after_minutes: number;
+    stale: number;
     total_fills: number;
     checked: number;
     pending: number;

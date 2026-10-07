@@ -33,6 +33,8 @@ export default function FillVerificationPanel() {
   }
 
   const s = data.summary;
+  const staleAfter = s.stale_after_minutes ?? 15;
+  const stale = s.stale ?? data.exceptions.filter((f) => f.status === "matched").length;
   const rows: Array<[string, FillCheck]> = [
     ...data.exceptions.map((f) => ["exception", f] as [string, FillCheck]),
     ...data.sample.map((f) => ["sample", f] as [string, FillCheck]),
@@ -45,7 +47,11 @@ export default function FillVerificationPanel() {
           label="Matched Bitget"
           value={`${s.matched} of ${s.checked}`}
           tone={s.matched === s.checked ? "positive" : undefined}
-          sub={`fill price inside a real Bitget minute's traded range`}
+          sub={
+            s.pending > 0
+              ? `fill price inside a real Bitget minute's traded range; ${s.pending} more still to be checked`
+              : "fill price inside a real Bitget minute's traded range"
+          }
         />
         <StatTile
           label="Did not match"
@@ -54,9 +60,9 @@ export default function FillVerificationPanel() {
           sub={`${s.mismatch} outside every minute's range, ${s.no_data} with no candles; listed below`}
         />
         <StatTile
-          label="Price age at fill"
-          value={s.median_lag_minutes === null ? "n/a" : `${s.median_lag_minutes} min median`}
-          sub={`latest ${s.max_lag_minutes ?? "n/a"} min; window ${s.window_minutes} min. Checked ${fmtDate(s.checked_at)}`}
+          label="Stale price"
+          value={String(stale)}
+          sub={`matched, but the last Bitget trade at that price was over ${staleAfter} min before the fill (median ${s.median_lag_minutes ?? "n/a"} min). Listed below`}
         />
       </div>
 
@@ -84,9 +90,11 @@ export default function FillVerificationPanel() {
                   <td className="px-4 py-3 text-right tabular-nums text-text-secondary">
                     {f.candle_low !== undefined ? `${f.candle_low} to ${f.candle_high}` : "none"}
                   </td>
-                  <td className={`px-4 py-3 ${kind === "exception" ? "text-negative" : "text-positive"}`}>
+                  <td className={`px-4 py-3 ${kind === "exception" ? "text-warning" : "text-positive"}`}>
                     {f.status === "matched"
-                      ? `matched, ${utcMinute(f.candle_minute!)}`
+                      ? kind === "exception"
+                        ? `stale: last traded ${f.lag_minutes} min before, ${utcMinute(f.candle_minute!)}`
+                        : `matched, ${utcMinute(f.candle_minute!)}`
                       : f.status === "mismatch"
                         ? `${f.nearest_bp} bp outside the nearest minute`
                         : "Bitget returned no candles"}
@@ -100,7 +108,7 @@ export default function FillVerificationPanel() {
 
       <p className="mt-4 max-w-3xl text-sm leading-relaxed text-text-secondary">
         {data.exceptions.length > 0
-          ? "Every fill that did not match is listed above, followed by the five most recent matches. "
+          ? "Every fill that did not match or matched only a stale price is listed above, followed by the five most recent clean matches. Bitget leaves out minutes with no trades, so on a quiet night the last trade can be hours old. "
           : "The five most recent fills are shown above. "}
         The candles come from Bitget&apos;s public market-data endpoint, which needs no account or key, so anyone can
         rerun the{" "}
