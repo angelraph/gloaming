@@ -27,8 +27,8 @@ for how one decision moves from a live snapshot to a filled paper trade.
   so the history is public and checkable.
 - **Qwen3.8-max as the decision-maker.** For each of nine symbols it reads a live
   snapshot, Bitget's own signal context and its own book, and returns buy, sell or hold
-  with a size, a stop and a written reason. About 91% of all logged decisions came from
-  Qwen; the rest are the disclosed rule-based fallback.
+  with a size, a stop and a written reason. About 95% of all logged decisions (16,368 of
+  17,200 through Oct 7) came from Qwen; the rest are the disclosed rule-based fallback.
 - **A non-LLM risk layer.** Per-symbol, gross and net exposure caps, a daily loss
   breaker, a per-trade loss limit, volatility-scaled sizing and no leverage, enforced in
   code before any paper fill. See [docs/risk_controls.md](docs/risk_controls.md).

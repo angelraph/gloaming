@@ -63,6 +63,16 @@ export default function AgentView() {
         <div className="mt-10">
           <LatestCycleGrid events={events} />
         </div>
+        <div className="mt-6 rounded-xl border border-border-subtle bg-layer-1 p-5">
+          <h3 className="text-sm font-medium text-heading">Why it can go days without a trade</h3>
+          <p className="mt-2 text-sm leading-relaxed text-text-secondary">
+            Holding is a decision, not an outage. Every fill is charged an assumed 0.15%, so a round trip costs about
+            0.30%, and Qwen is told so. On most nights the spread against fair value sits well under 0.1%: too small to
+            pay for itself. When that happens, Qwen holds and writes down why, and the agent keeps running every 15
+            minutes. Open any hold in the feed below to read its reason. An agent that trades only when the trade can
+            pay for its costs will sit still for long stretches, and that is the intended behavior.
+          </p>
+        </div>
       </Band>
 
       <Band label="Risk limits">
