@@ -163,9 +163,207 @@ details[open] .faq-plus {
   transform: rotate(45deg);
 }
 
+/* ---------------------------------------------------------------------------
+   Motion. One vocabulary for the whole landing page: things rise out of the dark,
+   light travels along a path, and the only continuous motion is slow, like dusk.
+   Every keyframe below is switched off by the reduced-motion rule at the end.
+   --------------------------------------------------------------------------- */
+
+/* Scroll reveal (components/motion/Reveal.tsx) */
+.reveal {
+  opacity: 0;
+  transform: translateY(18px);
+  transition:
+    opacity 0.9s cubic-bezier(0.2, 0.7, 0.2, 1) var(--reveal-delay, 0ms),
+    transform 0.9s cubic-bezier(0.2, 0.7, 0.2, 1) var(--reveal-delay, 0ms);
+}
+.reveal[data-shown="true"] {
+  opacity: 1;
+  transform: none;
+}
+
+/* Headline: each word rises from behind its own baseline */
+.word-mask {
+  display: inline-block;
+  overflow: hidden;
+  vertical-align: bottom;
+  padding-bottom: 0.08em;
+  margin-bottom: -0.08em;
+}
+.word-rise {
+  display: inline-block;
+  transform: translateY(105%);
+  animation: word-rise 1.1s cubic-bezier(0.2, 0.75, 0.15, 1) forwards;
+  animation-delay: var(--word-delay, 0ms);
+}
+@keyframes word-rise {
+  to {
+    transform: none;
+  }
+}
+
+.fade-in {
+  opacity: 0;
+  animation: fade-in 1.2s ease forwards;
+  animation-delay: var(--fade-delay, 0ms);
+}
+@keyframes fade-in {
+  to {
+    opacity: 1;
+  }
+}
+
+/* The dusk behind the hero: a low copper glow that breathes very slowly */
+.dusk-sky {
+  background:
+    radial-gradient(60% 55% at 72% 100%, rgba(204, 145, 102, 0.16), transparent 70%),
+    radial-gradient(40% 35% at 20% 100%, rgba(174, 147, 87, 0.08), transparent 70%);
+  animation: dusk-breathe 14s ease-in-out infinite alternate;
+}
+@keyframes dusk-breathe {
+  from {
+    opacity: 0.65;
+    transform: translateY(0);
+  }
+  to {
+    opacity: 1;
+    transform: translateY(-14px);
+  }
+}
+.dusk-horizon {
+  background: linear-gradient(90deg, transparent, rgba(204, 145, 102, 0.45) 35%, rgba(255, 240, 204, 0.5) 55%, transparent);
+}
+
+/* Dusk dial (components/home/DuskDial.tsx) */
+.dial-draw {
+  stroke-dasharray: var(--len) var(--len);
+  stroke-dashoffset: var(--len);
+  animation: dial-draw 1.8s cubic-bezier(0.3, 0.6, 0.1, 1) forwards;
+  animation-delay: var(--draw-delay, 0ms);
+}
+@keyframes dial-draw {
+  to {
+    stroke-dashoffset: 0;
+  }
+}
+.dial-glow {
+  animation: dial-glow 6s ease-in-out infinite alternate;
+}
+@keyframes dial-glow {
+  from {
+    opacity: 0.35;
+  }
+  to {
+    opacity: 0.85;
+  }
+}
+.pulse-ring {
+  transform-box: fill-box;
+  transform-origin: center;
+  animation: pulse-ring 2.4s ease-out infinite;
+}
+@keyframes pulse-ring {
+  from {
+    transform: scale(1);
+    opacity: 0.7;
+  }
+  to {
+    transform: scale(3.2);
+    opacity: 0;
+  }
+}
+
+/* Trade tape (components/home/TradeTape.tsx) */
+.tape-track {
+  animation: tape-scroll var(--tape-duration, 60s) linear infinite;
+}
+.tape:hover .tape-track,
+.tape:focus-within .tape-track {
+  animation-play-state: paused;
+}
+@keyframes tape-scroll {
+  to {
+    transform: translateX(-50%);
+  }
+}
+.tape-fade {
+  mask-image: linear-gradient(90deg, transparent, #000 6%, #000 94%, transparent);
+}
+
+/* The loop (components/home/LoopFlow.tsx): light travels the path, each step wakes in turn */
+.loop-light {
+  background: linear-gradient(90deg, transparent, rgba(255, 240, 204, 0.9), var(--copper), transparent);
+  /* linear, so the light reaches step i at a fixed time the step glows can be timed to */
+  animation: loop-travel 7.5s linear infinite;
+}
+@keyframes loop-travel {
+  from {
+    transform: translateX(-130%);
+  }
+  to {
+    transform: translateX(430%);
+  }
+}
+.loop-node {
+  animation: loop-wake 7.5s ease-in-out infinite;
+  animation-delay: var(--node-delay, 0ms);
+}
+@keyframes loop-wake {
+  0%,
+  100% {
+    border-color: var(--border-subtle);
+    background: var(--layer-1);
+  }
+  8%,
+  18% {
+    border-color: rgba(204, 145, 102, 0.6);
+    background: var(--layer-2);
+  }
+  30% {
+    border-color: var(--border-subtle);
+    background: var(--layer-1);
+  }
+}
+
+/* Cards that lift a hairline of light on hover */
+.lift {
+  transition:
+    transform 0.4s cubic-bezier(0.2, 0.7, 0.2, 1),
+    border-color 0.3s ease,
+    background-color 0.3s ease;
+}
+.lift:hover {
+  transform: translateY(-3px);
+}
+
 @media (prefers-reduced-motion: reduce) {
   html {
     scroll-behavior: auto;
+  }
+  .reveal,
+  .word-rise,
+  .fade-in {
+    opacity: 1;
+    transform: none;
+  }
+  .dial-draw {
+    stroke-dashoffset: 0;
+  }
+  .tape-track,
+  .loop-light,
+  .dusk-sky,
+  .dial-glow,
+  .pulse-ring {
+    animation: none !important;
+  }
+  .pulse-ring {
+    opacity: 0;
+  }
+  .tape-scroller {
+    overflow-x: auto;
+  }
+  .lift:hover {
+    transform: none;
   }
   *,
   *::before,
