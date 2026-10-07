@@ -2,7 +2,8 @@
 
 import { useEffect, useRef, useState } from "react";
 
-// Fades and lifts its children into place the first time they scroll into view. `delay`
+// Fades and lifts its children into place as they scroll into view, and fades them out
+// again as they leave. `delay`
 // staggers siblings (in ms). With reduced motion the global rule in globals.css makes the
 // transition instant, so content simply appears.
 export default function Reveal({
@@ -24,10 +25,8 @@ export default function Reveal({
     if (!el) return;
     const io = new IntersectionObserver(
       (entries) => {
-        if (entries.some((e) => e.isIntersecting)) {
-          setShown(true);
-          io.disconnect();
-        }
+        // in as it enters, out again as it leaves, in either direction
+        setShown(entries[entries.length - 1].isIntersecting);
       },
       { rootMargin: "0px 0px -8% 0px", threshold: 0.08 },
     );

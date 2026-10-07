@@ -5,7 +5,6 @@ import { Fragment, useEffect, useState } from "react";
 import { useDeskData } from "@/lib/useDeskData";
 import { fmtSignedPct, fmtSignedUsd, fmtUsd } from "@/lib/format";
 import { Band, Container } from "@/components/Container";
-import SectionHeader from "@/components/SectionHeader";
 import LatestCycleGrid from "@/components/LatestCycleGrid";
 import VerifyPanel from "@/components/VerifyPanel";
 import DataNotice from "@/components/DataNotice";
@@ -14,6 +13,11 @@ import CountUp from "@/components/motion/CountUp";
 import DuskDial from "@/components/home/DuskDial";
 import TradeTape from "@/components/home/TradeTape";
 import LoopFlow from "@/components/home/LoopFlow";
+import ReasonRotator from "@/components/home/ReasonRotator";
+import DuskDust from "@/components/motion/DuskDust";
+import Spotlight from "@/components/motion/Spotlight";
+import ScrollProgress from "@/components/motion/ScrollProgress";
+import RevealTitle from "@/components/motion/RevealTitle";
 
 // Mirrors gloaming_agent/paper_ledger.py STARTING_EQUITY_USD.
 const STARTING_EQUITY_USD = 100_000;
@@ -81,10 +85,13 @@ export default function HomeView() {
 
   return (
     <>
+      <ScrollProgress />
+      <Spotlight />
       <section className="relative overflow-hidden">
         {/* dusk: a low copper light on the horizon, breathing slowly */}
         <div aria-hidden className="dusk-sky pointer-events-none absolute inset-x-0 bottom-0 h-[85%]" />
         <div aria-hidden className="dusk-horizon pointer-events-none absolute inset-x-0 bottom-0 h-px" />
+        <DuskDust />
 
         <Container className="relative pb-14 pt-12 sm:pt-16 lg:pb-16 lg:pt-20">
           {error && (
@@ -103,7 +110,10 @@ export default function HomeView() {
                   <Fragment key={i}>
                     <span aria-hidden className="word-mask">
                       <span className="word-rise" style={{ "--word-delay": `${150 + i * 90}ms` } as React.CSSProperties}>
-                        {w}
+                        {/* each word carries the same sweep a beat later, so the light travels the line */}
+                        <span className="shimmer-text" style={{ animationDelay: `${1.8 + i * 0.11}s` }}>
+                          {w}
+                        </span>
                       </span>
                     </span>
                     {i < words.length - 1 ? " " : ""}
@@ -118,7 +128,7 @@ export default function HomeView() {
               <div className="fade-in mt-9 flex flex-wrap gap-3" style={{ "--fade-delay": "1000ms" } as React.CSSProperties}>
                 <Link
                   href="/desk"
-                  className="inline-flex min-h-11 items-center rounded-full bg-heading px-6 text-sm font-medium tracking-wide text-background transition-colors hover:bg-text-primary"
+                  className="btn-shine inline-flex min-h-11 items-center rounded-full bg-heading px-6 text-sm font-medium tracking-wide text-background transition-colors hover:bg-text-primary"
                 >
                   Open the desk
                 </Link>
@@ -244,33 +254,40 @@ export default function HomeView() {
         </Container>
       </section>
 
+      <Band label="In Qwen's words">
+        <RevealTitle
+          eyebrow="In Qwen's words"
+          title="Why it traded, in its own reasoning."
+          description="The written reasons Qwen gave for its most recent real fills, unedited apart from length. Hover to hold one."
+        />
+        <Reveal delay={150} className="mt-10">
+          <ReasonRotator />
+        </Reveal>
+      </Band>
+
       <Band label="One decision">
-        <Reveal>
-          <SectionHeader
+        <RevealTitle
             eyebrow="One decision, end to end"
             title="Observe, decide, gate, execute, record."
             description="Every fifteen minutes, for each of nine symbols. This is the newest real record, followed through the loop."
           />
-        </Reveal>
         <Reveal delay={150} className="mt-10">
           <LoopFlow events={events} />
         </Reveal>
       </Band>
 
       <Band label="Two tracks">
-        <Reveal>
-          <SectionHeader
+        <RevealTitle
             eyebrow="One engine, two submissions"
             title="An agent that trades, and a desk that explains."
             description="Both are built on the same overnight signal. The agent acts inside hard limits; the desk only recommends and explains, and never places a trade."
           />
-        </Reveal>
         <ul className="mt-10 grid gap-4 md:grid-cols-2">
           {TRACKS.map((t, i) => (
             <Reveal as="li" key={t.href} delay={i * 140}>
               <Link
                 href={t.href}
-                className="lift group block h-full rounded-xl border border-border-subtle bg-layer-1 p-6 hover:border-copper/50 hover:bg-layer-2 sm:p-8"
+                className="lift spotlight group block h-full rounded-xl border border-border-subtle bg-layer-1 p-6 hover:border-copper/50 hover:bg-layer-2 sm:p-8"
               >
                 <span className="eyebrow">{t.eyebrow}</span>
                 <span className="font-display mt-4 block text-[30px] leading-tight text-heading">{t.title}</span>
@@ -286,8 +303,7 @@ export default function HomeView() {
       </Band>
 
       <Band label="Latest cycle">
-        <Reveal>
-          <SectionHeader
+        <RevealTitle
             eyebrow="Latest cycle"
             title="Nine symbols, checked every fifteen minutes."
             description={
@@ -296,20 +312,17 @@ export default function HomeView() {
                 : "Waiting for the first record."
             }
           />
-        </Reveal>
         <Reveal delay={150} className="mt-10">
           <LatestCycleGrid events={events} />
         </Reveal>
       </Band>
 
       <Band label="Verify it yourself">
-        <Reveal>
-          <SectionHeader
+        <RevealTitle
             eyebrow="Verify it yourself"
             title="Nothing here is asked to be taken on trust."
             description="Every number on this desk comes from files anyone can open: the decision log, the ledger, the runs that produced them, and the check of every fill against Bitget."
           />
-        </Reveal>
         <Reveal delay={150} className="mt-10">
           <VerifyPanel />
         </Reveal>

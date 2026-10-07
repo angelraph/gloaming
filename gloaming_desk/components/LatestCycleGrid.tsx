@@ -21,7 +21,7 @@ export default function LatestCycleGrid({ events }: { events: DecisionRecord[] }
           <li key={u}>
             <Link
               href={`/desk/${u}`}
-              className="block min-h-11 rounded-xl border border-border-subtle bg-layer-1 p-4 transition-colors hover:border-border-strong hover:bg-layer-2"
+              className="spotlight block min-h-11 rounded-xl border border-border-subtle bg-layer-1 p-4 transition-colors hover:border-border-strong hover:bg-layer-2"
             >
               <span className="flex items-baseline justify-between gap-2">
                 <span className="text-sm font-medium text-heading">{u}</span>

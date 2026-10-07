@@ -1,6 +1,6 @@
 "use client";
 
-import { useEffect, useState } from "react";
+import { useEffect, useRef, useState } from "react";
 import { isNyseClosed } from "@/lib/marketHours";
 
 // A 24-hour dial in New York time: noon at the top, midnight at the bottom. The thin grey
@@ -8,7 +8,7 @@ import { isNyseClosed } from "@/lib/marketHours";
 // gloaming, every hour the real market is shut and the agent is allowed to act. The hand is
 // now. The center holds whatever the page passes in (the live book).
 
-const SIZE = 440;
+const SIZE = 480; // room outside the ring for the labels and the outer orbit
 const C = SIZE / 2;
 const R = 190;
 const SESSION_OPEN = 9 * 60 + 30;
@@ -62,10 +62,15 @@ function nextCycle(now: Date) {
 
 export default function DuskDial({ children }: { children?: React.ReactNode }) {
   const [now, setNow] = useState<Date | null>(null);
+  const [still, setStill] = useState(true); // no comet until we know motion is welcome
+  const tiltRef = useRef<HTMLDivElement | null>(null);
 
   useEffect(() => {
     // first tick right after mount, so server and client render the same empty dial
-    const t = setTimeout(() => setNow(new Date()), 0);
+    const t = setTimeout(() => {
+      setNow(new Date());
+      setStill(window.matchMedia?.("(prefers-reduced-motion: reduce)").matches ?? false);
+    }, 0);
     const i = setInterval(() => setNow(new Date()), 1000);
     return () => {
       clearTimeout(t);
@@ -82,6 +87,20 @@ export default function DuskDial({ children }: { children?: React.ReactNode }) {
   const open = polar(SESSION_OPEN, R + 22);
   const close = polar(SESSION_CLOSE, R + 22);
 
+  const gloamPath = !ny ? "" : ny.weekend ? `M ${C} ${C + R} a ${R} ${R} 0 1 1 0.01 0` : arc(SESSION_CLOSE, SESSION_OPEN, R);
+
+  // the dial leans a few degrees toward the pointer
+  const onMove = (e: React.PointerEvent) => {
+    if (still || !tiltRef.current) return;
+    const r = tiltRef.current.getBoundingClientRect();
+    const x = (e.clientX - r.left) / r.width - 0.5;
+    const y = (e.clientY - r.top) / r.height - 0.5;
+    tiltRef.current.style.transform = `perspective(900px) rotateX(${(-y * 10).toFixed(2)}deg) rotateY(${(x * 10).toFixed(2)}deg)`;
+  };
+  const onLeave = () => {
+    if (tiltRef.current) tiltRef.current.style.transform = "";
+  };
+
   const status = !ny
     ? ""
     : ny.weekend
@@ -91,7 +110,8 @@ export default function DuskDial({ children }: { children?: React.ReactNode }) {
         : "NYSE open. The agent waits for the close";
 
   return (
-    <figure className="relative mx-auto w-full max-w-[440px]">
+    <figure className="relative mx-auto w-full max-w-[460px]" onPointerMove={onMove} onPointerLeave={onLeave}>
+      <div ref={tiltRef} className="dial-tilt relative">
       <svg viewBox={`0 0 ${SIZE} ${SIZE}`} className="w-full" role="img" aria-label={`24-hour New York clock. ${status}.`}>
         <defs>
           <linearGradient id="gloam" x1="0" y1="1" x2="1" y2="0">
@@ -99,10 +119,38 @@ export default function DuskDial({ children }: { children?: React.ReactNode }) {
             <stop offset="45%" stopColor="#fff0cc" />
             <stop offset="100%" stopColor="#cc9166" />
           </linearGradient>
+          <filter id="glow" x="-200%" y="-200%" width="500%" height="500%">
+            <feGaussianBlur stdDeviation="3" result="b" />
+            <feMerge>
+              <feMergeNode in="b" />
+              <feMergeNode in="SourceGraphic" />
+            </feMerge>
+          </filter>
           <filter id="soft" x="-20%" y="-20%" width="140%" height="140%">
             <feGaussianBlur stdDeviation="7" />
           </filter>
         </defs>
+
+        {/* outer orbit: a slow decorative ring with three bright points */}
+        <g className="fade-in" style={{ "--fade-delay": "900ms" } as React.CSSProperties}>
+        <g className="dial-orbit">
+          <circle cx={C} cy={C} r={R + 38} fill="none" stroke="#3a3c45" strokeWidth="1" strokeDasharray="1.5 6" />
+          {[0, 120, 240].map((deg) => {
+            const a = (deg * Math.PI) / 180;
+            return (
+              <circle
+                key={deg}
+                cx={Math.round((C + (R + 38) * Math.cos(a)) * 100) / 100}
+                cy={Math.round((C + (R + 38) * Math.sin(a)) * 100) / 100}
+                r={deg === 0 ? 3.2 : 2.2}
+                fill={deg === 0 ? "#fff0cc" : "#cc9166"}
+                opacity={deg === 0 ? 1 : 0.75}
+                filter={deg === 0 ? "url(#glow)" : undefined}
+              />
+            );
+          })}
+        </g>
+        </g>
 
         {/* hour ticks */}
         {Array.from({ length: 96 }).map((_, i) => {
@@ -145,7 +193,7 @@ export default function DuskDial({ children }: { children?: React.ReactNode }) {
         {ny && (
           <>
             <path
-              d={ny.weekend ? `M ${C} ${C + R} a ${R} ${R} 0 1 1 0.01 0` : arc(SESSION_CLOSE, SESSION_OPEN, R)}
+              d={gloamPath}
               fill="none"
               stroke="#cc9166"
               strokeWidth="12"
@@ -153,7 +201,7 @@ export default function DuskDial({ children }: { children?: React.ReactNode }) {
               className="dial-glow"
             />
             <path
-              d={ny.weekend ? `M ${C} ${C + R} a ${R} ${R} 0 1 1 0.01 0` : arc(SESSION_CLOSE, SESSION_OPEN, R)}
+              d={gloamPath}
               fill="none"
               stroke="url(#gloam)"
               strokeWidth="5"
@@ -162,6 +210,21 @@ export default function DuskDial({ children }: { children?: React.ReactNode }) {
               style={{ "--len": ny.weekend ? 2 * Math.PI * R : gloamingLen, "--draw-delay": "500ms" } as React.CSSProperties}
             />
           </>
+        )}
+
+        {/* a comet that keeps travelling the closed hours */}
+        {ny && !still && (
+          <g className="fade-in" style={{ "--fade-delay": "2200ms" } as React.CSSProperties}>
+            {/* the tail: twelve fading points trailing the head along the same path */}
+            {Array.from({ length: 12 }).map((_, i) => (
+              <circle key={i} r={Math.max(1, 5 - i * 0.35)} fill={i < 2 ? "#fff8e6" : "#cc9166"} opacity={Math.max(0.06, 1 - i * 0.085)}>
+                <animateMotion dur="9s" repeatCount="indefinite" path={gloamPath} begin={`${(i * 0.045).toFixed(3)}s`} />
+              </circle>
+            ))}
+            <circle r="14" fill="#fff0cc" opacity="0.4" filter="url(#soft)">
+              <animateMotion dur="9s" repeatCount="indefinite" path={gloamPath} />
+            </circle>
+          </g>
         )}
 
         {/* session labels */}
@@ -183,7 +246,8 @@ export default function DuskDial({ children }: { children?: React.ReactNode }) {
       </svg>
 
       {/* center content */}
-      <div className="absolute inset-0 flex flex-col items-center justify-center px-[19%] text-center">{children}</div>
+      <div className="absolute inset-0 flex flex-col items-center justify-center px-[22%] text-center">{children}</div>
+      </div>
 
       <figcaption className="mt-4 flex flex-wrap items-center justify-center gap-x-4 gap-y-1 text-xs text-text-tertiary">
         {ny ? (

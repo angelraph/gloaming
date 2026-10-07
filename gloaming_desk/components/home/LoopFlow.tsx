@@ -73,7 +73,7 @@ export default function LoopFlow({ events }: { events: DecisionRecord[] }) {
                 {i + 1}
               </span>
               <div
-                className="loop-node mt-0 flex-1 rounded-xl border p-5 lg:mt-5"
+                className="loop-node spotlight mt-0 flex-1 rounded-xl border p-5 lg:mt-5"
                 style={{ "--node-delay": `${0.35 + i * 1.34}s` } as React.CSSProperties}
               >
                 <h3 className="text-sm font-medium text-heading">

@@ -336,9 +336,169 @@ details[open] .faq-plus {
   transform: translateY(-3px);
 }
 
+/* Gilded shimmer: a band of light that sweeps across text every few seconds */
+.shimmer-text {
+  background: linear-gradient(
+    100deg,
+    var(--text-heading) 0%,
+    var(--text-heading) 40%,
+    #fff0cc 47%,
+    #cc9166 50%,
+    #fff0cc 53%,
+    var(--text-heading) 60%,
+    var(--text-heading) 100%
+  );
+  background-size: 250% 100%;
+  background-position: 100% 0;
+  -webkit-background-clip: text;
+  background-clip: text;
+  color: transparent;
+  animation: shimmer 7s ease-in-out 1.8s infinite;
+}
+@keyframes shimmer {
+  0% {
+    background-position: 100% 0;
+  }
+  45%,
+  100% {
+    background-position: 0% 0;
+  }
+}
+
+/* Qwen's reasoning (components/home/ReasonRotator.tsx): slides cross-fade, the leaving
+   one drifting up and blurring out, the arriving one rising from below */
+.reason-slide {
+  opacity: 0;
+  transform: translateY(14px);
+  filter: blur(6px);
+  pointer-events: none;
+  transition:
+    opacity 0.9s ease,
+    transform 0.9s cubic-bezier(0.2, 0.7, 0.2, 1),
+    filter 0.9s ease;
+}
+.reason-slide.is-active {
+  opacity: 1;
+  transform: none;
+  filter: none;
+  pointer-events: auto;
+  transition-delay: 0.35s;
+}
+.reason-progress {
+  width: 0;
+  animation: reason-progress 7s linear forwards;
+}
+@keyframes reason-progress {
+  to {
+    width: 100%;
+  }
+}
+
+/* Scroll progress (components/motion/ScrollProgress.tsx) */
+.scroll-progress {
+  background: linear-gradient(90deg, #ae9357, #fff0cc 50%, #cc9166);
+  box-shadow: 0 0 10px rgba(204, 145, 102, 0.6);
+}
+
+/* Section titles (components/motion/RevealTitle.tsx) */
+.eyebrow-rule {
+  background: linear-gradient(90deg, var(--copper), transparent);
+  transform: scaleX(0);
+  transform-origin: left;
+  transition: transform 1s cubic-bezier(0.2, 0.7, 0.2, 1);
+}
+.title-word {
+  display: inline-block;
+  transform: translateY(105%);
+  transition: transform 1s cubic-bezier(0.2, 0.75, 0.15, 1) var(--word-delay, 0ms);
+}
+.title-desc {
+  opacity: 0;
+  transform: translateY(10px);
+  transition:
+    opacity 0.9s ease var(--word-delay, 0ms),
+    transform 0.9s ease var(--word-delay, 0ms);
+}
+.title-reveal[data-shown="true"] .eyebrow-rule {
+  transform: scaleX(1);
+}
+.title-reveal[data-shown="true"] .title-word,
+.title-reveal[data-shown="true"] .title-desc {
+  opacity: 1;
+  transform: none;
+}
+
+/* Pointer spotlight (components/motion/Spotlight.tsx) */
+.spotlight {
+  position: relative;
+  isolation: isolate;
+}
+.spotlight::before {
+  content: "";
+  position: absolute;
+  inset: 0;
+  border-radius: inherit;
+  background: radial-gradient(320px circle at var(--mx, 50%) var(--my, 50%), rgba(204, 145, 102, 0.14), transparent 65%);
+  opacity: 0;
+  transition: opacity 0.35s ease;
+  pointer-events: none;
+  z-index: -1;
+}
+.spotlight:hover::before {
+  opacity: 1;
+}
+
+/* Primary button: a sweep of light on hover */
+.btn-shine {
+  position: relative;
+  overflow: hidden;
+  isolation: isolate;
+}
+.btn-shine::after {
+  content: "";
+  position: absolute;
+  inset: 0;
+  background: linear-gradient(110deg, transparent 30%, rgba(204, 145, 102, 0.45) 50%, transparent 70%);
+  transform: translateX(-120%);
+  transition: transform 0.8s cubic-bezier(0.2, 0.7, 0.2, 1);
+  z-index: -1;
+}
+.btn-shine:hover::after {
+  transform: translateX(120%);
+}
+
+/* Dial: a slow outer orbit, and the whole dial tilting toward the pointer */
+.dial-orbit {
+  transform-box: view-box;
+  transform-origin: 50% 50%;
+  animation: dial-orbit 90s linear infinite;
+}
+@keyframes dial-orbit {
+  to {
+    transform: rotate(360deg);
+  }
+}
+.dial-tilt {
+  transition: transform 0.6s cubic-bezier(0.2, 0.7, 0.2, 1);
+  transform-style: preserve-3d;
+}
+
 @media (prefers-reduced-motion: reduce) {
   html {
     scroll-behavior: auto;
+  }
+  .shimmer-text,
+  .dial-orbit {
+    animation: none !important;
+  }
+  .title-word,
+  .title-desc,
+  .eyebrow-rule {
+    opacity: 1;
+    transform: none;
+  }
+  .dial-tilt {
+    transform: none !important;
   }
   .reveal,
   .word-rise,
