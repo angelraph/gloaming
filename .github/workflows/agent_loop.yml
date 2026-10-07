@@ -86,11 +86,22 @@ jobs:
           KV_REST_API_TOKEN: ${{ secrets.KV_REST_API_TOKEN }}
         run: python gloaming_agent/agent_loop.py --run
 
+      - name: Verify fills against Bitget's public candles
+        # Checks only fills not yet in fill_verification.json, so most cycles make no
+        # requests at all. A failure here must never stop the ledger and log from saving.
+        continue-on-error: true
+        env:
+          KV_REST_API_URL: ${{ secrets.KV_REST_API_URL }}
+          KV_REST_API_TOKEN: ${{ secrets.KV_REST_API_TOKEN }}
+        run: python gloaming_agent/verify_fills.py --push
+
       - name: Commit updated ledger and decision log
         run: |
           git config user.name "gloaming-agent[bot]"
           git config user.email "actions@users.noreply.github.com"
           git add gloaming_agent/paper_ledger.json gloaming_agent/decision_log/*.jsonl
+          # absent only if the verification step failed before its first write
+          if [ -f gloaming_agent/fill_verification.json ]; then git add gloaming_agent/fill_verification.json; fi
           if git diff --staged --quiet; then
             echo "No ledger/log changes this cycle (market open, or no fills) - nothing to commit."
             exit 0

@@ -15,4 +15,5 @@ export const KEYS = {
   decisionLog: "gloaming:decision_log",
   ledger: "gloaming:paper_ledger",
   historicalScenarios: "gloaming:historical_scenarios",
+  fillVerification: "gloaming:fill_verification",
 } as const;

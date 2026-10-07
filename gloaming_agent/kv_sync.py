@@ -30,6 +30,7 @@ load_dotenv(REPO_ROOT / ".env")
 DECISION_LOG_KEY = "gloaming:decision_log"
 LEDGER_KEY = "gloaming:paper_ledger"
 HISTORICAL_SCENARIOS_KEY = "gloaming:historical_scenarios"
+FILL_VERIFICATION_KEY = "gloaming:fill_verification"
 MAX_DECISION_LOG_ENTRIES = 500  # bounds Redis memory; local .jsonl keeps full history
 
 
@@ -102,6 +103,12 @@ def push_historical_scenarios(scenarios: dict) -> None:
     (roughly static day to day), so it's pushed once at the end of that script
     rather than every Agent cycle."""
     _command("SET", HISTORICAL_SCENARIOS_KEY, json.dumps(scenarios, default=str))
+
+
+def push_fill_verification(result: dict) -> None:
+    """Overwrites the fill-verification snapshot written by verify_fills.py: every
+    paper fill checked against Bitget's own public 1-minute candles."""
+    _command("SET", FILL_VERIFICATION_KEY, json.dumps(result, default=str))
 
 
 if __name__ == "__main__":

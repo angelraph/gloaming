@@ -10,6 +10,7 @@ import StatTile from "@/components/StatTile";
 import EquityCurve from "@/components/EquityCurve";
 import ExportButtons from "@/components/ExportButtons";
 import VerifyPanel from "@/components/VerifyPanel";
+import FillVerificationPanel from "@/components/FillVerificationPanel";
 import DataNotice from "@/components/DataNotice";
 
 type Resp = ({ configured: true } & PerformanceSummary) | { configured: false };
@@ -92,6 +93,17 @@ export default function PerformanceView() {
             </div>
           </>
         )}
+      </Band>
+
+      <Band label="Checked against Bitget">
+        <SectionHeader
+          eyebrow="Checked against Bitget"
+          title="Every fill, matched to what really traded."
+          description="Each paper fill's price is compared with Bitget's own 1-minute candles for that symbol, from the minutes before the fill. The check runs after every agent cycle."
+        />
+        <div className="mt-10">
+          <FillVerificationPanel />
+        </div>
       </Band>
 
       {p && (

@@ -14,6 +14,7 @@ import { redis, KEYS } from "@/lib/redis";
 const REPO_ROOT = path.resolve(process.cwd(), "..");
 const DECISION_LOG_DIR = path.join(REPO_ROOT, "gloaming_agent", "decision_log");
 const LEDGER_PATH = path.join(REPO_ROOT, "gloaming_agent", "paper_ledger.json");
+const FILL_VERIFICATION_PATH = path.join(REPO_ROOT, "gloaming_agent", "fill_verification.json");
 const HISTORICAL_SCENARIOS_PATH = path.join(
   REPO_ROOT, "alpha_factory", "results", "historical_scenarios.json"
 );
@@ -257,4 +258,53 @@ export function findMarketWideWorstDate(scenarios: HistoricalScenarios): string 
     }
   }
   return worstDate;
+}
+
+// Every paper fill checked against Bitget's own public 1-minute candles, written by
+// gloaming_agent/verify_fills.py. "matched" means the fill price sits inside the range
+// a real Bitget minute actually traded, within the window before the fill.
+export type FillCheck = {
+  key: string;
+  timestamp: string;
+  symbol: string;
+  side: string;
+  price: number;
+  status: "matched" | "mismatch" | "no_data";
+  lag_minutes?: number;
+  nearest_bp?: number;
+  candle_minute?: string;
+  candle_low?: number;
+  candle_high?: number;
+};
+export type FillVerification = {
+  summary: {
+    checked_at: string;
+    source: string;
+    window_minutes: number;
+    total_fills: number;
+    checked: number;
+    pending: number;
+    matched: number;
+    mismatch: number;
+    no_data: number;
+    median_lag_minutes: number | null;
+    max_lag_minutes: number | null;
+  };
+  fills: FillCheck[];
+};
+
+export async function readFillVerification(): Promise<FillVerification | null> {
+  if (redis) {
+    try {
+      const value = await redis.get<FillVerification>(KEYS.fillVerification);
+      if (value) return value;
+    } catch {
+      // fall through to local file
+    }
+  }
+  try {
+    return JSON.parse(fs.readFileSync(FILL_VERIFICATION_PATH, "utf-8")) as FillVerification;
+  } catch {
+    return null; // verify_fills.py hasn't run yet - not an error state
+  }
 }
