@@ -1,12 +1,15 @@
+import { readFileSync } from "fs";
+import { join } from "path";
 import { ImageResponse } from "next/og";
 
 export const alt = "Gloaming: trades the hours the market can't";
 export const size = { width: 1200, height: 630 };
 export const contentType = "image/png";
 
-// The share card for the X post and link previews: the wordmark and tagline on the Desk's
-// own near-black canvas, with the gilded sphere.
+// The share card for the X post and link previews: the Gloaming lockup and the line on the
+// Desk's own near-black canvas.
 export default function OpengraphImage() {
+  const lockup = `data:image/png;base64,${readFileSync(join(process.cwd(), "public/brand/lockup.png")).toString("base64")}`;
   return new ImageResponse(
     (
       <div
@@ -21,16 +24,9 @@ export default function OpengraphImage() {
           color: "#ffffff",
         }}
       >
-        <div style={{ display: "flex", alignItems: "center", gap: 20 }}>
-          <div
-            style={{
-              width: 56,
-              height: 56,
-              borderRadius: 56,
-              background: "radial-gradient(circle at 35% 30%, #fff0cc, #ae9357 45%, #2e3038 100%)",
-            }}
-          />
-          <div style={{ fontSize: 40, fontFamily: "serif" }}>Gloaming</div>
+        <div style={{ display: "flex" }}>
+          {/* eslint-disable-next-line @next/next/no-img-element */}
+          <img src={lockup} width={469} height={118} alt="" />
         </div>
         <div style={{ display: "flex", flexDirection: "column", gap: 24 }}>
           <div style={{ fontSize: 84, lineHeight: 1.05, fontFamily: "serif", maxWidth: 980 }}>

@@ -1,3 +1,4 @@
+import Image from "next/image";
 import Link from "next/link";
 import { NAV_LINKS, REPO_URL } from "@/lib/nav";
 import { Container } from "@/components/Container";
@@ -7,7 +8,7 @@ export default function SiteFooter() {
     <footer className="border-t border-border-subtle">
       <Container className="grid gap-10 py-14 lg:grid-cols-[minmax(0,5fr)_minmax(0,3fr)_minmax(0,4fr)]">
         <div>
-          <p className="font-display text-[26px] leading-none text-heading">Gloaming</p>
+          <Image src="/brand/lockup.png" alt="Gloaming. Smarter Trades. Real Opportunities." width={238} height={60} className="h-[60px] w-auto" />
           <p className="mt-4 max-w-sm text-sm leading-relaxed text-text-secondary">
             Gloaming trades the hours the market can&apos;t. An autonomous, risk-gated overnight desk for Bitget
             rTokens.
