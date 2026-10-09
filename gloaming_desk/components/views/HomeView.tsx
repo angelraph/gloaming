@@ -14,6 +14,7 @@ import DuskDial from "@/components/home/DuskDial";
 import TradeTape from "@/components/home/TradeTape";
 import LoopFlow from "@/components/home/LoopFlow";
 import ReasonRotator from "@/components/home/ReasonRotator";
+import NightConsole from "@/components/console/NightConsole";
 import DuskDust from "@/components/motion/DuskDust";
 import Spotlight from "@/components/motion/Spotlight";
 import ScrollProgress from "@/components/motion/ScrollProgress";
@@ -199,6 +200,21 @@ export default function HomeView() {
           </ul>
         </Container>
       </section>
+
+      <Band label="Night console">
+        <RevealTitle
+          eyebrow="The night console"
+          title="The whole book, live, in one view."
+          description="Four views of the same real data: the paper book, Bitget's own candles against the agent's fair value, every symbol's spread hour by hour, and the positions against their hard caps."
+        />
+        <Reveal delay={150} className="mt-10">
+          <NightConsole
+            portfolio={portfolio}
+            events={events}
+            verified={verification ? { matched: verification.matched, checked: verification.checked } : null}
+          />
+        </Reveal>
+      </Band>
 
       <section aria-label="Recent trades" className="border-t border-border-subtle py-10 sm:py-12">
         <Container>

@@ -394,6 +394,94 @@ details[open] .faq-plus {
   }
 }
 
+/* Night console (components/console/*) */
+.console-frame {
+  box-shadow:
+    0 0 0 1px rgba(204, 145, 102, 0.06),
+    0 40px 120px -40px rgba(204, 145, 102, 0.25);
+}
+.console-panel {
+  opacity: 0;
+  transform: translateY(12px) scale(0.99);
+  filter: blur(6px);
+  pointer-events: none;
+  transition:
+    opacity 0.7s ease,
+    transform 0.8s cubic-bezier(0.2, 0.7, 0.2, 1),
+    filter 0.7s ease;
+}
+.console-panel.is-active {
+  opacity: 1;
+  transform: none;
+  filter: none;
+  pointer-events: auto;
+  transition-delay: 0.25s;
+}
+.console-caption {
+  animation: rise-in 0.8s ease both;
+}
+@keyframes rise-in {
+  from {
+    opacity: 0;
+    transform: translateY(4px);
+  }
+}
+.console-dwell {
+  width: 0;
+  animation: console-dwell 9s linear forwards;
+}
+@keyframes console-dwell {
+  to {
+    width: 100%;
+  }
+}
+.console-live {
+  box-shadow: 0 0 0 0 rgba(63, 226, 128, 0.6);
+  animation: console-live 2s ease-out infinite;
+}
+@keyframes console-live {
+  to {
+    box-shadow: 0 0 0 6px rgba(63, 226, 128, 0);
+  }
+}
+/* charts draw in each time their view becomes active */
+.console-panel.is-active .candle {
+  animation: candle-in 0.5s cubic-bezier(0.2, 0.7, 0.2, 1) both;
+  animation-delay: calc(var(--i) * 12ms + 250ms);
+  transform-box: fill-box;
+  transform-origin: bottom;
+}
+@keyframes candle-in {
+  from {
+    opacity: 0;
+    transform: scaleY(0.2);
+  }
+}
+.console-panel.is-active .fair-line {
+  stroke-dasharray: 4000;
+  stroke-dashoffset: 4000;
+  animation: fair-draw 2.2s ease-out 0.9s forwards;
+}
+@keyframes fair-draw {
+  to {
+    stroke-dashoffset: 0;
+  }
+}
+.console-panel.is-active .heat-cell {
+  animation: rise-in 0.6s ease both;
+  animation-delay: calc(var(--d) + 250ms);
+}
+.console-panel.is-active .risk-bar {
+  animation: risk-grow 0.9s cubic-bezier(0.2, 0.7, 0.2, 1) both;
+  animation-delay: calc(var(--d) + 300ms);
+}
+@keyframes risk-grow {
+  from {
+    opacity: 0;
+    transform: scaleX(0);
+  }
+}
+
 /* Scroll progress (components/motion/ScrollProgress.tsx) */
 .scroll-progress {
   background: linear-gradient(90deg, #ae9357, #fff0cc 50%, #cc9166);

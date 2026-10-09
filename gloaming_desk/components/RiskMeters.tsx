@@ -45,10 +45,13 @@ export default function RiskMeters({
   equityUsd,
   dailyPnlUsd,
   positions,
+  compact = false,
 }: {
   equityUsd: number;
   dailyPnlUsd: number;
   positions: Position[];
+  // compact: for a narrow column (the landing page's console), no card of its own, two across
+  compact?: boolean;
 }) {
   const priced = positions.filter((p): p is { symbol: string; notionalUsd: number } => p.notionalUsd !== null);
   const net = priced.reduce((s, p) => s + p.notionalUsd, 0);
@@ -67,12 +70,12 @@ export default function RiskMeters({
   const direction = Math.abs(netPct) < 0.0005 ? "Flat" : netPct > 0 ? "Net long" : "Net short";
 
   return (
-    <div className="rounded-xl border border-border-subtle bg-layer-1 p-5 sm:p-6">
+    <div className={compact ? "" : "rounded-xl border border-border-subtle bg-layer-1 p-5 sm:p-6"}>
       <div className="flex flex-wrap items-baseline justify-between gap-x-4 gap-y-1">
         <p className="eyebrow">Risk layer, live</p>
         <p className="text-xs text-text-tertiary">Caps are enforced by a deterministic, non-LLM layer that can reject or resize any decision.</p>
       </div>
-      <div className="mt-6 grid grid-cols-2 gap-x-6 gap-y-7 lg:grid-cols-4">
+      <div className={`mt-6 grid gap-x-6 gap-y-7 ${compact ? "grid-cols-1 sm:grid-cols-2" : "grid-cols-2 lg:grid-cols-4"}`}>
         <Meter
           label="Net exposure"
           value={`${direction} ${fmtPct(Math.abs(netPct))}`}
