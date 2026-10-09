@@ -126,6 +126,11 @@ export default function DuskDial({ children }: { children?: React.ReactNode }) {
               <feMergeNode in="SourceGraphic" />
             </feMerge>
           </filter>
+          <radialGradient id="cometHalo">
+            <stop offset="0%" stopColor="#fff0cc" stopOpacity="0.55" />
+            <stop offset="45%" stopColor="#cc9166" stopOpacity="0.22" />
+            <stop offset="100%" stopColor="#cc9166" stopOpacity="0" />
+          </radialGradient>
           <filter id="soft" x="-20%" y="-20%" width="140%" height="140%">
             <feGaussianBlur stdDeviation="7" />
           </filter>
@@ -221,7 +226,8 @@ export default function DuskDial({ children }: { children?: React.ReactNode }) {
                 <animateMotion dur="9s" repeatCount="indefinite" path={gloamPath} begin={`${(i * 0.045).toFixed(3)}s`} />
               </circle>
             ))}
-            <circle r="14" fill="#fff0cc" opacity="0.4" filter="url(#soft)">
+            {/* the halo is a radial gradient, not a blur filter: same look, a fraction of the cost per frame */}
+            <circle r="18" fill="url(#cometHalo)">
               <animateMotion dur="9s" repeatCount="indefinite" path={gloamPath} />
             </circle>
           </g>
