@@ -274,7 +274,7 @@ export default function HomeView() {
         <RevealTitle
           eyebrow="In Qwen's words"
           title="Why it traded, in its own reasoning."
-          description="The written reasons Qwen gave for its most recent real fills, unedited apart from length. Hover to hold one."
+          description="The written reasons Qwen gave for its most recent real fills, in full and unedited. Hover to hold one, or pick one with the bars below it."
         />
         <Reveal delay={150} className="mt-10">
           <ReasonRotator />

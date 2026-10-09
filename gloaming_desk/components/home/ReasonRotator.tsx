@@ -7,16 +7,20 @@ import { underlyingFromRtoken } from "@/lib/universe";
 
 type Fill = { timestamp: string; symbol: string; side: string; price: number; notional_usd: number; rationale: string; check?: string };
 
-const HOLD_MS = 7000;
-
+// The whole reason, never cut: only the "[Qwen3.8-max]" source tag is dropped, since the
+// caption already names the model.
 function quote(r: string) {
-  const t = r.replace(/^\[[^\]]+\]\s*/, "").trim();
-  return t.length > 300 ? `${t.slice(0, 300).replace(/\s+\S*$/, "").replace(/[\s;:,.(-]+$/, "")}…` : t;
+  return r.replace(/^\[[^\]]+\]\s*/, "").trim();
+}
+
+// Long enough to read the whole quote: about 15 characters a second, 8 to 25 seconds.
+function holdMs(r: string) {
+  return Math.min(25_000, Math.max(8_000, quote(r).length * 66));
 }
 
 // Qwen's own written reasons for its most recent real trades, one at a time, each fading
 // out as the next fades in. Hover or focus holds the current one. Only fills whose
-// rationale came from Qwen are shown; nothing here is paraphrased beyond a length cut.
+// rationale came from Qwen are shown, in full and unedited.
 export default function ReasonRotator() {
   const [fills, setFills] = useState<Fill[]>([]);
   const [i, setI] = useState(0);
@@ -32,9 +36,9 @@ export default function ReasonRotator() {
   useEffect(() => {
     if (paused || fills.length < 2) return;
     if (window.matchMedia?.("(prefers-reduced-motion: reduce)").matches) return;
-    const t = setInterval(() => setI((n) => (n + 1) % fills.length), HOLD_MS);
-    return () => clearInterval(t);
-  }, [paused, fills.length]);
+    const t = setTimeout(() => setI((n) => (n + 1) % fills.length), holdMs(fills[i].rationale));
+    return () => clearTimeout(t);
+  }, [paused, fills, i]);
 
   if (fills.length === 0) return <div aria-hidden className="h-[260px] animate-pulse rounded-2xl border border-border-subtle bg-layer-1" />;
 
@@ -59,7 +63,7 @@ export default function ReasonRotator() {
               aria-hidden={!active}
               className={`reason-slide col-start-1 row-start-1 ${active ? "is-active" : ""}`}
             >
-              <blockquote className="font-display text-[20px] leading-[1.45] text-heading sm:text-[24px]">{quote(f.rationale)}</blockquote>
+              <blockquote className="font-display text-[18px] leading-[1.55] text-heading sm:text-[21px]">{quote(f.rationale)}</blockquote>
               <figcaption className="mt-6 flex flex-wrap items-center gap-x-4 gap-y-2 text-sm">
                 <span className={`text-[11px] font-semibold tracking-wide ${f.side === "buy" ? "text-mint" : "text-negative"}`}>
                   {f.side.toUpperCase()}
@@ -90,7 +94,13 @@ export default function ReasonRotator() {
             className="group flex h-11 items-center"
           >
             <span className={`block h-[3px] rounded-full transition-all duration-500 ${n === i ? "w-10 bg-copper" : "w-4 bg-border-strong group-hover:bg-text-tertiary"}`}>
-              {n === i && !paused && <span key={i} className="reason-progress block h-full rounded-full bg-[#fff0cc]" />}
+              {n === i && !paused && (
+                <span
+                  key={i}
+                  className="reason-progress block h-full rounded-full bg-[#fff0cc]"
+                  style={{ animationDuration: `${holdMs(f.rationale)}ms` }}
+                />
+              )}
             </span>
           </button>
         ))}

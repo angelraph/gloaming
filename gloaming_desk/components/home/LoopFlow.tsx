@@ -8,9 +8,9 @@ import { fmtSignedPct, fmtTime, fmtUsd } from "@/lib/format";
 // the path and each step brightens as it passes; the words under each step come from the
 // newest record in the decision log, not from a script.
 
-function clip(s: string, n: number) {
-  const t = s.replace(/^\[[^\]]+\]\s*/, "").trim();
-  return t.length > n ? `${t.slice(0, n).replace(/\s+\S*$/, "").replace(/[\s;:,.(-]+$/, "")}…` : t;
+// The model's own words, whole: only the "[Qwen3.8-max]" source tag is dropped.
+function plain(s: string) {
+  return s.replace(/^\[[^\]]+\]\s*/, "").trim();
 }
 
 function steps(r: DecisionRecord) {
@@ -18,7 +18,6 @@ function steps(r: DecisionRecord) {
   const sym = r.underlying ?? s.rtoken_symbol;
   const traded = !!r.decision;
   const source = r.decision_source?.startsWith("qwen") ? "Qwen3.8-max" : "The rule-based fallback";
-  const reason = traded ? r.decision!.rationale : r.hold_rationale ?? "";
   return [
     {
       title: "Observe",
@@ -29,7 +28,7 @@ function steps(r: DecisionRecord) {
     },
     {
       title: "Decide",
-      body: `${source} chose ${traded ? `to ${r.decision!.side} ${fmtUsd(r.decision!.notional_usd)}` : "to hold"}. “${clip(reason, 120)}”`,
+      body: `${source} chose ${traded ? `to ${r.decision!.side} ${fmtUsd(r.decision!.notional_usd)}` : "to hold"}, and wrote down why. Its full reasoning is below.`,
     },
     {
       title: "Gate",
@@ -37,7 +36,7 @@ function steps(r: DecisionRecord) {
         ? "Nothing to gate: a hold places no order, so the risk layer had no trade to check."
         : r.risk_result?.approved
           ? `Approved by the risk layer at ${fmtUsd(r.risk_result.adjusted_notional_usd)}.`
-          : `Rejected by the risk layer${r.risk_result?.reasons?.[0] ? `: ${clip(r.risk_result.reasons[0], 90)}` : "."}`,
+          : `Rejected by the risk layer${r.risk_result?.reasons?.length ? `: ${r.risk_result.reasons.map(plain).join(" ")}` : "."}`,
     },
     {
       title: "Execute",
@@ -54,6 +53,8 @@ export default function LoopFlow({ events }: { events: DecisionRecord[] }) {
   const record = events.find((e) => e.snapshot && !e.error);
   if (!record) return <div aria-hidden className="h-48 animate-pulse rounded-xl border border-border-subtle bg-layer-1" />;
   const list = steps(record);
+  const reason = plain((record.decision ? record.decision.rationale : record.hold_rationale) ?? "");
+  const source = record.decision_source?.startsWith("qwen") ? "Qwen3.8-max" : "The rule-based fallback";
 
   return (
     <div>
@@ -86,6 +87,12 @@ export default function LoopFlow({ events }: { events: DecisionRecord[] }) {
           ))}
         </ol>
       </div>
+      {reason && (
+        <figure className="spotlight mt-4 rounded-xl border border-border-subtle bg-layer-1 p-5 sm:p-6">
+          <figcaption className="micro-label">Step 2, in full · {source}&apos;s reasoning</figcaption>
+          <blockquote className="font-display mt-3 text-[17px] leading-[1.6] text-heading sm:text-[19px]">“{reason}”</blockquote>
+        </figure>
+      )}
       <p className="mt-6 text-sm text-text-tertiary">
         The newest record in the log, {record.underlying} at {fmtTime(record.timestamp)}.{" "}
         <Link href="/agent#feed" className="text-copper underline-offset-4 hover:underline">

@@ -116,7 +116,7 @@ export default function DecisionFeed({ events, symbols }: { events: DecisionReco
                     {e.snapshot && (
                       <span className="text-xs tabular-nums text-text-tertiary">spread {fmtSignedPct(e.snapshot.spread, 3)}</span>
                     )}
-                    <span className="ml-auto text-xs text-text-tertiary">Inspect</span>
+                    <span className="ml-auto text-xs text-copper">Read in full</span>
                   </span>
                   <span className="mt-2 line-clamp-2 block text-sm leading-relaxed text-text-secondary">{text}</span>
                 </button>
