@@ -123,10 +123,11 @@ const ITEMS: Item[] = [
         cost. The close is modeled as 16:00 ET on every trading day: full-day 2026 holidays are
         listed, early closes are not handled. The blend weights are a heuristic prior, not calibrated.
         Closes, futures and DXY come from Yahoo Finance, which publishes a session&apos;s daily bar about
-        5 hours 45 minutes after the close. Until it lands the agent makes no trades, so about seven
-        cycles are skipped on each weekday evening (on Sept 26 it instead fell back to the previous
-        day&apos;s close and traded a false spread, which is now refused by design). The live window
-        under the corrected signal is short.
+        5 hours 45 minutes after the close. Until it lands, the agent anchors to the last 1-minute bar
+        of the same session (within a few basis points of the official close on every symbol we
+        measured) and says so on the record; if that is missing too it trades nothing. On Sept 26 it
+        instead fell back to the previous day&apos;s close and traded a false spread, which is now
+        refused by design. The live window under the corrected signal is short.
       </>
     ),
   },

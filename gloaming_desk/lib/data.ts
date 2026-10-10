@@ -38,6 +38,9 @@ export type DecisionRecord = {
     fx_risk_sentiment_pcnt_24h?: number;
     fair_value_return_24h?: number;
     real_close_price?: number;
+    // "official_daily", or "provisional_1m" while Yahoo has not published the daily bar yet.
+    // Records from before 2026-10-10 carry no such field and are official.
+    anchor_source?: string;
     real_close_time?: string;
     hours_since_close?: number;
     rtoken_return_since_close?: number;

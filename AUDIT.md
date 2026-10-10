@@ -32,7 +32,7 @@ No code path in the repository can place a real order or move funds. The Bitget 
 
 1. **Live monitoring.** Every cycle's records are committed to the repository, so the log can be read like a flight recorder. Most findings below came from asking why a number in it looked wrong.
 2. **Comparison with real data.** Spreads, closes and fills were checked against real closes, Bitget's own candles and the rToken's own hourly history.
-3. **Tests.** Each fix added a regression test. The suite is 172 tests in 12 files, run with `python -m pytest tests/` and all passing at the time of writing.
+3. **Tests.** Each fix added a regression test. The suite is 179 tests in 12 files, run with `python -m pytest tests/` and all passing at the time of writing.
 4. **A backtest of the live definition.** The thesis was tested on 65 real sessions of hourly data with the same definitions the agent uses ([`engine/backtest/since_close_backtest.py`](engine/backtest/since_close_backtest.py)).
 
 ## 3. Findings and resolutions
@@ -69,15 +69,17 @@ This was first written up as a one-off data gap. It is not: see limitation L3, w
 
 **F12. The agent kept trading a spread our own backtest says loses (2026-09-28).** Found by reading why MSFT traded 27 times in a weekend on a 0.6% to 1.0% spread that never reverted. The backtest (65 sessions) shows trading against a spread of 0.5% or more averaging -7.6 bp gross and -37.6 bp after the 0.30% round trip, only 44% winning, and that larger spreads are worse, not better, at every horizon. The prompt had also told the model that an "unusually large dislocation" could justify a trade, which the data contradicts. Resolution: the prompt states the per-horizon table and requires each rationale to name its bucket and net return before giving a specific, checkable reason (`5ee9e24`, `0e39200`). A test ties the prompt's figures to the checked-in results file so they cannot drift. Impact since: no trades after 2026-09-29 12:02 UTC (see L2).
 
-### Verification
+### Verification and follow-up
 
 **F13. Fills were only checked against themselves (2026-10-07).** The record had no outside check. Resolution: `verify_fills.py` compares every fill with Bitget's own public 1-minute candles (no key needed) and the workflow reruns it. Result at the last run (797 of 797 checked): 795 sit inside a range Bitget really traded, 2 miss by under 0.2 basis points, and 33 matched only a trade that was more than 15 minutes old, which is flagged as stale rather than counted as clean (`21db256`, `fdac92e`). This verifies that a fill's price was one the market actually printed. It does not verify that an order would have been accepted or filled at size.
+
+**F14. The anchor fix left the first two hours after the close unobserved (2026-10-10).** Found by counting the errors F6's fix produced: the same publication delay, every weekday, 7 cycles. Resolution: when the daily bar is not published, the close is the last regular-session 1-minute bar of the same session, labelled `provisional_1m` on the record and in the prompt and replaced by the official close when it lands. The alternative of using the last hourly bar was measured first and rejected (7.2 bp on average, up to 67 bp, biased 6 bp high), against 2.2 bp on average (worst 8.8 bp) for the minute bar over 63 symbol-sessions and 0.8 bp on average (worst 1.9 bp) on the 2026-10-09 session end to end against live Yahoo. Two guards: the minute series must be from the expected session and reach 15:55 ET, and with no close for the reference ticker the cycle trades nothing. Tests: `tests/test_overnight_anchor.py`. Effect on trading: the agent can act in a window it previously skipped; with the current prompt that is expected to change little, since it holds almost everything.
 
 ## 4. Test and check results
 
 | Check | Result |
 |---|---|
-| Unit and regression tests | 172 passed, 12 files (`python -m pytest tests/`) |
+| Unit and regression tests | 179 passed, 12 files (`python -m pytest tests/`) |
 | Desk | `npx next typegen && npx tsc --noEmit` clean and `npm run build` succeeds, with and without local env files |
 | CI | `.github/workflows/test.yml` runs the tests and the Desk build; its first run failed because `tsc` ran before Next had generated its route types, fixed by running `next typegen` first |
 | Workflow | the last 100 consecutive runs succeeded |
@@ -91,7 +93,7 @@ This was first written up as a one-off data gap. It is not: see limitation L3, w
 
 **L2. No demonstrated edge, and the agent has stopped trading.** The live definition has no edge at 2 to 12 hours after the close in the project's own backtest: -7.6 bp gross per trade at spreads of 0.5% or more (standard error 5.0, so statistically indistinguishable from zero) and about -37.6 bp after the assumed 0.30% round trip, which is clearly negative. After the prompt was tightened the agent made no trade after 2026-09-29 12:02 UTC: over the last 48 hours all 131 records with a spread of 0.5% or more were held, and 980 of 1,133 hold rationales cite the backtest. The paper record therefore stopped growing at 797 fills. This is the intended behaviour given the evidence, and it also means no new evidence is being collected on the corrected signal.
 
-**L3. A recurring blind window each weekday evening.** Because of F6's behaviour, between about 00:00 and 01:45 UTC on weekdays (20:00 to 21:45 New York) the daily bar for the session is not yet published, the agent refuses to anchor, and the whole cycle is logged as an error. That is 66 whole-cycle skips since 2026-09-28, about 7 of the 96 cycles on a weekday; 4 of the 66 were Yahoo returning no bars at all. Nothing is traded on bad data, but the public log shows these as errors, which they are not in spirit. Not yet fixed: it needs either a provisional anchor from the last regular-session hourly bar, clearly labelled, or an explicit "waiting for the official close" state. Either changes live behaviour, so it was left for an explicit decision.
+**L3. The weekday-evening blind window (closed 2026-10-10, see F14).** After F6's fix, between about 00:00 and 01:45 UTC on weekdays (20:00 to 21:45 New York) the daily bar for the session was not yet published, the agent refused to anchor and the whole cycle was logged as an error: 66 whole-cycle skips between 2026-09-28 and 2026-10-10, about 7 of the 96 cycles on a weekday, 4 of them Yahoo returning no bars at all. Those 66 errors stay in the public log. The provisional anchor now covers the window, and its first live use will be on a weekday evening after it shipped, so it has been exercised in tests and against live data but not yet by a real cycle in the window.
 
 **L4. About 0.5% of symbol records miss their close.** Yahoo's batch download occasionally lacks one ticker; that symbol records an error for the cycle and the others carry on.
 

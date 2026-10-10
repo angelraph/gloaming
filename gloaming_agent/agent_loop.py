@@ -152,6 +152,9 @@ def build_snapshot(underlying: str, anchor: OvernightAnchor,
         "rtoken_last_price": rtoken["last_price"],
         "signal_spec": "since_last_close_v2",
         "real_close_price": close,
+        # "official_daily", or "provisional_1m" while the daily bar is not published yet (see
+        # engine/data/overnight_anchor.py). Older records carry no such field: official.
+        "anchor_source": anchor.close_sources.get(underlying, "official_daily"),
         "real_close_time": anchor.session_close_utc.isoformat(),
         "hours_since_close": round(anchor.hours_since_close, 2),
         "rtoken_return_since_close": rtoken_return,
@@ -311,6 +314,12 @@ def build_user_prompt(snapshot: dict) -> str:
                 "MCP server):\n" + "\n".join(parts) + "\n"
             )
     close_et = datetime.fromisoformat(snapshot["real_close_time"]).astimezone(NYSE_TZ)
+    provisional_line = (
+        "(Provisional: the official close is not published yet, so this is the last regular-session "
+        "1-minute bar, normally within a few basis points of it. Treat a spread of a few basis points "
+        "as noise.)\n"
+        if snapshot.get("anchor_source") == "provisional_1m" else ""
+    )
     missing = snapshot.get("missing_proxies") or []
     missing_line = (
         f"- Unavailable this cycle (counted as no information, not as zero movement): {', '.join(missing)}\n"
@@ -321,6 +330,7 @@ def build_user_prompt(snapshot: dict) -> str:
         f"Last price: ${snapshot['rtoken_last_price']:.2f}\n"
         f"The real share's last regular-session close: ${snapshot['real_close_price']:.2f} "
         f"({close_et:%a %Y-%m-%d} 16:00 ET, {snapshot['hours_since_close']:.1f} hours ago)\n"
+        f"{provisional_line}"
         f"rToken vs that close: {snapshot['rtoken_return_since_close']:+.2%} "
         f"(its rolling 24h return, {snapshot['rtoken_pcnt_24h']:+.2%}, is for context only: it contains "
         f"the whole regular session, which the rToken already priced)\n"

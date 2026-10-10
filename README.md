@@ -25,7 +25,7 @@ Built for the Bitget AI Base Camp Hackathon S2 (Genesis Season 2), in the **Agen
 | **Thesis test (observed)** | Backtest of the live definition on 65 real sessions: trading against a spread of 0.5% or more averaged -7.6 bp gross and -37.6 bp after costs. **No cost-covering edge was found**, the agent is told so, and it has not traded since 2026-09-29 |
 | **Risk layer** | Non-LLM: 15% per symbol, 60% gross, 25% net, -5% daily loss breaker, 2% per-trade loss, volatility-scaled sizing, no leverage, $1,000 ceiling per decision |
 | **Desk** | Next.js: 7 pages plus a page per symbol, a decision inspector, 11 API routes, CSV and JSON downloads, keyboard and screen-reader support |
-| **Tests** | 172 automated tests across the signal, ledger, risk layer, cycle behaviour and fill verification |
+| **Tests** | 179 automated tests across the signal, ledger, risk layer, cycle behaviour and fill verification |
 
 Last verified 2026-10-10. The live Performance page is the current source for every number.
 
@@ -162,7 +162,7 @@ flowchart LR
 
 ### The signal
 
-Computed once per cycle by [`engine/data/overnight_anchor.py`](engine/data/overnight_anchor.py). The anchor is the last completed weekday session from the calendar (full-day 2026 holidays are listed), and the data must contain that session's daily bar or the cycle records an error per symbol and trades nothing. A proxy that cannot be fetched contributes nothing and is listed in `missing_proxies`; nothing is ever invented.
+Computed once per cycle by [`engine/data/overnight_anchor.py`](engine/data/overnight_anchor.py). The anchor is the last completed weekday session from the calendar (full-day 2026 holidays are listed), and the close is that session's official daily bar. Until Yahoo publishes it (about 5 hours 45 minutes after the close) the close is the last regular-session 1-minute bar of the same session, recorded as nchor_source: provisional_1m; if neither exists the cycle records an error per symbol and trades nothing. A proxy that cannot be fetched contributes nothing and is listed in `missing_proxies`; nothing is ever invented.
 
 ### The decision
 
@@ -197,7 +197,7 @@ The honest summary: the record is a small paper loss, 735 of its 797 fills came 
 Full detail, with commits and tests, is in [AUDIT.md](AUDIT.md).
 
 1. **The first signal measured the wrong thing (2026-09-25).** Its inputs were over different windows, so it mostly measured each session's own move. Reported spreads reached -4.6% and +2.8% while every rToken sat within about 0.25% of its real close. Rebuilt so every input runs from the last real close; older records are labelled by `signal_spec`.
-2. **The anchor fell back to the previous day (2026-09-26).** Yahoo publishes a session's daily bar about 5 hours 45 minutes after the close, and until then the agent anchored to the previous session, read a day's own move as a 4% dislocation and made 9 fills. The anchor now comes from the calendar and the bar must exist. Those 9 fills are kept in the ledger and counted in neither signal era.
+2. **The anchor fell back to the previous day (2026-09-26).** Yahoo publishes a session's daily bar about 5 hours 45 minutes after the close, and until then the agent anchored to the previous session, read a day's own move as a 4% dislocation and made 9 fills. The anchor now comes from the calendar and the bar must exist, and since 2026-10-10 the gap before the official bar lands is covered by a labelled 1-minute close (within 2.2 bp of the official close on average) instead of a skipped cycle. Those 9 fills are kept in the ledger and counted in neither signal era.
 3. **The risk layer blocked de-risking (2026-09-22).** Caps that rejected risk-reducing trades left the book stuck for eight days. Now net-exposure aware.
 4. **A dry run overwrote the public mirror (2026-09-26).** A local test with production credentials pushed a stale ledger to the Desk. Dry runs can no longer write to it, and every cycle re-asserts the mirror.
 5. **The Performance page read better than the record (2026-09-28).** Realized P&L ignored costs. It now nets what the ledger actually charged.
@@ -219,7 +219,7 @@ There is deliberately no separate API or database layer: the agent and the Desk 
 
 | Check | Result |
 |---|---|
-| Automated tests | 172 pass (`python -m pytest tests/`) |
+| Automated tests | 179 pass (`python -m pytest tests/`) |
 | Desk | `tsc --noEmit` clean, `next build` succeeds |
 | Unattended runs | the last 100 consecutive workflow runs succeeded |
 | Fills against Bitget's candles | 797 checked: 795 matched, 2 mismatched by under 0.2 bp, 33 stale |
@@ -309,7 +309,7 @@ gloaming_desk/app/      pages and API routes
 gloaming_desk/components/   UI, charts, the decision inspector
 gloaming_desk/lib/      data access, performance derivation, formatting
 alpha_factory/results/  backtest results as JSON
-tests/                  172 tests
+tests/                  179 tests
 docs/                   architecture, risk controls, decision flow, and earlier drafts
 video/                  the demo film's sources and method
 media/                  screenshots used in this README

@@ -94,6 +94,14 @@ export default function DecisionInspector({ record, onClose }: { record: Decisio
                   <dl className="mt-3">
                     <Row label={`${s.rtoken_symbol} last price`} value={fmtUsd(s.rtoken_last_price)} />
                     <Row label="Real share's last close" value={opt(s.real_close_price, fmtUsd)} />
+                    <Row
+                      label="Close taken from"
+                      value={
+                        s.anchor_source === "provisional_1m"
+                          ? "last 1-minute bar (official close not yet published)"
+                          : "official daily close"
+                      }
+                    />
                     <Row label="Hours since that close" value={opt(s.hours_since_close, (n) => n.toFixed(1))} />
                     <Row label="rToken return since close" value={opt(s.rtoken_return_since_close, fmtSignedPct)} />
                     <Row label="Futures proxy return" value={opt(s.futures_proxy_return_since_close, fmtSignedPct)} />

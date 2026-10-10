@@ -21,6 +21,7 @@ from data.overnight_anchor import (  # noqa: E402
     expected_last_session,
     fetch_equity_closes,
     last_completed_session,
+    last_regular_minute_close,
     return_since,
     session_close_utc,
 )
@@ -77,27 +78,98 @@ def test_expected_session_skips_a_holiday():
     assert expected_last_session(datetime(2026, 9, 7, 23, 0, tzinfo=UTC)) == date(2026, 9, 4)
 
 
-def _fake_daily(monkeypatch, dates):
+def _minute_series(session, last_minute="15:59", price=110.0, first_minute="15:30"):
+    """1-minute closes for one session in New York time, from first_minute to last_minute."""
+    start = pd.Timestamp(f"{session} {first_minute}", tz="America/New_York")
+    end = pd.Timestamp(f"{session} {last_minute}", tz="America/New_York")
+    idx = pd.date_range(start, end, freq="min")
+    return pd.Series(price, index=idx, dtype=float)
+
+
+def _fake_yahoo(monkeypatch, daily_dates, minutes=None, daily_missing=()):
+    """Stubs yfinance.download. Daily calls return `daily_dates` (value 100.0) for SPY and META,
+    with the (ticker, date) pairs in `daily_missing` dropped. 1-minute calls return the series
+    in `minutes` ({ticker: Series}), or nothing. Returns the list of intervals requested."""
     import yfinance
 
-    idx = pd.to_datetime([str(d) for d in dates])
-    cols = pd.MultiIndex.from_product([["SPY", "META"], ["Close"]])
-    df = pd.DataFrame(100.0, index=idx, columns=cols)
-    monkeypatch.setattr(yfinance, "download", lambda *a, **kw: df)
+    calls = []
+    idx = pd.to_datetime([str(d) for d in daily_dates])
+    daily = pd.DataFrame(100.0, index=idx, columns=pd.MultiIndex.from_product([["SPY", "META"], ["Close"]]))
+    for t, d in daily_missing:
+        daily.loc[pd.Timestamp(str(d)), (t, "Close")] = float("nan")
+
+    def download(tickers, period=None, interval=None, **kw):
+        calls.append(interval)
+        if interval == "1d":
+            return daily
+        if not minutes:
+            return pd.DataFrame()
+        frame = pd.concat({t: pd.DataFrame({"Close": s}) for t, s in minutes.items()}, axis=1)
+        return frame
+
+    monkeypatch.setattr(yfinance, "download", download)
+    return calls
 
 
-def test_a_missing_fridays_bar_refuses_to_anchor_to_thursday(monkeypatch):
-    # Regression for Sept 26 00:00-01:40 UTC: Yahoo's daily data briefly lacked Friday's bar,
+def test_a_missing_fridays_bar_and_no_minute_bar_refuses_to_anchor_to_thursday(monkeypatch):
+    # Regression for Sept 26 00:00-01:40 UTC: Yahoo had not yet published Friday's daily bar,
     # the newest bar was Thursday's, and the agent priced every symbol against Thursday's close.
-    _fake_daily(monkeypatch, [date(2026, 9, 23), date(2026, 9, 24)])
+    _fake_yahoo(monkeypatch, [date(2026, 9, 23), date(2026, 9, 24)])
     with pytest.raises(AnchorUnavailable):
         fetch_equity_closes(["META"], datetime(2026, 9, 26, 0, 30, tzinfo=UTC))
 
 
-def test_with_fridays_bar_present_the_anchor_is_friday(monkeypatch):
-    _fake_daily(monkeypatch, [date(2026, 9, 24), date(2026, 9, 25)])
-    session, closes, _ = fetch_equity_closes(["META"], datetime(2026, 9, 26, 0, 30, tzinfo=UTC))
+def test_with_fridays_bar_present_the_anchor_is_friday_and_no_minute_data_is_fetched(monkeypatch):
+    calls = _fake_yahoo(monkeypatch, [date(2026, 9, 24), date(2026, 9, 25)])
+    session, closes, _, sources = fetch_equity_closes(["META"], datetime(2026, 9, 26, 0, 30, tzinfo=UTC))
     assert session == date(2026, 9, 25) and closes == {"META": 100.0}
+    assert sources == {"META": "official_daily"}
+    assert calls == ["1d"]  # nothing extra is requested while the official bar exists
+
+
+def test_before_the_daily_bar_lands_the_last_minute_bar_of_the_same_session_is_used_and_labelled(monkeypatch):
+    friday = date(2026, 9, 25)
+    _fake_yahoo(monkeypatch, [date(2026, 9, 23), date(2026, 9, 24)],
+                minutes={"SPY": _minute_series(friday, price=500.0), "META": _minute_series(friday, price=110.0)})
+    session, closes, _, sources = fetch_equity_closes(["META"], datetime(2026, 9, 26, 0, 30, tzinfo=UTC))
+    assert session == friday
+    assert closes == {"META": 110.0}
+    assert sources == {"META": "provisional_1m"}
+
+
+def test_a_minute_bar_from_an_older_session_is_never_used(monkeypatch):
+    thursday = date(2026, 9, 24)
+    _fake_yahoo(monkeypatch, [date(2026, 9, 23), date(2026, 9, 24)],
+                minutes={"SPY": _minute_series(thursday), "META": _minute_series(thursday)})
+    with pytest.raises(AnchorUnavailable):
+        fetch_equity_closes(["META"], datetime(2026, 9, 26, 0, 30, tzinfo=UTC))
+
+
+def test_a_minute_series_that_stops_before_the_end_of_the_session_is_refused(monkeypatch):
+    friday = date(2026, 9, 25)
+    partial = _minute_series(friday, last_minute="13:10", first_minute="12:00")
+    _fake_yahoo(monkeypatch, [date(2026, 9, 24)], minutes={"SPY": partial, "META": partial})
+    with pytest.raises(AnchorUnavailable):
+        fetch_equity_closes(["META"], datetime(2026, 9, 26, 0, 30, tzinfo=UTC))
+
+
+def test_one_symbol_missing_its_official_close_falls_back_to_its_own_minute_bar(monkeypatch):
+    friday = date(2026, 9, 25)
+    _fake_yahoo(monkeypatch, [date(2026, 9, 24), friday], daily_missing=[("META", friday)],
+                minutes={"META": _minute_series(friday, price=123.0)})
+    session, closes, _, sources = fetch_equity_closes(["META"], datetime(2026, 9, 26, 0, 30, tzinfo=UTC))
+    assert closes == {"META": 123.0}
+    assert sources == {"META": "provisional_1m"}
+
+
+def test_the_minute_close_ignores_after_hours_bars_and_a_utc_index():
+    friday = date(2026, 9, 25)
+    regular = _minute_series(friday, last_minute="15:59", price=110.0)
+    after_hours = _minute_series(friday, last_minute="16:20", first_minute="16:00", price=999.0)
+    s = pd.concat([regular, after_hours])
+    s.index = s.index.tz_convert("UTC")
+    assert last_regular_minute_close(s, friday) == 110.0
+    assert last_regular_minute_close(s, date(2026, 9, 24)) is None  # a different date has no bars
 
 
 # --- return since the close ---
@@ -208,6 +280,23 @@ def test_snapshot_records_which_specification_produced_it_and_the_anchor(rtoken_
     assert snap["hours_since_close"] == pytest.approx(1.5)
     assert snap["fair_value_price"] == pytest.approx(751.66 * (1 + snap["fair_value_return_since_close"]))
     assert snap["recent_daily_volatility"] == pytest.approx(0.02)
+
+
+def test_the_snapshot_says_whether_the_close_is_official_or_provisional(rtoken_price):
+    rtoken_price(752.0)
+    assert agent_loop.build_snapshot("META", _anchor())["anchor_source"] == "official_daily"
+    snap = agent_loop.build_snapshot("META", _anchor(close_sources={"META": "provisional_1m"}))
+    assert snap["anchor_source"] == "provisional_1m"
+
+
+def test_the_prompt_tells_the_model_when_the_close_is_provisional(rtoken_price):
+    rtoken_price(752.0)
+    official = agent_loop.build_snapshot("META", _anchor())
+    provisional = agent_loop.build_snapshot("META", _anchor(close_sources={"META": "provisional_1m"}))
+    assert "Provisional" not in agent_loop.build_user_prompt(official)
+    text = agent_loop.build_user_prompt(provisional)
+    assert "Provisional: the official close is not published yet" in text
+    assert "1-minute bar" in text
 
 
 def test_a_missing_proxy_contributes_nothing_and_is_recorded(rtoken_price):

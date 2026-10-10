@@ -44,6 +44,17 @@ MAX_BASE_STALENESS = timedelta(hours=3)  # the bar we price the close from must 
 VOL_LOOKBACK_DAYS = 10
 MIN_VOL_OBSERVATIONS = 5
 
+# Where a symbol's anchor close came from, recorded on every snapshot. Yahoo publishes a
+# session's daily bar about 5h45m after the close, so for roughly 00:00 to 01:45 UTC each
+# weekday there is no official close yet. In that window the close is taken from the last
+# regular-session 1-minute bar instead, and labelled so. Measured Oct 10 over 63
+# symbol-sessions, that bar sits within 2.2 bp of the official close on average (95th
+# percentile 5.9 bp, worst 8.8 bp). The last HOURLY bar was not usable: 7.2 bp on average
+# and up to 67 bp, with a 6 bp upward bias.
+OFFICIAL_SOURCE = "official_daily"
+PROVISIONAL_SOURCE = "provisional_1m"
+MIN_SESSION_END = time(15, 55)  # a 1-minute series must reach this ET minute to count as a full session
+
 
 class AnchorUnavailable(RuntimeError):
     """The real-share close could not be established, so no signal can be computed
@@ -120,6 +131,24 @@ def return_since(prices: pd.Series, since_utc: datetime, bar: timedelta = timede
     return float(p.iloc[-1]) / base - 1.0
 
 
+def last_regular_minute_close(prices: pd.Series, session: date) -> float | None:
+    """Close of the last 1-minute bar of the regular session (09:30 to 16:00 ET) on
+    `session`, or None. None unless the series really reaches the end of that session (a bar
+    at or after 15:55 ET), so a partial day or a different date is never used as a close."""
+    s = prices.dropna()
+    if s.empty:
+        return None
+    idx = pd.DatetimeIndex(s.index)
+    idx = idx.tz_localize("UTC") if idx.tz is None else idx.tz_convert("UTC")
+    s = pd.Series(s.values, index=idx.tz_convert(NYSE_TZ)).sort_index()
+    keep = [(i.date() == session and time(9, 30) <= i.time() < SESSION_CLOSE_ET) for i in s.index]
+    day = s[keep]
+    if day.empty or day.index[-1].time() < MIN_SESSION_END:
+        return None
+    value = float(day.iloc[-1])
+    return value if value > 0 else None
+
+
 def daily_volatility(closes: pd.Series, through: date) -> float | None:
     """Realized volatility of the real share: standard deviation of its last
     VOL_LOOKBACK_DAYS daily returns up to the anchor session. Feeds the risk layer's
@@ -144,6 +173,7 @@ class OvernightAnchor:
     crypto_return: float | None = None                     # blended BTC/ETH return since close
     fx_return: float | None = None                         # inverted DXY return since close (+ == risk-on)
     missing: list = field(default_factory=list)            # proxies unavailable this cycle, recorded on every snapshot
+    close_sources: dict = field(default_factory=dict)      # underlying -> OFFICIAL_SOURCE or PROVISIONAL_SOURCE
 
     @property
     def hours_since_close(self) -> float:
@@ -159,10 +189,42 @@ def _flatten(df: pd.DataFrame, ticker: str, column: str = "Close") -> pd.Series:
     return df[column]
 
 
-def fetch_equity_closes(underlyings: list[str], now_utc: datetime) -> tuple[date, dict, dict]:
-    """Official daily closes for every underlying on the last completed session, plus
-    each one's realized daily volatility. Raises AnchorUnavailable if the reference
-    session cannot be established at all."""
+def fetch_provisional_closes(tickers: list[str], session: date) -> dict:
+    """Last regular-session 1-minute close on `session` for each ticker that has one.
+    Used only where the official daily close is not published yet; a ticker with no usable
+    minute series is simply absent from the result."""
+    import yfinance as yf
+
+    wanted = sorted(set(tickers))
+    if not wanted:
+        return {}
+    try:
+        data = yf.download(wanted, period="5d", interval="1m", group_by="ticker",
+                           auto_adjust=True, progress=False)
+    except Exception:  # noqa: BLE001 - a failed fetch just means no provisional close
+        return {}
+    if data is None or data.empty:
+        return {}
+    out = {}
+    for t in wanted:
+        try:
+            c = last_regular_minute_close(_flatten(data, t), session)
+        except Exception:  # noqa: BLE001
+            c = None
+        if c is not None:
+            out[t] = c
+    return out
+
+
+def fetch_equity_closes(underlyings: list[str], now_utc: datetime) -> tuple[date, dict, dict, dict]:
+    """The anchor close for every underlying on the last completed session, each one's
+    realized daily volatility, and where each close came from.
+
+    The official daily close is used whenever it is published. Where it is not (for about
+    00:00 to 01:45 UTC on weekdays, and when Yahoo drops a single ticker), the last
+    regular-session 1-minute bar of the SAME session is used instead and labelled
+    PROVISIONAL_SOURCE. Raises AnchorUnavailable if the expected session's close cannot be
+    established for the reference ticker by either route, so an older session is never used."""
     import yfinance as yf
 
     tickers = sorted(set(underlyings) | {REFERENCE_TICKER})
@@ -172,27 +234,43 @@ def fetch_equity_closes(underlyings: list[str], now_utc: datetime) -> tuple[date
         raise AnchorUnavailable("no daily price data returned")
     reference = _flatten(data, REFERENCE_TICKER).dropna()
     session = expected_last_session(now_utc)
-    if session not in {pd.Timestamp(x).date() for x in reference.index}:
-        raise AnchorUnavailable(
-            f"the {session} session's daily bar is not in the {REFERENCE_TICKER} data yet "
-            f"(newest bar: {pd.Timestamp(reference.index[-1]).date() if len(reference) else 'none'}); "
-            "refusing to anchor to an older session"
-        )
+    official_reference = session in {pd.Timestamp(x).date() for x in reference.index}
 
-    closes, vols = {}, {}
+    closes, vols, sources, series_by = {}, {}, {}, {}
     for t in underlyings:
         try:
             series = _flatten(data, t).dropna()
         except KeyError:
             continue
+        series_by[t] = series
         on_date = series[[pd.Timestamp(i).date() == session for i in series.index]]
         if on_date.empty:
-            continue  # this symbol has no close on the anchor session: it gets no signal this cycle
+            continue  # no official close for this symbol yet: a provisional one may fill it below
         closes[t] = float(on_date.iloc[-1])
-        vol = daily_volatility(series, session)
-        if vol is not None:
-            vols[t] = vol
-    return session, closes, vols
+        sources[t] = OFFICIAL_SOURCE
+
+    needed = [t for t in underlyings if t not in closes]
+    if not official_reference:
+        needed.append(REFERENCE_TICKER)
+    provisional = fetch_provisional_closes(needed, session) if needed else {}
+
+    if not official_reference and REFERENCE_TICKER not in provisional:
+        raise AnchorUnavailable(
+            f"the {session} session's daily bar is not in the {REFERENCE_TICKER} data yet "
+            f"(newest bar: {pd.Timestamp(reference.index[-1]).date() if len(reference) else 'none'}) "
+            "and there is no 1-minute bar for the end of that session either; "
+            "refusing to anchor to an older session"
+        )
+
+    for t in underlyings:
+        if t not in closes and t in provisional:
+            closes[t] = provisional[t]
+            sources[t] = PROVISIONAL_SOURCE
+        if t in closes and t in series_by:
+            vol = daily_volatility(series_by[t], session)
+            if vol is not None:
+                vols[t] = vol
+    return session, closes, vols, sources
 
 
 def fetch_futures_returns(tickers: list[str], since_utc: datetime) -> dict:
@@ -252,7 +330,7 @@ def fetch_overnight_anchor(underlyings: list[str], futures_tickers: list[str],
     replaced by a stale or invented value; a missing real close is different, it
     raises, because without it there is no anchor at all."""
     now_utc = now_utc or datetime.now(timezone.utc)
-    session, closes, vols = fetch_equity_closes(underlyings, now_utc)
+    session, closes, vols, sources = fetch_equity_closes(underlyings, now_utc)
     close_utc = session_close_utc(session)
 
     futures = fetch_futures_returns(futures_tickers, close_utc)
@@ -267,7 +345,7 @@ def fetch_overnight_anchor(underlyings: list[str], futures_tickers: list[str],
     return OvernightAnchor(
         session_date=session, session_close_utc=close_utc, fetched_at_utc=now_utc,
         close_prices=closes, daily_volatility=vols, futures_return=futures,
-        crypto_return=crypto, fx_return=fx, missing=missing,
+        crypto_return=crypto, fx_return=fx, missing=missing, close_sources=sources,
     )
 
 
@@ -279,6 +357,7 @@ if __name__ == "__main__":
         a = fetch_overnight_anchor(list(RTOKEN_UNIVERSE), tickers)
         print(f"anchor session {a.session_date} closed {a.session_close_utc:%Y-%m-%d %H:%M}Z, {a.hours_since_close:.1f}h ago")
         print("closes:", {k: round(v, 2) for k, v in a.close_prices.items()})
+        print("close sources:", a.close_sources)
         print("daily vol:", {k: f"{v:.2%}" for k, v in a.daily_volatility.items()})
         print("futures since close:", a.futures_return)
         print("crypto since close:", a.crypto_return, "| fx since close:", a.fx_return)

@@ -146,14 +146,25 @@ unlisted closure also skips trading until a bar appears: the failure direction i
 trade", never "trade on an older close". Regression tests reproduce the exact failure
 (`tests/test_overnight_anchor.py`).
 
-What the fix costs, measured: because Yahoo's daily bar for a session lands about 5 hours
-45 minutes after the close, the agent now skips roughly 7 cycles (about 00:00 to 01:45 UTC,
-20:00 to 21:45 New York) on every weekday evening, and the log records them as errors.
-That is 66 whole-cycle skips between 2026-09-28 and 2026-10-10, 4 of them Yahoo returning no
-bars at all. Nothing is traded on a wrong anchor, but the window right after the close is
-unobserved. A provisional anchor from the last regular-session hourly bar, clearly
-labelled and replaced by the official close when it lands, would remove it; it changes live
-behaviour, so it has not been made. See AUDIT.md, L3.
+What the fix cost, measured, and how it was closed: because Yahoo's daily bar for a session
+lands about 5 hours 45 minutes after the close, the first version of the fix skipped roughly
+7 cycles (about 00:00 to 01:45 UTC, 20:00 to 21:45 New York) on every weekday evening and
+logged them as errors: 66 whole-cycle skips between 2026-09-28 and 2026-10-10, 4 of them
+Yahoo returning no bars at all. Nothing was traded on a wrong anchor, but the window right
+after the close was unobserved.
+
+Since 2026-10-10 the close in that window comes from the last regular-session 1-minute bar
+of the SAME session (`fetch_provisional_closes`, `last_regular_minute_close`), and each
+snapshot records `anchor_source`: `official_daily` or `provisional_1m`. The official close
+replaces it as soon as it is published. Measured against the official close, the 1-minute
+bar is within 2.2 bp on average over 63 symbol-sessions (95th percentile 5.9 bp, worst
+8.8 bp), and 0.8 bp on average on the Oct 9 session when run end to end against live Yahoo
+with the daily bar hidden. The last HOURLY bar was tried first and rejected: 7.2 bp on
+average, up to 67 bp, and biased 6 bp high. The provisional path has two guards: the
+minute series must be from the expected session and reach 15:55 ET, and if neither route
+yields a close for the reference ticker the cycle still trades nothing. The prompt tells the
+model when a close is provisional. The same fallback covers a single ticker that Yahoo drops
+from a batch.
 
 ## Data flow
 

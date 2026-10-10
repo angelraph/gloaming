@@ -16,7 +16,7 @@ const SHIPPED: Entry[] = [
     when: "Sep 26",
     title: "The anchor comes from the calendar",
     detail:
-      "Found on the first weekend: Yahoo publishes a session's daily bar about 5 hours 45 minutes after the close, and until then the agent anchored to the previous day's close and traded a false 4% spread for about 90 minutes. The anchor is now the calendar's last session, and a missing bar means no trades that cycle (about seven cycles each weekday evening, logged as errors). Regression-tested; the affected fills are flagged, not removed.",
+      "Found on the first weekend: Yahoo publishes a session's daily bar about 5 hours 45 minutes after the close, and until then the agent anchored to the previous day's close and traded a false 4% spread for about 90 minutes. The anchor is now the calendar's last session, and a missing bar means no trades that cycle. That left about seven cycles blind each weekday evening, so from Oct 10 the close is taken from the last 1-minute bar of the same session until the official bar lands, and labelled. Regression-tested; the affected fills are flagged, not removed.",
   },
   {
     when: "Sep 25",
