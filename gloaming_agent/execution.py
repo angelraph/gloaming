@@ -274,7 +274,15 @@ def _send_perp_order(symbol: str, side: str, pos_side: str, qty: float) -> dict:
         out["status"] = row.get("orderStatus") or row.get("status")
         out["avg_price"] = _first_float(row, ("avgPrice", "priceAvg", "fillPrice", "averagePrice"))
         out["filled_qty"] = _first_float(row, ("cumExecQty", "baseVolume", "filledQty", "execQty", "fillQty"))
-        out["fee"] = _first_float(row, ("fee", "totalFee", "cumExecFee", "feeAmount"))
+        out["filled_value"] = _first_float(row, ("cumExecValue", "quoteVolume", "filledAmount"))
+        # Bitget returns fees as feeDetail: [{"feeCoin": "USDT", "fee": "0.004"}]; older shapes use a flat key
+        fee = _first_float(row, ("fee", "totalFee", "cumExecFee", "feeAmount"))
+        detail_fees = [_first_float(d, ("fee",)) for d in (row.get("feeDetail") or []) if isinstance(d, dict)]
+        if fee is None and any(f is not None for f in detail_fees):
+            fee = sum(f for f in detail_fees if f is not None)
+            coins = {d.get("feeCoin") for d in row["feeDetail"] if isinstance(d, dict)}
+            out["fee_coin"] = coins.pop() if len(coins) == 1 else sorted(str(c) for c in coins)
+        out["fee"] = fee
     except Exception as e:  # noqa: BLE001
         out["detail_error"] = str(e)[:300]
     return out
@@ -347,8 +355,12 @@ def exchange_selftest(underlying: str = "AAPL") -> int:
     symbol = perp_symbol(underlying)
     inst = get_perp_instrument(symbol)
     price = get_perp_last_price(symbol)
-    min_notional = max(float(inst.get("minOrderAmount") or 5), float(inst.get("minOrderQty") or 0) * price) * 1.3
-    print(f"{symbol}: price {price}, testing with about ${min_notional:.2f}")
+    decimals = int(inst.get("quantityPrecision") or 2)
+    step = 10 ** -decimals
+    need = max(float(inst.get("minOrderQty") or 0), float(inst.get("minOrderAmount") or 5) / price)
+    qty = -(-need // step) * step  # smallest multiple of the quantity step that clears both minimums
+    min_notional = qty * price * 1.002  # a hair over, so rounding down in the mirror cannot undercut it
+    print(f"{symbol}: price {price}, quantity {qty:.{decimals}f}, testing with about ${min_notional:.2f}")
     opened = mirror_decision_on_exchange(underlying, "buy", min_notional)
     print("OPEN :", json.dumps(opened, ensure_ascii=False, indent=2)[:3000])
     closed = mirror_decision_on_exchange(underlying, "sell", min_notional)

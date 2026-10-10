@@ -45,8 +45,12 @@ class FakeExchange:
         if tool == "order" and action == "detail":
             oid = args[args.index("--orderId") + 1]
             o = next(p for p in self.placed if p["orderId"] == oid)
-            return {"data": {"orderId": oid, "orderStatus": "filled", "avgPrice": str(PRICE + 0.05),
-                             "cumExecQty": str(o["qty"]), "fee": "0.0123"}}
+            # the shape Bitget's demo engine really returned on 2026-10-10 (order-info)
+            return {"data": {"orderId": oid, "clientOid": "x", "category": "USDT-FUTURES", "symbol": "AAPLUSDT",
+                             "orderType": "market", "side": o["side"], "qty": str(o["qty"]),
+                             "cumExecQty": str(o["qty"]), "cumExecValue": str(round(o["qty"] * (PRICE + 0.05), 4)),
+                             "avgPrice": str(PRICE + 0.05), "orderStatus": "filled", "posSide": o["posSide"],
+                             "feeDetail": [{"feeCoin": "USDT", "fee": "0.0123"}]}}
         raise AssertionError(f"unexpected read {args}")
 
     def write(self, args):
@@ -96,7 +100,9 @@ def test_a_buy_with_a_flat_book_opens_a_long_sized_to_the_precision(exchange):
     assert fx.placed == [{"orderId": "1000", "side": "buy", "posSide": "long", "qty": 2.97}]  # floor(1000 / 336.70, 2)
     o = r["orders"][0]
     assert o["orderId"] == "1000" and o["status"] == "filled"
-    assert o["avg_price"] == pytest.approx(336.75) and o["filled_qty"] == pytest.approx(2.97) and o["fee"] == pytest.approx(0.0123)
+    assert o["avg_price"] == pytest.approx(336.75) and o["filled_qty"] == pytest.approx(2.97)
+    assert o["fee"] == pytest.approx(0.0123) and o["fee_coin"] == "USDT"  # read from feeDetail, not a flat key
+    assert o["filled_value"] == pytest.approx(2.97 * 336.75, abs=0.01)
     assert "raw_place" in o and "raw_detail" in o  # the exchange's own words are kept
 
 

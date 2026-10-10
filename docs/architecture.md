@@ -245,13 +245,15 @@ ledger fill and after a backstop trim):
 - **Cannot reach a live account.** Every call goes through the wrapper that hardcodes
   `--paper-trading`; Bitget rejects a live key sent with the demo header.
 
-State, stated plainly: built and tested against a scripted fake exchange (191 tests), but not
-yet confirmed with a real fill. The demo account's trading wallet holds no USDT collateral
-(`effEquity` 0, max openable 0), its funding wallet holds 100,000 demo USDT, and the transfer
-endpoint returns 404 in the demo environment, so the margin has to be moved in Bitget's demo
-UI. Then `GLOAMING_EXCHANGE_ORDERS=demo python gloaming_agent/execution.py
---exchange-selftest` opens and closes the minimum position and prints the raw responses, which
-is the check that the response parsers match the real payloads.
+State, stated plainly: confirmed on 2026-10-10 with two real fills on Bitget's demo engine.
+The demo account was switched to Advanced mode, which lets its several demo assets count as
+margin (effective equity went from about $99,900 to about $1.76M), and its coins were on the
+unified account. The self-test (`GLOAMING_EXCHANGE_ORDERS=demo python gloaming_agent/execution.py
+--exchange-selftest`) bought 0.02 `AAPLUSDT` (order 1492718966160117761, filled at 336.44, fee
+0.00404 USDT) and sold it (order 1492718989711134720, filled at 336.30, fee 0.00404 USDT). The
+first run exposed a parser gap (the fee is under `feeDetail`), fixed against the real payload and
+covered by a test. The leg is still off in the production workflow: it is switched on by setting
+`GLOAMING_EXCHANGE_ORDERS=demo` there.
 
 ## Bitget-signal integration: real sentiment and derivatives context
 

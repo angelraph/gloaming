@@ -17,7 +17,7 @@ Built for the Bitget AI Base Camp Hackathon S2 (Genesis Season 2), in the **Agen
 | | |
 |---|---|
 | **Market** | Bitget spot rTokens, `R<TICKER>USDT`: AAPL, AMZN, GOOGL, META, MSFT, NVDA, QQQ, SPY, TSLA |
-| **Mode** | **Paper trading.** Fills are ledger entries at live rToken prices, because Bitget's demo environment does not list rToken symbols. No real-money order path exists. An opt-in leg can also send each approved trade to Bitget's demo engine on the matching stock perpetual (virtual funds, real order book); it is built and tested but off until the demo account holds margin, and has not produced a fill yet |
+| **Mode** | **Paper trading.** Fills are ledger entries at live rToken prices, because Bitget's demo environment does not list rToken symbols. No real-money order path exists. An opt-in leg can also send each approved trade to Bitget's demo engine on the matching stock perpetual (virtual funds, real order book); it has produced real demo-engine fills in a self-test (order ids in AUDIT.md F15) and is off in production until it is switched on |
 | **Running since** | First paper fill 2026-09-11; unattended on GitHub Actions every 15 minutes since 2026-09-13 |
 | **Record (observed)** | 797 fills from 2026-09-11 to 2026-09-29. Paper equity $98,048 (-1.95%), realized P&L -$1,879 net of $33 in costs, 64 of 354 position-reducing fills gained (18.1%), maximum drawdown 2.63%. Shown in full, loss included, on the [Performance page](https://gloamingdesk.vercel.app/performance) |
 | **Decisions** | 18,486 logged, **95.5% made by Qwen3.8-max** (17,654); the rest are a disclosed rule-based fallback, and each record says which path decided |
