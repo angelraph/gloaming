@@ -221,6 +221,38 @@ Bitget CLI wrapper, including live account reads and `--paper-trading` order cal
 is kept in the repo and still works correctly against tradable symbols like
 `BTCUSDT` - it's simply no longer in the rToken decision path.
 
+### The opt-in demo-exchange leg (added 2026-10-10)
+
+Re-tested on 2026-10-10, the demo engine still rejects the spot rToken symbols
+(`placeOrder symbolId is not exist`). But Bitget lists USDT perpetual futures on the same
+nine stocks (`AAPLUSDT` ... `TSLAUSDT`, `symbolType: stock`, $5 minimum order), and the demo
+engine recognises them: a test order on `AAPLUSDT` was rejected only with `Incorrect position
+open type` (the account is in hedge mode and needed a `posSide`) and then `Insufficient
+margin`, never with "symbol does not exist". So an approved decision can also be sent to
+Bitget's demo matching engine as an order on the stock perpetual, with a real order book, real
+fills, real fees and funding, and virtual funds.
+
+How it is built (`execution.mirror_decision_on_exchange`, called from `agent_loop` after a
+ledger fill and after a backstop trim):
+
+- **Opt-in.** Off unless `GLOAMING_EXCHANGE_ORDERS=demo`. The workflow does not set it yet.
+- **Additive.** The paper ledger stays the book of record. The exchange's order id, fill price,
+  filled quantity, fee and its raw responses are stored on the decision record under
+  `exchange`; a failure is recorded there and never touches the ledger or the cycle.
+- **Hedge mode.** A buy first closes any short on the perpetual and opens a long with the
+  rest; a sell does the mirror image. Orders below the exchange's minimum quantity or amount
+  are skipped with the reason recorded. If a position cannot be read, no order is sent.
+- **Cannot reach a live account.** Every call goes through the wrapper that hardcodes
+  `--paper-trading`; Bitget rejects a live key sent with the demo header.
+
+State, stated plainly: built and tested against a scripted fake exchange (191 tests), but not
+yet confirmed with a real fill. The demo account's trading wallet holds no USDT collateral
+(`effEquity` 0, max openable 0), its funding wallet holds 100,000 demo USDT, and the transfer
+endpoint returns 404 in the demo environment, so the margin has to be moved in Bitget's demo
+UI. Then `GLOAMING_EXCHANGE_ORDERS=demo python gloaming_agent/execution.py
+--exchange-selftest` opens and closes the minimum position and prints the raw responses, which
+is the check that the response parsers match the real payloads.
+
 ## Bitget-signal integration: real sentiment and derivatives context
 
 `gloaming_agent/bitget_signal.py` calls Bitget's own public `bitget-signal` MCP

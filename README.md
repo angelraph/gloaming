@@ -17,7 +17,7 @@ Built for the Bitget AI Base Camp Hackathon S2 (Genesis Season 2), in the **Agen
 | | |
 |---|---|
 | **Market** | Bitget spot rTokens, `R<TICKER>USDT`: AAPL, AMZN, GOOGL, META, MSFT, NVDA, QQQ, SPY, TSLA |
-| **Mode** | **Paper trading.** Fills are ledger entries at live rToken prices, because Bitget's demo environment does not list rToken symbols. No real order path exists |
+| **Mode** | **Paper trading.** Fills are ledger entries at live rToken prices, because Bitget's demo environment does not list rToken symbols. No real-money order path exists. An opt-in leg can also send each approved trade to Bitget's demo engine on the matching stock perpetual (virtual funds, real order book); it is built and tested but off until the demo account holds margin, and has not produced a fill yet |
 | **Running since** | First paper fill 2026-09-11; unattended on GitHub Actions every 15 minutes since 2026-09-13 |
 | **Record (observed)** | 797 fills from 2026-09-11 to 2026-09-29. Paper equity $98,048 (-1.95%), realized P&L -$1,879 net of $33 in costs, 64 of 354 position-reducing fills gained (18.1%), maximum drawdown 2.63%. Shown in full, loss included, on the [Performance page](https://gloamingdesk.vercel.app/performance) |
 | **Decisions** | 18,486 logged, **95.5% made by Qwen3.8-max** (17,654); the rest are a disclosed rule-based fallback, and each record says which path decided |
@@ -25,7 +25,7 @@ Built for the Bitget AI Base Camp Hackathon S2 (Genesis Season 2), in the **Agen
 | **Thesis test (observed)** | Backtest of the live definition on 65 real sessions: trading against a spread of 0.5% or more averaged -7.6 bp gross and -37.6 bp after costs. **No cost-covering edge was found**, the agent is told so, and it has not traded since 2026-09-29 |
 | **Risk layer** | Non-LLM: 15% per symbol, 60% gross, 25% net, -5% daily loss breaker, 2% per-trade loss, volatility-scaled sizing, no leverage, $1,000 ceiling per decision |
 | **Desk** | Next.js: 7 pages plus a page per symbol, a decision inspector, 11 API routes, CSV and JSON downloads, keyboard and screen-reader support |
-| **Tests** | 179 automated tests across the signal, ledger, risk layer, cycle behaviour and fill verification |
+| **Tests** | 191 automated tests across the signal, ledger, risk layer, cycle behaviour and fill verification |
 
 Last verified 2026-10-10. The live Performance page is the current source for every number.
 
@@ -219,7 +219,7 @@ There is deliberately no separate API or database layer: the agent and the Desk 
 
 | Check | Result |
 |---|---|
-| Automated tests | 179 pass (`python -m pytest tests/`) |
+| Automated tests | 191 pass (`python -m pytest tests/`) |
 | Desk | `tsc --noEmit` clean, `next build` succeeds |
 | Unattended runs | the last 100 consecutive workflow runs succeeded |
 | Fills against Bitget's candles | 797 checked: 795 matched, 2 mismatched by under 0.2 bp, 33 stale |
@@ -309,7 +309,7 @@ gloaming_desk/app/      pages and API routes
 gloaming_desk/components/   UI, charts, the decision inspector
 gloaming_desk/lib/      data access, performance derivation, formatting
 alpha_factory/results/  backtest results as JSON
-tests/                  179 tests
+tests/                  191 tests
 docs/                   architecture, risk controls, decision flow, and earlier drafts
 video/                  the demo film's sources and method
 media/                  screenshots used in this README

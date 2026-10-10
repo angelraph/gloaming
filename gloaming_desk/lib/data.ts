@@ -97,6 +97,31 @@ export type DecisionRecord = {
     reasons: string[];
   } | null;
   execution?: unknown;
+  // Present only when the opt-in demo-exchange leg ran for this decision: the same approved
+  // trade sent to Bitget's demo matching engine on the stock perpetual, with the exchange's own
+  // order id, fill and fee. Absent on every record made before the leg existed.
+  exchange?: {
+    venue?: string;
+    enabled?: boolean;
+    ok?: boolean;
+    symbol?: string;
+    skipped_reason?: string;
+    error?: string;
+    reference_price?: number;
+    orders?: Array<{
+      symbol: string;
+      side: string;
+      posSide: string;
+      qty: number;
+      ok?: boolean;
+      orderId?: string | null;
+      status?: string | null;
+      avg_price?: number | null;
+      filled_qty?: number | null;
+      fee?: number | null;
+      error?: string;
+    }>;
+  };
   error?: string;
 };
 

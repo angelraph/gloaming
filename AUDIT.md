@@ -26,13 +26,13 @@ Last updated 2026-10-10.
 - Bitget's market data and rToken prices, Yahoo Finance (daily closes, hourly futures and dollar index), Qwen's endpoint, GitHub Actions, Upstash Redis and Vercel. Gloaming records when they fail and degrades without inventing data, but it cannot make them reliable.
 - Bitget's demo trading, which does not list rToken symbols (confirmed live on 2026-09-11: an order for `RAAPLUSDT` is rejected while `BTCUSDT` works). Every fill is therefore a ledger entry at a live price, and nothing here exercises Bitget's order matching.
 
-No code path in the repository can place a real order or move funds. The Bitget key used for reads has withdrawals disabled at the account level.
+No code path in the repository can place a real-money order or move funds. The only exchange leg is opt-in, goes to Bitget's demo environment with the header that makes a live key fail, and is off by default (see F15). The Bitget key used for reads has withdrawals disabled at the account level.
 
 ## 2. Method
 
 1. **Live monitoring.** Every cycle's records are committed to the repository, so the log can be read like a flight recorder. Most findings below came from asking why a number in it looked wrong.
 2. **Comparison with real data.** Spreads, closes and fills were checked against real closes, Bitget's own candles and the rToken's own hourly history.
-3. **Tests.** Each fix added a regression test. The suite is 179 tests in 12 files, run with `python -m pytest tests/` and all passing at the time of writing.
+3. **Tests.** Each fix added a regression test. The suite is 191 tests in 12 files, run with `python -m pytest tests/` and all passing at the time of writing.
 4. **A backtest of the live definition.** The thesis was tested on 65 real sessions of hourly data with the same definitions the agent uses ([`engine/backtest/since_close_backtest.py`](engine/backtest/since_close_backtest.py)).
 
 ## 3. Findings and resolutions
@@ -75,11 +75,13 @@ This was first written up as a one-off data gap. It is not: see limitation L3, w
 
 **F14. The anchor fix left the first two hours after the close unobserved (2026-10-10).** Found by counting the errors F6's fix produced: the same publication delay, every weekday, 7 cycles. Resolution: when the daily bar is not published, the close is the last regular-session 1-minute bar of the same session, labelled `provisional_1m` on the record and in the prompt and replaced by the official close when it lands. The alternative of using the last hourly bar was measured first and rejected (7.2 bp on average, up to 67 bp, biased 6 bp high), against 2.2 bp on average (worst 8.8 bp) for the minute bar over 63 symbol-sessions and 0.8 bp on average (worst 1.9 bp) on the 2026-10-09 session end to end against live Yahoo. Two guards: the minute series must be from the expected session and reach 15:55 ET, and with no close for the reference ticker the cycle trades nothing. Tests: `tests/test_overnight_anchor.py`. Effect on trading: the agent can act in a window it previously skipped; with the current prompt that is expected to change little, since it holds almost everything.
 
+**F15. Every fill was simulated, with no exchange-side order at all (2026-10-10).** Raised by the project owner, who wanted real exchange fills without spending money. Re-tested the same day: Bitget's demo engine still rejects the spot rToken symbols (`symbolId is not exist`), but Bitget lists USDT perpetuals on all nine of the same stocks, and the demo engine recognises them (the errors moved from "symbol does not exist" to a position-mode error and then `Insufficient margin`). Resolution: an opt-in leg that sends each approved decision to the demo engine on the stock perpetual, with order id, fill, fee and raw responses stored on the record, behind `GLOAMING_EXCHANGE_ORDERS=demo` and off by default. Tests: `tests/test_exchange_orders.py` (12, against a scripted fake exchange). **Not yet confirmed with a real fill:** the demo trading wallet has no USDT collateral and the demo environment's transfer endpoint returns 404, so margin has to be added through Bitget's demo UI first; then `execution.py --exchange-selftest` checks the parsers against real payloads. Until then this is built and tested, not verified.
+
 ## 4. Test and check results
 
 | Check | Result |
 |---|---|
-| Unit and regression tests | 179 passed, 12 files (`python -m pytest tests/`) |
+| Unit and regression tests | 191 passed, 12 files (`python -m pytest tests/`) |
 | Desk | `npx next typegen && npx tsc --noEmit` clean and `npm run build` succeeds, with and without local env files |
 | CI | `.github/workflows/test.yml` runs the tests and the Desk build; its first run failed because `tsc` ran before Next had generated its route types, fixed by running `next typegen` first |
 | Workflow | the last 100 consecutive runs succeeded |
@@ -89,7 +91,7 @@ This was first written up as a one-off data gap. It is not: see limitation L3, w
 
 ## 5. Known limitations (open)
 
-**L1. Paper trading, with assumed costs.** Fills are at the last price plus a stated 0.15%. Real execution on rTokens could cost more, and size was never tested against real depth.
+**L1. Paper trading, with assumed costs.** Fills are at the last price plus a stated 0.15%. Real execution on rTokens could cost more, and size was never tested against real depth. A read of the live order books on 2026-10-10 put the cost of crossing the book with a $500 market order at 0.2 to 7 bp against the mid price across the nine rTokens (about 4 bp on average), close to the 5 bp slippage assumed; the account's real fee rate could not be read in demo, so the 0.10% fee is still an assumption. The opt-in demo-exchange leg (F15) would replace these with the exchange's own fills, but it has not produced one yet.
 
 **L2. No demonstrated edge, and the agent has stopped trading.** The live definition has no edge at 2 to 12 hours after the close in the project's own backtest: -7.6 bp gross per trade at spreads of 0.5% or more (standard error 5.0, so statistically indistinguishable from zero) and about -37.6 bp after the assumed 0.30% round trip, which is clearly negative. After the prompt was tightened the agent made no trade after 2026-09-29 12:02 UTC: over the last 48 hours all 131 records with a spread of 0.5% or more were held, and 980 of 1,133 hold rationales cite the backtest. The paper record therefore stopped growing at 797 fills. This is the intended behaviour given the evidence, and it also means no new evidence is being collected on the corrected signal.
 

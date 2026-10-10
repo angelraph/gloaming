@@ -42,6 +42,7 @@ from data.rtoken_client import run_bgc  # noqa: E402
 from fairvalue.config import FAIRVALUE_WEIGHTS, RTOKEN_UNIVERSE  # noqa: E402
 
 import bitget_signal  # noqa: E402
+import execution  # noqa: E402  (Bitget CLI wrapper: only the opt-in demo-exchange leg is used here)
 import kv_sync  # noqa: E402
 import llm_client  # noqa: E402
 import paper_ledger  # noqa: E402
@@ -412,6 +413,16 @@ def decide(snapshot: dict) -> tuple[TradeDecision | None, str]:
         return decide_rule_based(snapshot), f"rule_based (Qwen call failed: {e})"
 
 
+def _exchange_leg(underlying: str, side: str, notional_usd: float) -> dict:
+    """The opt-in demo-exchange order for an approved decision. mirror_decision_on_exchange
+    already swallows its own errors; this is a second net so nothing here can cost a cycle
+    its records or the ledger its fill."""
+    try:
+        return execution.mirror_decision_on_exchange(underlying, side, notional_usd)
+    except Exception as e:  # noqa: BLE001
+        return {"venue": "bitget_demo_perp", "ok": False, "error": f"exchange leg failed: {e}"[:400]}
+
+
 def _net_backstop_pass(mark_prices: dict, snapshots: dict, emit, dry_run: bool) -> list[dict]:
     """The deterministic backstop for the net directional cap. The LLM is shown its
     book and is the primary way an over-cap book comes back under the cap; this only
@@ -464,6 +475,8 @@ def _net_backstop_pass(mark_prices: dict, snapshots: dict, emit, dry_run: bool) 
                     )
                 except Exception as e:  # noqa: BLE001
                     record["execution"] = f"FAILED: {e}"
+                if isinstance(record["execution"], dict) and underlying and execution.exchange_orders_enabled():
+                    record["exchange"] = _exchange_leg(underlying, decision.side, risk_result.adjusted_notional_usd)
             trim_records.append(record)
             emit(record)
         return trim_records
@@ -633,6 +646,12 @@ def run_once(dry_run: bool = False, force: bool = False) -> list[dict]:
             record["execution"] = asdict(fill)
         except Exception as e:  # noqa: BLE001 - log and move on, never crash the loop over one fill
             record["execution"] = f"FAILED: {e}"
+
+        # The same approved decision, also sent to Bitget's demo matching engine on the stock
+        # perpetual (opt-in: GLOAMING_EXCHANGE_ORDERS=demo). The ledger above stays the book of
+        # record; this leg only adds the exchange's own order id, fill and fee to the record.
+        if isinstance(record["execution"], dict) and execution.exchange_orders_enabled():
+            record["exchange"] = _exchange_leg(underlying, decision.side, risk_result.adjusted_notional_usd)
 
         # Re-mark the book after a real fill so the next symbol's decision, its risk
         # gate, and the book context the LLM sees all reflect it, instead of the

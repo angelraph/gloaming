@@ -193,6 +193,39 @@ export default function DecisionInspector({ record, onClose }: { record: Decisio
                 )}
               </section>
 
+              {record.exchange && record.exchange.enabled !== false && (
+                <section className="mt-7">
+                  <h3 className="micro-label">Exchange order (Bitget demo engine)</h3>
+                  {record.exchange.orders && record.exchange.orders.length > 0 ? (
+                    <ul className="mt-3 space-y-3">
+                      {record.exchange.orders.map((o, i) => (
+                        <li key={i} className="rounded-lg border border-border-subtle p-3 text-sm">
+                          <p className="text-heading">
+                            {o.side} {o.qty} {o.symbol} ({o.posSide})
+                            {o.ok === false ? <span className="text-warning"> - rejected</span> : null}
+                          </p>
+                          <p className="mt-1 text-text-secondary">
+                            {o.error
+                              ? o.error
+                              : `order ${o.orderId ?? "n/a"}, ${o.status ?? "status unknown"}${
+                                  o.avg_price ? `, filled at ${o.avg_price}` : ""
+                                }${o.fee ? `, fee ${o.fee}` : ""}`}
+                          </p>
+                        </li>
+                      ))}
+                    </ul>
+                  ) : (
+                    <p className="mt-3 text-sm text-text-secondary">
+                      {record.exchange.skipped_reason ?? record.exchange.error ?? "No exchange order was sent."}
+                    </p>
+                  )}
+                  <p className="mt-2 text-xs text-text-tertiary">
+                    The paper ledger is the book of record. This is the same approved trade sent to the exchange&apos;s
+                    demo engine, with virtual funds.
+                  </p>
+                </section>
+              )}
+
               {execution !== undefined && execution !== null && (
                 <section className="mt-7">
                   <h3 className="micro-label">Execution</h3>
