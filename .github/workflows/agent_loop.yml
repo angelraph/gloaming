@@ -76,8 +76,22 @@ jobs:
       - name: Install Node dependencies (bgc CLI)
         run: npm ci
 
+      - name: Check the demo exchange leg (read-only, places no order)
+        # Switched on 2026-10-10: approved decisions are also sent to Bitget's DEMO engine on the
+        # stock perpetual. This prints whether the secrets reach the demo account and whether it
+        # has margin, so a bad secret is visible in the run log. It never blocks the cycle.
+        continue-on-error: true
+        env:
+          GLOAMING_EXCHANGE_ORDERS: demo
+          BITGET_API_KEY: ${{ secrets.BITGET_API_KEY }}
+          BITGET_SECRET_KEY: ${{ secrets.BITGET_SECRET_KEY }}
+          BITGET_PASSPHRASE: ${{ secrets.BITGET_PASSPHRASE }}
+        run: python gloaming_agent/execution.py --exchange-check
+
       - name: Run one Agent cycle
         env:
+          # Every call on this leg hardcodes --paper-trading, so a live key would be rejected.
+          GLOAMING_EXCHANGE_ORDERS: demo
           BITGET_API_KEY: ${{ secrets.BITGET_API_KEY }}
           BITGET_SECRET_KEY: ${{ secrets.BITGET_SECRET_KEY }}
           BITGET_PASSPHRASE: ${{ secrets.BITGET_PASSPHRASE }}

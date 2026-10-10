@@ -252,8 +252,9 @@ unified account. The self-test (`GLOAMING_EXCHANGE_ORDERS=demo python gloaming_a
 --exchange-selftest`) bought 0.02 `AAPLUSDT` (order 1492718966160117761, filled at 336.44, fee
 0.00404 USDT) and sold it (order 1492718989711134720, filled at 336.30, fee 0.00404 USDT). The
 first run exposed a parser gap (the fee is under `feeDetail`), fixed against the real payload and
-covered by a test. The leg is still off in the production workflow: it is switched on by setting
-`GLOAMING_EXCHANGE_ORDERS=demo` there.
+covered by a test. It was switched on in the production workflow on 2026-10-10 (`GLOAMING_EXCHANGE_ORDERS=demo`),
+with a read-only health check before each cycle (`execution.py --exchange-check`) so a bad secret is visible
+in the run log; it sends an order only when the agent decides to trade.
 
 ## Bitget-signal integration: real sentiment and derivatives context
 

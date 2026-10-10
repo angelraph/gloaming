@@ -82,7 +82,7 @@ Qwen3.8-max reads that snapshot and its own book every 15 minutes while NYSE is 
 
 ### Progress
 
-Built and running: the signal, the agent loop and Qwen integration, the non-LLM risk layer, the paper ledger, the fill check, the Redis mirror, the Desk, 191 automated tests and an unattended GitHub Actions workflow. Problems found and fixed in the open, each with a test: a mismeasured first signal, an anchor that fell back to the previous day's close, a risk layer that blocked de-risking, a model call that timed out, a dry run that overwrote the public mirror, a performance page that read better than the record ([AUDIT.md](AUDIT.md)). Built and confirmed with two real fills in a self-test, but off by default in production: sending approved trades to Bitget's demo engine on the stock perpetuals. Not built: real-money execution, calibrated weights, early-close handling.
+Built and running: the signal, the agent loop and Qwen integration, the non-LLM risk layer, the paper ledger, the fill check, the Redis mirror, the Desk, 191 automated tests and an unattended GitHub Actions workflow. Problems found and fixed in the open, each with a test: a mismeasured first signal, an anchor that fell back to the previous day's close, a risk layer that blocked de-risking, a model call that timed out, a dry run that overwrote the public mirror, a performance page that read better than the record ([AUDIT.md](AUDIT.md)). Built and confirmed with two real fills in a self-test, and switched on in production: sending approved trades to Bitget's demo engine on the stock perpetuals. Not built: real-money execution, calibrated weights, early-close handling.
 
 ### Role of the LLM
 

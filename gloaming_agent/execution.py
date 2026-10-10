@@ -346,6 +346,33 @@ def notional_to_qty(rtoken_symbol: str, notional_usd: float, last_price: float) 
     return round(notional_usd / last_price, 4)  # matches rToken quantityPrecision=4 (confirmed Day 1)
 
 
+def exchange_check(underlying: str = "AAPL") -> int:
+    """Read-only health check of the demo-exchange leg: credentials work, the perpetual is
+    listed, and the account can open a position. Places no order. Exit 0 when healthy.
+    The workflow runs this before each cycle so a bad secret shows up in the run log."""
+    if not exchange_orders_enabled():
+        print("exchange leg: off (GLOAMING_EXCHANGE_ORDERS is not 'demo')")
+        return 0
+    symbol = perp_symbol(underlying)
+    try:
+        _require_credentials()
+        inst = get_perp_instrument(symbol)
+        price = get_perp_last_price(symbol)
+        mo = _find_dicts(_data(_run_bgc_read([
+            "order", "--action", "maxOpen", "--category", PERP_CATEGORY, "--symbol", symbol,
+            "--orderType", "market", "--side", "buy",
+        ])))
+        max_buy = next((d.get("maxBuyOpen") for d in mo if "maxBuyOpen" in d), None)
+        avail = next((d.get("available") for d in mo if "available" in d), None)
+        ok = bool(max_buy) and float(max_buy) > 0
+        print(f"exchange leg: {'healthy' if ok else 'NO MARGIN'} | {symbol} listed (min qty {inst.get('minOrderQty')}), "
+              f"price {price}, max buy {max_buy}, available margin {avail}")
+        return 0 if ok else 1
+    except Exception as e:  # noqa: BLE001
+        print(f"exchange leg: UNHEALTHY | {str(e)[:300]}")
+        return 1
+
+
 def exchange_selftest(underlying: str = "AAPL") -> int:
     """Open and close the minimum position on the demo perp and print what the exchange said.
     Run this once the demo account has USDT in its trading wallet:
@@ -373,6 +400,8 @@ if __name__ == "__main__":
 
     if "--exchange-selftest" in sys.argv:
         sys.exit(exchange_selftest())
+    if "--exchange-check" in sys.argv:
+        sys.exit(exchange_check())
     if "--smoke-test" in sys.argv:
         try:
             _require_credentials()
