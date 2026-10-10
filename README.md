@@ -61,7 +61,7 @@ Gloaming's answer is one loop, run every 15 minutes, only while NYSE is closed:
 | **Observe** | For each symbol: the rToken's price, the real share's last regular-session close, and what index futures, BTC/ETH and the dollar index have done since that close | [`engine/data/overnight_anchor.py`](engine/data/overnight_anchor.py) |
 | **Decide** | Qwen3.8-max reads the snapshot and its own book, then returns buy, sell or hold, a size, a stop and a written reason | [`gloaming_agent/llm_client.py`](gloaming_agent/llm_client.py), [`prompts/system_prompt.md`](gloaming_agent/prompts/system_prompt.md) |
 | **Gate** | A deterministic layer with no model in it approves, shrinks or rejects the trade against hard caps | [`gloaming_agent/risk_controls.py`](gloaming_agent/risk_controls.py) |
-| **Execute** | An approved trade becomes a paper fill at the live price, charged a stated cost | [`gloaming_agent/paper_ledger.py`](gloaming_agent/paper_ledger.py) |
+| **Execute** | An approved trade becomes a paper fill at the live price, charged a stated cost, and is also sent to Bitget's demo engine as an order on the stock perpetual | [`gloaming_agent/paper_ledger.py`](gloaming_agent/paper_ledger.py), [`execution.py`](gloaming_agent/execution.py) |
 | **Record** | The snapshot, reasoning, verdict and fill are written to the log, committed, mirrored to the Desk and checked against Bitget's candles | [`gloaming_agent/decision_log/`](gloaming_agent/decision_log), [`verify_fills.py`](gloaming_agent/verify_fills.py) |
 
 The signal is a single number per symbol:
@@ -85,6 +85,7 @@ Nothing here asks to be taken on trust. Each claim has a file or a page behind i
 | The risk limits are enforced in code | [`risk_controls.py`](gloaming_agent/risk_controls.py) and its tests in [`tests/`](tests) |
 | The thesis was tested, and failed | [`since_close_backtest.py`](engine/backtest/since_close_backtest.py) and its [results](alpha_factory/results/since_close_backtest.json); regenerate with the two commands in [Quickstart](#quickstart) |
 | The prompt quotes the real backtest | A test fails if the numbers in [`system_prompt.md`](gloaming_agent/prompts/system_prompt.md) drift from that results file |
+| The demo-exchange leg works | Every production run prints a read-only health line in its log (the "Check the demo exchange leg" step). The two self-test order ids are in [AUDIT.md](AUDIT.md) F15, and can be looked up in the demo account's order history, which only the account owner can open. Orders sent by the agent carry the exchange's own replies on the decision record, under `exchange` |
 
 ## Why Gloaming
 
@@ -113,7 +114,7 @@ The Desk at [gloamingdesk.vercel.app](https://gloamingdesk.vercel.app) is read-o
 
 ![Agent feed](media/agent-feed.png)
 
-**Decision inspector**: open any decision to see the market inputs recorded, the book Qwen was shown, its reasoning, the risk verdict and what execution did.
+**Decision inspector**: open any decision to see the market inputs recorded, the book Qwen was shown, its reasoning, the risk verdict and what execution did, including the demo engine's order when the exchange leg fired.
 
 ![Decision inspector](media/inspector.png)
 
@@ -147,6 +148,7 @@ flowchart LR
         qwen["Qwen3.8-max: decide and explain"]
         risk["Risk layer: veto, shrink, approve"]
         ledger["Paper ledger: fill at live price, charge cost"]
+        exch["Bitget demo engine: order on the stock perpetual"]
     end
     log[("decision_log and ledger, committed to git")]
     verify["verify_fills: compare with Bitget candles"]
@@ -156,13 +158,14 @@ flowchart LR
     yahoo --> snap
     sig -.-> snap
     snap --> qwen --> risk --> ledger --> log
+    ledger --> exch --> log
     log --> verify --> log
     log --> desk
 ```
 
 ### The signal
 
-Computed once per cycle by [`engine/data/overnight_anchor.py`](engine/data/overnight_anchor.py). The anchor is the last completed weekday session from the calendar (full-day 2026 holidays are listed), and the close is that session's official daily bar. Until Yahoo publishes it (about 5 hours 45 minutes after the close) the close is the last regular-session 1-minute bar of the same session, recorded as nchor_source: provisional_1m; if neither exists the cycle records an error per symbol and trades nothing. A proxy that cannot be fetched contributes nothing and is listed in `missing_proxies`; nothing is ever invented.
+Computed once per cycle by [`engine/data/overnight_anchor.py`](engine/data/overnight_anchor.py). The anchor is the last completed weekday session from the calendar (full-day 2026 holidays are listed), and the close is that session's official daily bar. Until Yahoo publishes it (about 5 hours 45 minutes after the close) the close is the last regular-session 1-minute bar of the same session, recorded as `anchor_source: provisional_1m`; if neither exists the cycle records an error per symbol and trades nothing. A proxy that cannot be fetched contributes nothing and is listed in `missing_proxies`; nothing is ever invented.
 
 ### The decision
 
@@ -175,6 +178,32 @@ Computed once per cycle by [`engine/data/overnight_anchor.py`](engine/data/overn
 ### The ledger and the check
 
 [`paper_ledger.py`](gloaming_agent/paper_ledger.py) fills at the last live price and charges a stated 0.10% fee plus 0.05% slippage, recorded per fill as `cost_usd`. [`verify_fills.py`](gloaming_agent/verify_fills.py) then compares each fill with the 1-minute candles Bitget publishes for that minute and flags any whose matching trade is more than 15 minutes old.
+
+### The demo-exchange leg
+
+A paper fill answers one question: what would this decision have earned at the price the market showed. It cannot answer a second one, which is whether an exchange would have taken the order. So since 2026-10-10, an approved decision is also sent to Bitget's demo matching engine as a real order, with virtual funds.
+
+The route took a detour. The demo engine does not list the spot rToken symbols (it answers `symbolId is not exist`, re-tested on 2026-10-10), so the order cannot go to `RAAPLUSDT`. Bitget does list a USDT perpetual on each of the same nine stocks (`AAPLUSDT` and so on), and the demo engine accepts those. The agent therefore trades the rToken on the paper ledger and sends the matching order on the stock perpetual. They are two different instruments that follow the same share. The paper ledger stays the book of record, and the exchange fill is evidence that the order path works and what it costs, not a second copy of the paper P&L.
+
+How it behaves, in [`execution.py`](gloaming_agent/execution.py):
+
+- **Opt-in and on.** It does nothing unless `GLOAMING_EXCHANGE_ORDERS=demo`, which the production workflow sets.
+- **Additive.** It runs after the ledger fill. The exchange's order id, fill price, quantity, fee and its raw replies are stored on the decision record under `exchange`. A failure is recorded there too and never touches the ledger or the cycle.
+- **Hedge mode.** The demo account is in hedge mode, so a buy first closes any short on the perpetual and opens a long with the rest, and a sell does the mirror image. An order under the exchange's minimum is skipped with the reason written down, and if the position cannot be read, no order is sent.
+- **Cannot reach a live account.** Every call goes through the wrapper that hardcodes `--paper-trading`, and Bitget rejects a live key sent with that header.
+- **Visible health.** Before each cycle a read-only check prints whether the secrets reach the demo account and whether it has margin, so a bad secret shows up in the run log instead of failing quietly.
+
+What has actually been observed, on 2026-10-10:
+
+| Step | Result |
+|---|---|
+| Self-test, buy | 0.02 `AAPLUSDT` long filled at 336.44, fee 0.00404 USDT (order 1492718966160117761) |
+| Self-test, sell | the same 0.02 closed at 336.30, fee 0.00404 USDT (order 1492718989711134720) |
+| Account set-up | the demo account was switched to Advanced mode so that its several demo coins count as margin; effective equity went from about $99,900 to about $1.76M of virtual funds |
+| First production health check | run 38035488810 at 07:45 UTC: healthy, `AAPLUSDT` listed with a 0.01 minimum quantity, about $1.76M margin available |
+| First production cycle after the switch-on | 07:47 UTC: 9 records, no errors, a hold on every symbol, so no order was sent |
+
+The two filled orders came from the self-test command, not from an agent decision. The agent has not traded since 2026-09-29, so until it does, this leg has nothing to send. The first order it sends will appear in the decision inspector under "Exchange order".
 
 ## What the evidence says
 
@@ -208,7 +237,7 @@ Full detail, with commits and tests, is in [AUDIT.md](AUDIT.md).
 | Module | Role | Entry points |
 |---|---|---|
 | [`engine/`](engine) | Shared Python core: data loaders, the overnight anchor and fair-value model, the backtests | `data/overnight_anchor.py`, `fairvalue/model.py`, `backtest/since_close_backtest.py` |
-| [`gloaming_agent/`](gloaming_agent) | The agent: loop, Qwen client, risk layer, paper ledger, fill verification, Redis mirror | `agent_loop.py`, `risk_controls.py`, `paper_ledger.py`, `verify_fills.py` |
+| [`gloaming_agent/`](gloaming_agent) | The agent: loop, Qwen client, risk layer, paper ledger, demo-exchange leg, fill verification, Redis mirror | `agent_loop.py`, `risk_controls.py`, `paper_ledger.py`, `execution.py`, `verify_fills.py` |
 | [`gloaming_desk/`](gloaming_desk) | The Next.js Desk | `app/`, `components/`, `lib/` |
 | [`alpha_factory/`](alpha_factory) | Supplementary quantitative validation: backtest results as JSON | `results/` |
 | [`.github/workflows/`](.github/workflows) | Unattended cycles and CI | `agent_loop.yml`, `test.yml` |
@@ -226,10 +255,11 @@ There is deliberately no separate API or database layer: the agent and the Desk 
 | Signal definition | window arithmetic, missing-proxy handling and the calendar anchor covered by tests, including a regression test for the 2026-09-26 failure |
 | Prompt against backtest | a test fails if the figures in the prompt drift from the results file |
 | Dry-run isolation | a test fails if a dry run makes any Redis call, even with credentials set |
+| Demo-exchange leg | 12 tests against a scripted exchange (position splitting, minimums, rejected and unreadable orders, outages), a read-only health check before every cycle, and two real demo fills from a self-test |
 
 Security properties:
 
-- No code path can place a real order or move funds. The Bitget account used for reads has withdrawals disabled.
+- No code path can place a real order or move funds. The Bitget account used for reads has withdrawals disabled, and the one exchange leg reaches only the demo engine: every call hardcodes `--paper-trading`, so a live key is rejected.
 - Keys are never in the repository: they are GitHub Actions secrets, and `.env` is ignored.
 - The Desk is read-only and has no execution capability.
 - Every external dependency (Bitget, Yahoo, Qwen, Redis) failing degrades to "no trade" or "no data", never to an invented value.
@@ -252,6 +282,8 @@ Internal review rounds, every finding and its resolution, and the limitations th
 | 2026-10-07 | Every fill checked against Bitget's candles; stale matches flagged; a motion system on the landing page |
 | 2026-10-09 | Night Console, new brand, Qwen's reasoning shown in full, narrated demo film |
 | 2026-10-10 | This documentation reorganised around evidence: README, SUBMISSION, AUDIT, AGENTS, screenshots and the film's sources |
+| 2026-10-10 | The blind window closed: a labelled 1-minute close now covers the 5 hours 45 minutes before Yahoo publishes the daily bar, so weekday evenings no longer skip cycles |
+| 2026-10-10 | The demo-exchange leg built, confirmed with two real fills on Bitget's demo engine, and switched on in production with a health check; the Desk redeployed with the exchange order in the inspector |
 
 ## Quickstart
 
@@ -302,7 +334,7 @@ engine/data/            loaders: rToken, futures, crypto, FX, and the overnight 
 engine/fairvalue/       the blend weights and fair-value model
 engine/backtest/        the daily backtest and the since-close backtest (hourly)
 engine/api, db, events  empty placeholder packages, intentionally not built
-gloaming_agent/         agent loop, Qwen client, risk layer, paper ledger, verification, mirror
+gloaming_agent/         agent loop, Qwen client, risk layer, paper ledger, demo-exchange leg, verification, mirror
 gloaming_agent/prompts/ the system prompt (its backtest figures are tested)
 gloaming_agent/decision_log/   one JSON line per symbol per cycle (committed by the workflow)
 gloaming_desk/app/      pages and API routes
@@ -332,7 +364,7 @@ The files in `docs/` named `submission_*`, `x_post_draft.md` and `demo_video_scr
 
 ## Risks
 
-Gloaming is a research project and not trading advice. The market data, the model's decisions and the risk checks are all real and live. The fills are paper trades: recorded at the live rToken price with a stated cost, because Bitget's demo environment did not list rToken symbols when this was built. A paper fill has not met a real order book, so real execution could differ, and the costs used are assumptions. The project's own backtest found no cost-covering edge in the signal it trades, so the paper record should be read as a research record. External data (Yahoo, Bitget's public API, Qwen) can fail or lag; Gloaming records that and does not trade on it, so some cycles are skipped. The Redis mirror is best effort and the Desk is published by hand, so what is live can lag the repository.
+Gloaming is a research project and not trading advice. The market data, the model's decisions and the risk checks are all real and live. The fills are paper trades: recorded at the live rToken price with a stated cost, because Bitget's demo environment did not list rToken symbols when this was built. A paper fill has not met a real order book, so real execution could differ, and the costs used are assumptions. The project's own backtest found no cost-covering edge in the signal it trades, so the paper record should be read as a research record. Alongside the paper fills, an approved trade is also sent to Bitget's demo engine on the matching stock perpetual with virtual funds. That is a different instrument from the rToken, so the ledger remains the record and the exchange fill checks the order path and its cost; it is not proof of a live-market result. External data (Yahoo, Bitget's public API, Qwen) can fail or lag; Gloaming records that and does not trade on it, so some cycles are skipped. The Redis mirror is best effort and the Desk is published by hand, so what is live can lag the repository.
 
 ## License
 

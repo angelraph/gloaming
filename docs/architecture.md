@@ -235,7 +235,7 @@ fills, real fees and funding, and virtual funds.
 How it is built (`execution.mirror_decision_on_exchange`, called from `agent_loop` after a
 ledger fill and after a backstop trim):
 
-- **Opt-in.** Off unless `GLOAMING_EXCHANGE_ORDERS=demo`. The workflow does not set it yet.
+- **Opt-in.** Off unless `GLOAMING_EXCHANGE_ORDERS=demo`. The production workflow sets it (since 2026-10-10).
 - **Additive.** The paper ledger stays the book of record. The exchange's order id, fill price,
   filled quantity, fee and its raw responses are stored on the decision record under
   `exchange`; a failure is recorded there and never touches the ledger or the cycle.
