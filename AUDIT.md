@@ -78,7 +78,8 @@ This was first written up as a one-off data gap. It is not: see limitation L3, w
 | Check | Result |
 |---|---|
 | Unit and regression tests | 172 passed, 12 files (`python -m pytest tests/`) |
-| Desk | `npx tsc --noEmit` clean and `npm run build` succeeds for all 8 pages and 11 routes |
+| Desk | `npx next typegen && npx tsc --noEmit` clean and `npm run build` succeeds, with and without local env files |
+| CI | `.github/workflows/test.yml` runs the tests and the Desk build; its first run failed because `tsc` ran before Next had generated its route types, fixed by running `next typegen` first |
 | Workflow | the last 100 consecutive runs succeeded |
 | Fill verification | 797 checked, 795 matched, 2 mismatched, 33 stale |
 | Em-dash policy | none in tracked files |

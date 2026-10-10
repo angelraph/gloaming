@@ -282,7 +282,7 @@ Run the checks:
 
 ```bash
 python -m pytest tests/
-cd gloaming_desk && npx tsc --noEmit && npm run build
+cd gloaming_desk && npx next typegen && npx tsc --noEmit && npm run build
 ```
 
 Reproduce the thesis test (network needed, about ten minutes of paging):

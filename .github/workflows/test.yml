@@ -47,8 +47,10 @@ jobs:
         working-directory: gloaming_desk
         run: npm ci
       - name: Typecheck
+        # Next generates the PageProps and LayoutProps types the app uses, so they must exist
+        # before tsc runs on a clean checkout.
         working-directory: gloaming_desk
-        run: npx tsc --noEmit
+        run: npx next typegen && npx tsc --noEmit
       - name: Build
         working-directory: gloaming_desk
         run: npm run build

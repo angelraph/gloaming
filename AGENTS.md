@@ -9,5 +9,5 @@
 - The system prompt cites backtest figures. A test ties them to `alpha_factory/results/since_close_backtest.json`: regenerate both together (`python -m backtest.fetch_hourly && python -m backtest.since_close_backtest` from `engine/`).
 - Live trading behaviour (the prompt, `risk_controls.py`, the signal, fees) changes only after the owner has been told how it will change the trading.
 - Facts live in [README.md](README.md), [docs/architecture.md](docs/architecture.md), [docs/risk_controls.md](docs/risk_controls.md), [SUBMISSION.md](SUBMISSION.md) and [AUDIT.md](AUDIT.md).
-- Checks: `python -m pytest tests/`; `cd gloaming_desk && npx tsc --noEmit && npm run build`.
+- Checks: `python -m pytest tests/`; `cd gloaming_desk && npx next typegen && npx tsc --noEmit && npm run build` (`typegen` first, because Next generates the `PageProps` and `LayoutProps` types and `tsc` fails on a clean checkout without them).
 - Copy style: no em dashes, ever (use a comma, a colon, a hyphen with spaces or two sentences). Say "paper trading". Label figures observed, estimated or targeted, and never state a result the record does not show.
