@@ -332,7 +332,7 @@ The files in `docs/` named `submission_*`, `x_post_draft.md` and `demo_video_scr
 
 ## Risks
 
-Gloaming is a paper-trading research project, not trading advice. Its fills are simulated at live prices with assumed costs and have never met a real order book, so real execution could be worse. Its own backtest found no cost-covering edge in the signal it trades, and its record is a small loss. External data (Yahoo, Bitget's public API, Qwen) can fail or lag; Gloaming records that and does not trade on it, which means some cycles are skipped. The Redis mirror is best effort, and the Desk is published by hand, so what is live can lag the repository. Nothing here is investment advice.
+Gloaming is a research project and not trading advice. The market data, the model's decisions and the risk checks are all real and live. The fills are paper trades: recorded at the live rToken price with a stated cost, because Bitget's demo environment did not list rToken symbols when this was built. A paper fill has not met a real order book, so real execution could differ, and the costs used are assumptions. The project's own backtest found no cost-covering edge in the signal it trades, so the paper record should be read as a research record. External data (Yahoo, Bitget's public API, Qwen) can fail or lag; Gloaming records that and does not trade on it, so some cycles are skipped. The Redis mirror is best effort and the Desk is published by hand, so what is live can lag the repository.
 
 ## License
 
