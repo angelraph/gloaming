@@ -1,3 +1,5 @@
+> **Historical draft (written 2026-09-14, updated 2026-09-26).** Its figures are as of those dates. The current submission statement is [SUBMISSION.md](../SUBMISSION.md), which supersedes this file.
+
 # Gloaming Desk - AI Trading Desk track submission draft
 
 Copy each section into the corresponding field on the submission form

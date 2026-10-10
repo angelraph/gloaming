@@ -1,3 +1,5 @@
+> **Historical draft (2026-09-26 to 2026-09-28).** Numbers and the deadline note are as of those dates. The current statement is [SUBMISSION.md](../SUBMISSION.md), which supersedes this file.
+
 # Submission form answers (paste-ready)
 
 Form: https://forms.gle/GyWZCMCPocgJdJon6 (Bitget AI Trading Competition Submission Form). One

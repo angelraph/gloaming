@@ -1,3 +1,5 @@
+> **Superseded.** The film that was made is documented in [video/README.md](../video/README.md), with its narration in ideo/narration.py. This is the earlier recording plan.
+
 # Gloaming demo video, step by step
 
 A walkthrough you can literally read out loud while you click. Practice it

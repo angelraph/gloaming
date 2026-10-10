@@ -21,8 +21,16 @@ export default function StatTile({
       className={`rounded-xl border bg-layer-1 p-4 sm:p-5 ${live ? "border-mint/70" : "border-border-subtle"}`}
     >
       <div className="micro-label">{label}</div>
-      <div className={`font-display mt-3 truncate text-[28px] leading-none tabular-nums sm:text-[34px] ${valueColor}`}>
-        {value}
+      {/* The numeral scales with the tile's own width (container query units), so a long
+          locale-formatted amount such as "US$98,049.06" fits on one line at every width instead
+          of being cut off with an ellipsis. */}
+      <div className="mt-3" style={{ containerType: "inline-size" }}>
+        <div
+          className={`font-display whitespace-nowrap leading-none tabular-nums ${valueColor}`}
+          style={{ fontSize: "clamp(15px, 12cqi, 34px)" }}
+        >
+          {value}
+        </div>
       </div>
       {sub && <div className="mt-2 text-xs text-text-tertiary">{sub}</div>}
     </div>

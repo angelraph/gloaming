@@ -13,3 +13,11 @@ gloaming_agent/scheduler.log
 engine/data/cache/rtoken_universe.json
 instruments_spot.json
 gloaming_agent/decision_log/dry_run/
+
+# demo film build outputs (sources are committed, rendered media is not)
+video/out/
+video/clips/
+video/rec/
+video/vo/
+video/stills/
+video/check/

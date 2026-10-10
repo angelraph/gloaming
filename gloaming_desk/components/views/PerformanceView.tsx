@@ -155,8 +155,8 @@ export default function PerformanceView() {
                 {current && p.eras.incident.fills > 0 && (
                   <p className="mt-4 text-xs leading-relaxed text-warning">
                     Not counted above: {p.eras.incident.fills} fills ({p.eras.incident.closingFills} position-reducing,{" "}
-                    {fmtSignedUsd(p.eras.incident.realizedPnlUsd)} realized) from a data gap on Sept 26, 00:00 to 01:40
-                    UTC, when the agent briefly anchored to Thursday&apos;s close. Fixed the same day. They are in the
+                    {fmtSignedUsd(p.eras.incident.realizedPnlUsd)} realized) made on Sept 26, 00:00 to 01:40 UTC, when
+                    Yahoo had not yet published Friday&apos;s daily bar and the agent anchored to Thursday&apos;s close. Fixed the same day. They are in the
                     ledger and in the totals at the top, and are kept out of both eras so they cannot flatter or
                     penalize either signal.
                   </p>

@@ -1,0 +1,217 @@
+<!doctype html>
+<html>
+<head>
+<meta charset="utf-8">
+<link rel="preconnect" href="https://fonts.googleapis.com">
+<link href="https://fonts.googleapis.com/css2?family=Inter:wght@300;400;500;600&family=Playfair+Display:wght@400;500&display=block" rel="stylesheet">
+<style>
+  :root { --copper:#cc9166; --gold:#fff0cc; --sage:#7fbfa3; --ink:#e2e3e9; --mute:#9194a1; --dim:#5d606c; }
+  * { box-sizing:border-box; margin:0; padding:0; }
+  html,body { width:1920px; height:1080px; overflow:hidden; background:#08080a; color:var(--ink); font-family:Inter, system-ui, sans-serif; }
+  #stage { position:absolute; inset:0; overflow:hidden; }
+  canvas#fx { position:absolute; inset:0; }
+  .scene { position:absolute; inset:0; display:none; }
+  .serif { font-family:"Playfair Display", Georgia, serif; font-weight:400; }
+  .eyebrow { font-size:22px; letter-spacing:.22em; text-transform:uppercase; color:var(--copper); font-weight:600; }
+  .abs { position:absolute; }
+  .center { left:50%; top:50%; transform:translate(-50%,-50%); }
+  .chip { display:inline-flex; align-items:center; gap:14px; padding:18px 28px; border:1px solid #2e3038; border-radius:999px; background:#0d0e11; font-size:30px; color:var(--ink); }
+  .dot { width:12px; height:12px; border-radius:50%; }
+  .card { border:1px solid #2e3038; background:#0d0e11; border-radius:22px; padding:30px 36px; }
+</style>
+</head>
+<body>
+<div id="stage">
+  <canvas id="fx" width="1920" height="1080"></canvas>
+
+  <!-- INTRO -->
+  <div class="scene" id="intro">
+    <div class="abs" id="i-lock" style="left:50%; top:47%; width:1180px; height:312px; transform:translate(-50%,-50%);">
+      <img id="i-mark" src="assets/mark.png" class="abs" style="left:0; top:0; height:312px;">
+      <div id="i-wm-wrap" class="abs" style="left:306px; top:44px; width:872px; height:222px; overflow:hidden;">
+        <img id="i-wm" src="assets/wordmark.png" style="width:872px;">
+      </div>
+      <img id="i-tag" src="assets/tagline.png" class="abs" style="left:306px; top:268px; width:872px;">
+    </div>
+    <div id="i-flare" class="abs" style="width:900px; height:900px; border-radius:50%; background:radial-gradient(circle, rgba(255,240,204,.55), rgba(204,145,102,.18) 22%, transparent 60%); left:0; top:0; mix-blend-mode:screen;"></div>
+    <div id="i-foot" class="abs" style="left:0; right:0; bottom:110px; text-align:center; font-size:22px; letter-spacing:.32em; text-transform:uppercase; color:var(--mute);">Bitget AI Hackathon · Genesis Season 2</div>
+  </div>
+
+  <!-- PROBLEM -->
+  <div class="scene" id="problem">
+    <div class="abs" style="left:160px; top:130px;">
+      <div class="eyebrow" id="p-eye">The gap</div>
+      <div id="p-head" class="serif" style="font-size:84px; line-height:1.05; color:#fff; margin-top:26px; width:1500px; height:200px; position:relative;"></div>
+    </div>
+    <div class="abs" style="left:160px; top:520px; width:1600px;">
+      <div style="display:flex; justify-content:space-between; font-size:22px; color:var(--mute);" id="p-axis"></div>
+      <div id="p-rt-label" style="font-size:24px; color:var(--mute); margin:26px 0 12px;">Bitget rToken · trades 24/7</div>
+      <div style="position:relative; height:46px; border-radius:12px; background:#121318; overflow:hidden;">
+        <div id="p-rt" class="abs" style="left:0; top:0; bottom:0; background:linear-gradient(90deg,#ae9357,#fff0cc 50%,#cc9166); border-radius:12px;"></div>
+      </div>
+      <div id="p-ny-label" style="font-size:24px; color:var(--mute); margin:34px 0 12px;">The real share on NYSE · 09:30 to 16:00 New York</div>
+      <div style="position:relative; height:46px; border-radius:12px; background:#121318; overflow:hidden;">
+        <div id="p-ny" class="abs" style="top:0; bottom:0; background:#3a3c45; border-radius:8px;"></div>
+      </div>
+      <div style="position:relative; height:120px; margin-top:30px;">
+        <div id="p-gl" class="abs" style="top:0; height:12px; border-radius:6px; background:var(--copper); box-shadow:0 0 24px rgba(204,145,102,.6);"></div>
+        <div id="p-gr" class="abs" style="top:0; height:12px; border-radius:6px; background:var(--copper); box-shadow:0 0 24px rgba(204,145,102,.6);"></div>
+        <div id="p-gtext" class="abs" style="top:34px; left:0; right:0; text-align:center; font-size:34px; color:var(--gold);"></div>
+      </div>
+    </div>
+  </div>
+
+  <!-- IDEA -->
+  <div class="scene" id="idea">
+    <div class="abs" style="left:160px; top:120px;">
+      <div class="eyebrow">The idea</div>
+      <div class="serif" id="d-f1" style="font-size:66px; color:#fff; margin-top:30px;">fair value = <span style="color:var(--gold)">last real close</span> × (1 + proxies since)</div>
+    </div>
+    <div class="abs" id="d-chips" style="left:160px; top:330px; display:flex; gap:22px;">
+      <div class="chip" id="d-c1"><span class="dot" style="background:#cc9166"></span>Index futures</div>
+      <div class="chip" id="d-c2"><span class="dot" style="background:#fff0cc"></span>Crypto beta</div>
+      <div class="chip" id="d-c3"><span class="dot" style="background:#7fbfa3"></span>The dollar</div>
+    </div>
+    <div class="abs serif" id="d-f2" style="left:160px; top:470px; font-size:60px; color:#fff;">spread = <span style="color:var(--copper)">rToken</span> − <span style="color:var(--gold)">fair value</span></div>
+    <div class="abs" id="d-pipe" style="left:160px; top:660px; width:1600px; display:grid; grid-template-columns:1fr 1fr 1fr; gap:28px;">
+      <div class="card" id="d-p1"><div style="font-size:20px; letter-spacing:.2em; color:var(--copper); text-transform:uppercase;">01 · Decide</div><div class="serif" style="font-size:44px; color:#fff; margin-top:14px;">Qwen3.8-max</div><div style="font-size:24px; color:var(--mute); margin-top:10px;">reads the spread, costs and its own book</div></div>
+      <div class="card" id="d-p2"><div style="font-size:20px; letter-spacing:.2em; color:var(--copper); text-transform:uppercase;">02 · Gate</div><div class="serif" style="font-size:44px; color:#fff; margin-top:14px;">A non-LLM risk layer</div><div style="font-size:24px; color:var(--mute); margin-top:10px;">hard caps, breakers, no leverage</div></div>
+      <div class="card" id="d-p3"><div style="font-size:20px; letter-spacing:.2em; color:var(--copper); text-transform:uppercase;">03 · Record</div><div class="serif" style="font-size:44px; color:#fff; margin-top:14px;">Public, every cycle</div><div style="font-size:24px; color:var(--mute); margin-top:10px;">decisions and ledger committed to GitHub</div></div>
+    </div>
+    <div class="abs" id="d-line" style="left:160px; top:640px; height:2px; background:linear-gradient(90deg,transparent,#fff0cc,#cc9166,transparent);"></div>
+  </div>
+
+  <!-- CHAPTER -->
+  <div class="scene" id="chapter">
+    <div class="abs center" style="text-align:center;">
+      <div id="c-num" class="serif" style="font-size:40px; color:var(--copper);"></div>
+      <div id="c-rule" style="height:2px; margin:26px auto; background:linear-gradient(90deg,transparent,#cc9166,transparent);"></div>
+      <div id="c-title" class="serif" style="font-size:96px; color:#fff; white-space:nowrap;"></div>
+      <div id="c-sub" style="font-size:28px; color:var(--mute); margin-top:22px;"></div>
+    </div>
+  </div>
+
+  <!-- OUTRO -->
+  <div class="scene" id="outro">
+    <img id="o-lock" src="assets/lockup.png" class="abs" style="left:50%; top:40%; width:1080px; transform:translate(-50%,-50%);">
+    <div id="o-links" class="abs" style="left:0; right:0; top:62%; text-align:center;">
+      <div style="font-size:40px; color:#fff;">gloamingdesk.vercel.app</div>
+      <div style="font-size:28px; color:var(--mute); margin-top:16px;">github.com/angelraph/gloaming</div>
+      <div style="font-size:22px; letter-spacing:.3em; text-transform:uppercase; color:var(--copper); margin-top:48px;">Agentic Trading · AI Trading Desk</div>
+    </div>
+  </div>
+</div>
+
+<script>
+const clamp=(v,a=0,b=1)=>Math.min(b,Math.max(a,v));
+const seg=(t,a,b)=>clamp((t-a)/(b-a));
+const eo=x=>1-Math.pow(1-x,3);           // ease out
+const eio=x=>x<.5?4*x*x*x:1-Math.pow(-2*x+2,3)/2;
+const $=id=>document.getElementById(id);
+
+// deterministic dust + grain on the canvas, driven only by t
+const fx=$('fx'), g=fx.getContext('2d');
+let seed=7; const rnd=()=>{seed=(seed*16807)%2147483647; return seed/2147483647;};
+const motes=Array.from({length:150},()=>({x:rnd(),y:rnd(),r:.7+rnd()*2.4,v:.012+rnd()*.03,s:rnd()*6.28,a:.25+rnd()*.6,w:rnd()<.7}));
+function sky(t, glow=1, dust=1){
+  g.clearRect(0,0,1920,1080);
+  const breathe=.85+.15*Math.sin(t*.6);
+  let grd=g.createRadialGradient(1300,1180,40,1300,1180,1100);
+  grd.addColorStop(0,`rgba(204,145,102,${.30*glow*breathe})`); grd.addColorStop(1,'rgba(204,145,102,0)');
+  g.fillStyle=grd; g.fillRect(0,0,1920,1080);
+  grd=g.createRadialGradient(300,1200,20,300,1200,800);
+  grd.addColorStop(0,`rgba(127,191,163,${.10*glow})`); grd.addColorStop(1,'rgba(127,191,163,0)');
+  g.fillStyle=grd; g.fillRect(0,0,1920,1080);
+  for(const m of motes){
+    let y=((m.y - t*m.v)%1+1)%1; const x=m.x*1920+Math.sin(t*.7+m.s)*18;
+    const fade=Math.min(1,y/0.9)*dust;
+    g.beginPath(); g.arc(x,y*1080,m.r,0,6.283);
+    g.fillStyle=m.w?`rgba(230,180,130,${m.a*fade})`:`rgba(255,240,204,${m.a*fade})`;
+    g.shadowColor='rgba(204,145,102,.9)'; g.shadowBlur=m.r*5; g.fill();
+  }
+  g.shadowBlur=0;
+  // vignette
+  grd=g.createRadialGradient(960,540,500,960,540,1150);
+  grd.addColorStop(0,'rgba(0,0,0,0)'); grd.addColorStop(1,'rgba(0,0,0,.55)');
+  g.fillStyle=grd; g.fillRect(0,0,1920,1080);
+}
+
+function show(id){ document.querySelectorAll('.scene').forEach(s=>s.style.display=s.id===id?'block':'none'); }
+const op=(el,v)=>{el.style.opacity=v;};
+
+const R = {
+  intro(t, D){
+    show('intro'); sky(t, seg(t,0,1.2), seg(t,.2,1.6));
+    const out = 1-seg(t,D-.7,D);
+    // mark: circular wipe + blur to sharp
+    const m=eo(seg(t,.5,2.0)); const mk=$('i-mark');
+    mk.style.clipPath=`circle(${m*75}% at 30% 60%)`; mk.style.filter=`blur(${(1-m)*3}px)`;
+    mk.style.transform=`rotate(${(1-m)*-18}deg) scale(${.92+.08*m})`; op(mk,m*out);
+    // wordmark: wipe left to right with soft edge
+    const w=eio(seg(t,1.5,3.0)); const wm=$('i-wm');
+    $('i-wm-wrap').style.clipPath=`inset(0 ${(1-w)*100}% 0 0)`; wm.style.filter='none'; op(wm,out);
+    // tagline: letter-spacing settles in
+    const tg=eo(seg(t,2.7,3.9)); const tag=$('i-tag');
+    op(tag,tg*out); tag.style.transform=`translateY(${(1-tg)*16}px) scaleX(${1.06-.06*tg})`; tag.style.transformOrigin='left';
+    // slow push-in on the whole lockup
+    $('i-lock').style.transform=`translate(-50%,-50%) scale(${1+.035*seg(t,.5,D)})`;
+    // a flare that crosses at the star
+    const f=seg(t,1.7,2.6), fl=$('i-flare');
+    fl.style.left=(560+f*260)+'px'; fl.style.top=(240-f*30)+'px';
+    op(fl, Math.sin(f*Math.PI)*.9*out);
+    op($('i-foot'), eo(seg(t,3.6,4.6))*out*.9);
+  },
+  problem(t, D){
+    show('problem'); sky(t,.8,.6);
+    const out=1-seg(t,D-.6,D), inn=seg(t,0,.6);
+    $('stage').style.opacity=1;
+    const heads=[[0,"rTokens trade around the clock."],[6.2,"The real shares: six and a half hours."],[11.2,"The rest of the day is unpinned."],[16.2,"That window is the gloaming."]];
+    let cur=heads[0]; for(const h of heads) if(t>=h[0]) cur=h;
+    const ht=seg(t,cur[0],cur[0]+.7); const ph=$('p-head');
+    if(ph.dataset.k!==cur[1]){ ph.dataset.k=cur[1]; ph.textContent=cur[1]; }
+    ph.style.opacity=eo(ht)*out; ph.style.transform=`translateY(${(1-eo(ht))*24}px)`; ph.style.filter='none';
+    $('p-eye').style.opacity=inn*out;
+    const ax=$('p-axis'); if(!ax.dataset.k){ ax.dataset.k=1; ax.innerHTML=['00:00','04:00','08:00','12:00','16:00','20:00','24:00'].map(s=>`<span>${s}</span>`).join(''); }
+    ax.style.opacity=seg(t,.6,1.4)*out;
+    const rt=eio(seg(t,1.2,4.2)); $('p-rt').style.width=(rt*100)+'%'; $('p-rt-label').style.opacity=seg(t,1,1.8)*out;
+    const ny=eio(seg(t,6.4,8.4)); const a=9.5/24, b=16/24;
+    $('p-ny').style.left=(a*100)+'%'; $('p-ny').style.width=(ny*(b-a)*100)+'%'; $('p-ny-label').style.opacity=seg(t,6.2,7)*out;
+    const gl=eio(seg(t,11.6,13.6));
+    $('p-gl').style.left='0%'; $('p-gl').style.width=(gl*a*100)+'%';
+    $('p-gr').style.left=(b*100+(1-gl)*(1-b)*100)+'%'; $('p-gr').style.width=(gl*(1-b)*100)+'%';
+    const gt=$('p-gtext'); const txt = t<16.2 ? "17.5 hours every weekday, and all weekend" : "the gloaming";
+    if(gt.textContent!==txt) gt.textContent=txt;
+    gt.style.opacity=(t<16.2? seg(t,12.6,13.4) : seg(t,16.3,17))*out;
+    gt.style.fontSize = t<16.2 ? '34px' : '46px'; gt.style.fontFamily = t<16.2 ? 'Inter' : '"Playfair Display", serif';
+    ['p-rt','p-ny','p-gl','p-gr'].forEach(id=>$(id).parentElement.style.opacity=out);
+  },
+  idea(t, D){
+    show('idea'); sky(t,.8,.6);
+    const out=1-seg(t,D-.6,D);
+    const f1=eo(seg(t,.2,1.2)); $('d-f1').style.opacity=f1*out; $('d-f1').style.transform=`translateY(${(1-f1)*20}px)`;
+    ['d-c1','d-c2','d-c3'].forEach((id,i)=>{ const c=eo(seg(t,2.6+i*.5,3.4+i*.5)); const el=$(id); el.style.opacity=c*out; el.style.transform=`translateY(${(1-c)*26}px) scale(${.94+.06*c})`; });
+    const f2=eo(seg(t,6.4,7.4)); $('d-f2').style.opacity=f2*out; $('d-f2').style.transform=`translateY(${(1-f2)*20}px)`;
+    const ln=eio(seg(t,8.6,10)); $('d-line').style.width=(ln*1600)+'px'; $('d-line').style.opacity=out;
+    ['d-p1','d-p2','d-p3'].forEach((id,i)=>{ const c=eo(seg(t,9.2+i*1.6,10.2+i*1.6)); const el=$(id); el.style.opacity=c*out; el.style.transform=`translateY(${(1-c)*34}px)`; el.style.borderColor = (t>9.2+i*1.6 && t<11+i*1.6) ? '#cc9166' : '#2e3038'; });
+  },
+  chapter(t, D, p){
+    show('chapter'); sky(t+p.seed,.7,.5);
+    const inn=eo(seg(t,0,.6)), out=1-seg(t,D-.45,D);
+    $('c-num').textContent=p.num; $('c-title').textContent=p.title; $('c-sub').textContent=p.sub||'';
+    $('c-num').style.opacity=inn*out;
+    $('c-rule').style.width=(eio(seg(t,.1,.9))*360)+'px'; $('c-rule').style.opacity=out;
+    const ti=$('c-title'); ti.style.opacity=inn*out; ti.style.letterSpacing=((1-inn)*.08)+'em'; ti.style.filter='none';
+    $('c-sub').style.opacity=eo(seg(t,.4,1))*out;
+  },
+  outro(t, D){
+    show('outro'); sky(t,1,1);
+    const l=eo(seg(t,.3,1.8)), out=1-seg(t,D-1.2,D);
+    const lk=$('o-lock'); lk.style.opacity=l*out; lk.style.filter='none'; lk.style.transform=`translate(-50%,-50%) scale(${.96+.04*l+.02*seg(t,1.8,D)})`;
+    const k=eo(seg(t,1.6,2.8)); const li=$('o-links'); li.style.opacity=k*out; li.style.transform=`translateY(${(1-k)*20}px)`;
+  },
+};
+window.render=(scene,t,D,params)=>{ R[scene](t,D,params||{}); };
+window.ready=()=>document.fonts.ready.then(()=>Promise.all([...document.images].map(i=>i.complete?1:new Promise(r=>i.onload=r)))).then(()=>true);
+</script>
+</body>
+</html>

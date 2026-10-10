@@ -124,8 +124,8 @@ export default function DeskView() {
           title="What happened, and why."
           description="Trades, and each symbol's latest hold with the reason Qwen gave. Ask the desk anything about the real data below."
         />
-        <div className="mt-10 grid gap-8 lg:grid-cols-[minmax(0,7fr)_minmax(0,5fr)] lg:gap-10">
-          <div>
+        <div className="mt-10 grid grid-cols-[minmax(0,1fr)] gap-8 lg:grid-cols-[minmax(0,7fr)_minmax(0,5fr)] lg:gap-10">
+          <div className="min-w-0">
             <h3 className="micro-label mb-4">Overnight timeline</h3>
             <OvernightTimeline events={events} />
             <Link
@@ -135,7 +135,7 @@ export default function DeskView() {
               See every decision on the Agent page →
             </Link>
           </div>
-          <div className="flex flex-col">
+          <div className="flex min-w-0 flex-col">
             <h3 className="micro-label mb-4">Ask the desk</h3>
             <div className="min-h-[420px] flex-1 rounded-xl border border-border-subtle bg-layer-1 p-5 sm:p-6">
               <ChatPanel />

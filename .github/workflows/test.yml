@@ -1,0 +1,54 @@
+name: Tests
+
+# Runs the Python test suite and builds the Desk on every push and pull request.
+# Nothing here needs a secret: the tests stub Bitget, Qwen, Yahoo and Redis, and the Desk
+# build reads the committed ledger and decision log when no Redis is configured.
+on:
+  push:
+    branches: [master]
+    paths-ignore:
+      - "gloaming_agent/decision_log/**"
+      - "gloaming_agent/paper_ledger.json"
+      - "gloaming_agent/fill_verification.json"
+  pull_request:
+
+permissions:
+  contents: read
+
+concurrency:
+  group: tests-${{ github.ref }}
+  cancel-in-progress: true
+
+jobs:
+  python:
+    runs-on: ubuntu-latest
+    timeout-minutes: 10
+    steps:
+      - uses: actions/checkout@v4
+      - uses: actions/setup-python@v5
+        with:
+          python-version: "3.13"
+      - name: Install dependencies
+        run: pip install -r engine/requirements.txt
+      - name: Run tests
+        run: python -m pytest tests/ -q
+
+  desk:
+    runs-on: ubuntu-latest
+    timeout-minutes: 15
+    steps:
+      - uses: actions/checkout@v4
+      - uses: actions/setup-node@v4
+        with:
+          node-version: "24"
+          cache: npm
+          cache-dependency-path: gloaming_desk/package-lock.json
+      - name: Install dependencies
+        working-directory: gloaming_desk
+        run: npm ci
+      - name: Typecheck
+        working-directory: gloaming_desk
+        run: npx tsc --noEmit
+      - name: Build
+        working-directory: gloaming_desk
+        run: npm run build

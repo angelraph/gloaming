@@ -126,11 +126,12 @@ above, so its statistics are not evidence for it.
 
 Monitoring the first Saturday cycles showed `hours_since_close` of 28 to 29 for about an
 hour and a half (00:02 to 01:32 UTC) where it should have been 4 to 5. Yahoo's daily data
-for SPY briefly did not contain Friday's bar; the anchor was "the newest bar returned", so
-it fell back to Thursday's close. Every symbol was then priced against Thursday's close,
-and Friday's own session move (META's real share fell about 3.8% that day) read as a 4%
-"weekend dislocation". From 01:47 UTC the data was complete again and spreads returned to
-about -0.6%.
+for SPY did not yet contain Friday's bar (Yahoo publishes a session's daily bar about
+5 hours 45 minutes after the close, so this happens every weekday evening, not once); the
+anchor was "the newest bar returned", so it fell back to Thursday's close. Every symbol was
+then priced against Thursday's close, and Friday's own session move (META's real share fell
+about 3.8% that day) read as a 4% "weekend dislocation". From 01:47 UTC the bar was
+published and spreads returned to about -0.6%.
 
 The agent made 9 paper fills on the bad reading (META buys and MSFT sells, about $3,580 of
 notional). They are left in the ledger unedited, since rewriting the record would defeat
@@ -144,6 +145,15 @@ against the wrong close. A date outside the holiday list is treated as a trading
 unlisted closure also skips trading until a bar appears: the failure direction is "no
 trade", never "trade on an older close". Regression tests reproduce the exact failure
 (`tests/test_overnight_anchor.py`).
+
+What the fix costs, measured: because Yahoo's daily bar for a session lands about 5 hours
+45 minutes after the close, the agent now skips roughly 7 cycles (about 00:00 to 01:45 UTC,
+20:00 to 21:45 New York) on every weekday evening, and the log records them as errors.
+That is 66 whole-cycle skips between 2026-09-28 and 2026-10-10, 4 of them Yahoo returning no
+bars at all. Nothing is traded on a wrong anchor, but the window right after the close is
+unobserved. A provisional anchor from the last regular-session hourly bar, clearly
+labelled and replaced by the official close when it lands, would remove it; it changes live
+behaviour, so it has not been made. See AUDIT.md, L3.
 
 ## Data flow
 

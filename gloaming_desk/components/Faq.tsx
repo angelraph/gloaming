@@ -122,9 +122,11 @@ const ITEMS: Item[] = [
         (a stated assumption, not Bitget&apos;s measured rToken schedule); fills before that carried no
         cost. The close is modeled as 16:00 ET on every trading day: full-day 2026 holidays are
         listed, early closes are not handled. The blend weights are a heuristic prior, not calibrated.
-        Closes, futures and DXY come from Yahoo Finance, whose data can lag: on Sept 26 a missing
-        daily bar briefly made the agent anchor to the wrong close, which is now refused by design.
-        The live window under the corrected signal is short.
+        Closes, futures and DXY come from Yahoo Finance, which publishes a session&apos;s daily bar about
+        5 hours 45 minutes after the close. Until it lands the agent makes no trades, so about seven
+        cycles are skipped on each weekday evening (on Sept 26 it instead fell back to the previous
+        day&apos;s close and traded a false spread, which is now refused by design). The live window
+        under the corrected signal is short.
       </>
     ),
   },

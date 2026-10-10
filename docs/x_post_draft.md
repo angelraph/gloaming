@@ -1,3 +1,5 @@
+> **Historical draft (2026-09-28).** The deadline question it raises has since passed, and the figures are as of that date. Kept for the record.
+
 # X promotional post draft (rewritten Sept 28, against the live handbook and form)
 
 ## Read this first: a real conflict between two official sources
