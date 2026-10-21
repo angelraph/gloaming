@@ -19,7 +19,7 @@ Built for the Bitget AI Base Camp Hackathon S2 (Genesis Season 2), in the **Agen
 | **Market** | Bitget spot rTokens, `R<TICKER>USDT`: AAPL, AMZN, GOOGL, META, MSFT, NVDA, QQQ, SPY, TSLA |
 | **Mode** | **Paper trading.** Fills are ledger entries at live rToken prices, because Bitget's demo environment does not list rToken symbols. No real-money order path exists. An opt-in leg can also send each approved trade to Bitget's demo engine on the matching stock perpetual (virtual funds, real order book); it has produced real demo-engine fills in a self-test (order ids in AUDIT.md F15) and is switched on in production, so an approved trade is also sent to the demo engine |
 | **Running since** | First paper fill 2026-09-11; unattended on GitHub Actions every 15 minutes since 2026-09-13 |
-| **Record (observed)** | 797 fills from 2026-09-11 to 2026-09-29. Paper equity $98,048 (-1.95%), realized P&L -$1,879 net of $33 in costs, 64 of 354 position-reducing fills gained (18.1%), maximum drawdown 2.63%. Shown in full, loss included, on the [Performance page](https://gloamingdesk.vercel.app/performance) |
+| **Record (observed)** | 797 fills from 2026-09-11 to 2026-09-29. Paper equity $97,488 (-2.51%) at 2026-10-21 prices, realized P&L -$1,879 net of $33 in costs, 64 of 354 position-reducing fills gained (18.1%), maximum drawdown 2.63%. Shown in full, loss included, on the [Performance page](https://gloamingdesk.vercel.app/performance) |
 | **Decisions** | 18,486 logged, **95.5% made by Qwen3.8-max** (17,654); the rest are a disclosed rule-based fallback, and each record says which path decided |
 | **Checked against Bitget** | All 797 fills compared with Bitget's own public 1-minute candles: 795 sit inside a range Bitget really traded, 2 miss by under 0.2 basis points, 33 matched only an old print and are flagged stale |
 | **Thesis test (observed)** | Backtest of the live definition on 65 real sessions: trading against a spread of 0.5% or more averaged -7.6 bp gross and -37.6 bp after costs. **No cost-covering edge was found**, the agent is told so, and it has not traded since 2026-09-29 |
@@ -27,7 +27,7 @@ Built for the Bitget AI Base Camp Hackathon S2 (Genesis Season 2), in the **Agen
 | **Desk** | Next.js: 7 pages plus a page per symbol, a decision inspector, 11 API routes, CSV and JSON downloads, keyboard and screen-reader support |
 | **Tests** | 191 automated tests across the signal, ledger, risk layer, cycle behaviour and fill verification |
 
-Last verified 2026-10-10. The live Performance page is the current source for every number.
+Last verified 2026-10-21. Equity moves with the live price of the open positions even while the agent holds (it was $98,048, -1.95%, on 2026-10-10); the fills, realized P&L and drawdown have not changed since the last fill on 2026-09-29. The live Performance page is the current source for every number.
 
 ## Contents
 
@@ -209,10 +209,10 @@ The two filled orders came from the self-test command, not from an agent decisio
 
 | | Result | Label |
 |---|---|---|
-| Live paper record, 2026-09-11 to 2026-09-29 | 797 fills, about $265,800 traded (2.7 times starting equity), equity $98,048 (-1.95%) | observed |
+| Live paper record, 2026-09-11 to 2026-09-29 | 797 fills, about $265,800 traded (2.7 times starting equity), equity $97,488 (-2.51%) at 2026-10-21 prices | observed |
 | Realized P&L, net of costs | -$1,879 over 354 position-reducing fills, 64 gained (18.1%) | observed |
 | Maximum drawdown | 2.63%, marked at fills so intraday drawdown is understated | observed |
-| Daily Sharpe | -4.52 over 30 days, indicative only | observed |
+| Daily Sharpe | -4.70 over 41 days, indicative only | observed |
 | Earlier signal (735 fills) | 42 of 322 closing fills gained, -$1,906 | observed |
 | Anchored signal (53 fills) | 14 of 24 gained, -$43 net of its costs, too few to judge | observed |
 | Backtest, trading against a spread of 0.5% or more | -7.6 bp gross (standard error 5.0, 490 events, 44% winning), about -37.6 bp after a 0.30% round trip; -3.0 bp gross on a held-out final third | observed |

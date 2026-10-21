@@ -114,4 +114,4 @@ This was first written up as a one-off data gap. It is not: see limitation L3, w
 
 ## 6. What this is not
 
-Not an audit by anyone outside the project. Not evidence of a profitable strategy: the record is a loss of about 1.95% on paper, and the project's own backtest does not support the thesis as a standalone edge. Not investment advice. What it is: a system whose every decision, input and failure is on a public record, with the problems it found in itself written down.
+Not an audit by anyone outside the project. Not evidence of a profitable strategy: the record is a loss of about 2.5% on paper (marked at 2026-10-21 prices), and the project's own backtest does not support the thesis as a standalone edge. Not investment advice. What it is: a system whose every decision, input and failure is on a public record, with the problems it found in itself written down.
