@@ -6,8 +6,10 @@ import { redis, KEYS } from "@/lib/redis";
 // added Sept 11, so the deployed Vercel site - which cannot see this machine's
 // local files - shows real live data too), falling back to the local files
 // gloaming_agent/agent_loop.py writes directly (decision_log/*.jsonl,
-// paper_ledger.json) when Redis isn't configured or a call fails. Local files
-// stay the ultimate source of truth; Redis is a best-effort live mirror on top.
+// paper_ledger.json) when Redis isn't configured or a call fails, and finally
+// to the same files in the public GitHub repository (the deployed site has no
+// local files). Local files stay the ultimate source of truth; Redis is a
+// best-effort live mirror on top.
 // See docs/architecture.md for the full reasoning on why there's no separate
 // FastAPI/SQLite layer underneath either path.
 
@@ -142,6 +144,58 @@ export type LedgerState = {
   day_start_date: string;
 };
 
+// Last resort when Redis is unavailable and there are no local files (the deployed Vercel site
+// carries only gloaming_desk/): the same files, read from this public repository. The workflow
+// commits them every cycle, so this is at most a few minutes behind the mirror it replaces.
+const REPO_RAW = "https://raw.githubusercontent.com/angelraph/gloaming/master";
+
+async function fetchRepoText(relPath: string): Promise<string | null> {
+  try {
+    const res = await fetch(`${REPO_RAW}/${relPath}`, { next: { revalidate: 120 } });
+    return res.ok ? await res.text() : null;
+  } catch {
+    return null; // offline or rate limited: the caller treats it like a missing file
+  }
+}
+
+async function fetchRepoJson<T>(relPath: string): Promise<T | null> {
+  const text = await fetchRepoText(relPath);
+  if (!text) return null;
+  try {
+    return JSON.parse(text) as T;
+  } catch {
+    return null;
+  }
+}
+
+// Same bound as the Redis list (kv_sync.py trims it to the last 500 records).
+const MIRROR_RECORD_LIMIT = 500;
+
+async function readDecisionLogFromRepo(days: number): Promise<DecisionRecord[]> {
+  // One file per UTC day. Ask for a day more than requested so a day without a file cannot
+  // leave the window short; a missing day is a 404 and is skipped.
+  const dates: string[] = [];
+  for (let i = 0; i <= days; i++) {
+    dates.push(new Date(Date.now() - i * 86_400_000).toISOString().slice(0, 10));
+  }
+  const files = await Promise.all(
+    dates.map((d) => fetchRepoText(`gloaming_agent/decision_log/${d}.jsonl`))
+  );
+  const records: DecisionRecord[] = [];
+  for (const content of files.reverse()) {
+    if (!content) continue;
+    for (const line of content.trim().split("\n")) {
+      if (!line) continue;
+      try {
+        records.push(JSON.parse(line) as DecisionRecord);
+      } catch {
+        // a partial last line from a write in progress is skipped, as with the local files
+      }
+    }
+  }
+  return records.slice(-MIRROR_RECORD_LIMIT);
+}
+
 function readLedgerFromFile(): LedgerState | null {
   try {
     const raw = fs.readFileSync(LEDGER_PATH, "utf-8");
@@ -160,7 +214,7 @@ export async function readLedger(): Promise<LedgerState | null> {
       // fall through to local file - a Redis hiccup should never break the Desk
     }
   }
-  return readLedgerFromFile();
+  return readLedgerFromFile() ?? (await fetchRepoJson<LedgerState>("gloaming_agent/paper_ledger.json"));
 }
 
 function readDecisionLogFromFiles(days: number): DecisionRecord[] {
@@ -200,7 +254,8 @@ export async function readDecisionLog(days: number = 3): Promise<DecisionRecord[
       // fall through to local files
     }
   }
-  return readDecisionLogFromFiles(days);
+  const local = readDecisionLogFromFiles(days);
+  return local.length > 0 ? local : readDecisionLogFromRepo(days);
 }
 
 // Most recent live price per symbol from the decision log's snapshots - fresher
@@ -257,7 +312,8 @@ export async function readHistoricalScenarios(): Promise<HistoricalScenarios | n
     const raw = fs.readFileSync(HISTORICAL_SCENARIOS_PATH, "utf-8");
     return JSON.parse(raw) as HistoricalScenarios;
   } catch {
-    return null; // hasn't been generated yet - not an error state, just not run
+    // not on disk (the deployed site) or not generated yet: try the repository's copy
+    return fetchRepoJson<HistoricalScenarios>("alpha_factory/results/historical_scenarios.json");
   }
 }
 
@@ -336,6 +392,7 @@ export async function readFillVerification(): Promise<FillVerification | null> {
   try {
     return JSON.parse(fs.readFileSync(FILL_VERIFICATION_PATH, "utf-8")) as FillVerification;
   } catch {
-    return null; // verify_fills.py hasn't run yet - not an error state
+    // not on disk (the deployed site) or verify_fills.py hasn't run: try the repository's copy
+    return fetchRepoJson<FillVerification>("gloaming_agent/fill_verification.json");
   }
 }
