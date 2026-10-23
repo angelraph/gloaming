@@ -253,11 +253,11 @@ export default function HomeView() {
               )}
             </div>
             <div>
-              <div className="micro-label">Days unattended</div>
+              <div className="micro-label">Days live</div>
               <div className="font-display mt-3 text-[34px] leading-none tabular-nums text-heading">
                 {days !== null ? <CountUp value={days} format={(n) => String(Math.round(n))} /> : <Pending />}
               </div>
-              <div className="mt-2 text-xs text-text-tertiary">since the first fill on Sept 11; on GitHub Actions since Sept 13</div>
+              <div className="mt-2 text-xs text-text-tertiary">since the first fill on Sept 11; cycles started by a schedule, not a person, on GitHub Actions since Sept 13</div>
             </div>
             <div>
               <div className="micro-label">Total return</div>
