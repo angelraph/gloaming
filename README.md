@@ -284,6 +284,7 @@ Internal review rounds, every finding and its resolution, and the limitations th
 | 2026-10-10 | This documentation reorganised around evidence: README, SUBMISSION, AUDIT, AGENTS, screenshots and the film's sources |
 | 2026-10-10 | The blind window closed: a labelled 1-minute close now covers the 5 hours 45 minutes before Yahoo publishes the daily bar, so weekday evenings no longer skip cycles |
 | 2026-10-10 | The demo-exchange leg built, confirmed with two real fills on Bitget's demo engine, and switched on in production with a health check; the Desk redeployed with the exchange order in the inspector |
+| 2026-10-23 | The Redis mirror, whose writes had failed since 2026-10-21, retired and its database deleted: the Desk now reads the committed files straight from GitHub (AUDIT F16) |
 
 ## Quickstart
 
