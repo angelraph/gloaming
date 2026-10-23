@@ -172,10 +172,12 @@ async function fetchRepoJson<T>(relPath: string): Promise<T | null> {
 const MIRROR_RECORD_LIMIT = 500;
 
 async function readDecisionLogFromRepo(days: number): Promise<DecisionRecord[]> {
-  // One file per UTC day. Ask for a day more than requested so a day without a file cannot
-  // leave the window short; a missing day is a 404 and is skipped.
+  // One file per UTC day. The result is capped at the last 500 records (about 55 cycles, under
+  // a day and a half), so today's and yesterday's files always cover it, however many days were
+  // asked for; a day without a file is a 404 and is skipped.
+  void days;
   const dates: string[] = [];
-  for (let i = 0; i <= days; i++) {
+  for (let i = 0; i < 2; i++) {
     dates.push(new Date(Date.now() - i * 86_400_000).toISOString().slice(0, 10));
   }
   const files = await Promise.all(

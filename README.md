@@ -100,7 +100,7 @@ Nothing here asks to be taken on trust. Each claim has a file or a page behind i
 
 ## Product tour
 
-The Desk at [gloamingdesk.vercel.app](https://gloamingdesk.vercel.app) is read-only and reads this repository's own files (through a Redis mirror, with the git files as fallback). The screenshots show real data from 2026-10-10.
+The Desk at [gloamingdesk.vercel.app](https://gloamingdesk.vercel.app) is read-only and reads this repository's own committed files straight from GitHub, so it is at most a few minutes behind the agent. The screenshots show real data from 2026-10-10.
 
 **Night Console**: four live views on the landing page. The paper book with equity re-marked at every fill, realized P&L net of costs and the Bitget match count; then Bitget's hourly candles against the agent's fair value, an hour-by-hour spread map for all nine symbols, and every position against its cap.
 
@@ -237,7 +237,7 @@ Full detail, with commits and tests, is in [AUDIT.md](AUDIT.md).
 | Module | Role | Entry points |
 |---|---|---|
 | [`engine/`](engine) | Shared Python core: data loaders, the overnight anchor and fair-value model, the backtests | `data/overnight_anchor.py`, `fairvalue/model.py`, `backtest/since_close_backtest.py` |
-| [`gloaming_agent/`](gloaming_agent) | The agent: loop, Qwen client, risk layer, paper ledger, demo-exchange leg, fill verification, Redis mirror | `agent_loop.py`, `risk_controls.py`, `paper_ledger.py`, `execution.py`, `verify_fills.py` |
+| [`gloaming_agent/`](gloaming_agent) | The agent: loop, Qwen client, risk layer, paper ledger, demo-exchange leg, fill verification | `agent_loop.py`, `risk_controls.py`, `paper_ledger.py`, `execution.py`, `verify_fills.py` |
 | [`gloaming_desk/`](gloaming_desk) | The Next.js Desk | `app/`, `components/`, `lib/` |
 | [`alpha_factory/`](alpha_factory) | Supplementary quantitative validation: backtest results as JSON | `results/` |
 | [`.github/workflows/`](.github/workflows) | Unattended cycles and CI | `agent_loop.yml`, `test.yml` |
@@ -262,7 +262,7 @@ Security properties:
 - No code path can place a real order or move funds. The Bitget account used for reads has withdrawals disabled, and the one exchange leg reaches only the demo engine: every call hardcodes `--paper-trading`, so a live key is rejected.
 - Keys are never in the repository: they are GitHub Actions secrets, and `.env` is ignored.
 - The Desk is read-only and has no execution capability.
-- Every external dependency (Bitget, Yahoo, Qwen, Redis) failing degrades to "no trade" or "no data", never to an invented value.
+- Every external dependency (Bitget, Yahoo, Qwen, GitHub) failing degrades to "no trade" or "no data", never to an invented value.
 
 Internal review rounds, every finding and its resolution, and the limitations that remain open are in [AUDIT.md](AUDIT.md). This is an internal review, not a third-party audit.
 
@@ -364,7 +364,7 @@ The files in `docs/` named `submission_*`, `x_post_draft.md` and `demo_video_scr
 
 ## Risks
 
-Gloaming is a research project and not trading advice. The market data, the model's decisions and the risk checks are all real and live. The fills are paper trades: recorded at the live rToken price with a stated cost, because Bitget's demo environment did not list rToken symbols when this was built. A paper fill has not met a real order book, so real execution could differ, and the costs used are assumptions. The project's own backtest found no cost-covering edge in the signal it trades, so the paper record should be read as a research record. Alongside the paper fills, an approved trade is also sent to Bitget's demo engine on the matching stock perpetual with virtual funds. That is a different instrument from the rToken, so the ledger remains the record and the exchange fill checks the order path and its cost; it is not proof of a live-market result. External data (Yahoo, Bitget's public API, Qwen) can fail or lag; Gloaming records that and does not trade on it, so some cycles are skipped. The Redis mirror is best effort and the Desk is published by hand, so what is live can lag the repository.
+Gloaming is a research project and not trading advice. The market data, the model's decisions and the risk checks are all real and live. The fills are paper trades: recorded at the live rToken price with a stated cost, because Bitget's demo environment did not list rToken symbols when this was built. A paper fill has not met a real order book, so real execution could differ, and the costs used are assumptions. The project's own backtest found no cost-covering edge in the signal it trades, so the paper record should be read as a research record. Alongside the paper fills, an approved trade is also sent to Bitget's demo engine on the matching stock perpetual with virtual funds. That is a different instrument from the rToken, so the ledger remains the record and the exchange fill checks the order path and its cost; it is not proof of a live-market result. External data (Yahoo, Bitget's public API, Qwen) can fail or lag; Gloaming records that and does not trade on it, so some cycles are skipped. The Desk reads the repository through GitHub and is published by hand, so what is live can lag the repository by a few minutes (data) or longer (code).
 
 ## License
 

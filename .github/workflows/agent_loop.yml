@@ -95,19 +95,16 @@ jobs:
           BITGET_API_KEY: ${{ secrets.BITGET_API_KEY }}
           BITGET_SECRET_KEY: ${{ secrets.BITGET_SECRET_KEY }}
           BITGET_PASSPHRASE: ${{ secrets.BITGET_PASSPHRASE }}
+          # No KV_* variables: the Redis mirror is retired (its writes returned 403 from 2026-10-21 and the
+          # Desk now reads the committed files), so the sync stays unconfigured and silent.
           QWEN_API_KEY: ${{ secrets.QWEN_API_KEY }}
-          KV_REST_API_URL: ${{ secrets.KV_REST_API_URL }}
-          KV_REST_API_TOKEN: ${{ secrets.KV_REST_API_TOKEN }}
         run: python gloaming_agent/agent_loop.py --run
 
       - name: Verify fills against Bitget's public candles
         # Checks only fills not yet in fill_verification.json, so most cycles make no
         # requests at all. A failure here must never stop the ledger and log from saving.
         continue-on-error: true
-        env:
-          KV_REST_API_URL: ${{ secrets.KV_REST_API_URL }}
-          KV_REST_API_TOKEN: ${{ secrets.KV_REST_API_TOKEN }}
-        run: python gloaming_agent/verify_fills.py --push
+        run: python gloaming_agent/verify_fills.py
 
       - name: Commit updated ledger and decision log
         run: |
