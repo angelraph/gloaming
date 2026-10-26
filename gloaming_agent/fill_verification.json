@@ -1,13 +1,13 @@
 {
  "summary": {
-  "checked_at": "2026-10-26T09:04:09.749379+00:00",
+  "checked_at": "2026-10-26T09:18:19.396053+00:00",
   "source": "https://api.bitget.com/api/v2/spot/market/history-candles (granularity=1min, public)",
   "window_traded_minutes": 20,
   "stale_after_minutes": 15,
   "total_fills": 798,
-  "checked": 797,
-  "pending": 1,
-  "matched": 795,
+  "checked": 798,
+  "pending": 0,
+  "matched": 796,
   "mismatch": 2,
   "no_data": 0,
   "stale": 33,
@@ -10123,6 +10123,19 @@
    "candle_minute": "2026-09-29T12:02:00+00:00",
    "candle_low": 337.2,
    "candle_high": 337.25
+  },
+  {
+   "key": "2026-10-26T09:03:38.075710+00:00|RTSLAUSDT|sell|0.558",
+   "timestamp": "2026-10-26T09:03:38.075710+00:00",
+   "symbol": "RTSLAUSDT",
+   "side": "sell",
+   "price": 379.25,
+   "status": "matched",
+   "lag_minutes": 1,
+   "stale": false,
+   "candle_minute": "2026-10-26T09:02:00+00:00",
+   "candle_low": 379.0612,
+   "candle_high": 379.25
   }
  ]
 }
