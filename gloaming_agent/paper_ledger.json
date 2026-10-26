@@ -1,5 +1,5 @@
 {
-  "cash_usd": 82103.93036100808,
+  "cash_usd": 82315.23442875808,
   "positions": {
     "RGOOGLUSDT": 1.8379000000000147,
     "RMSFTUSDT": -12.0477,
@@ -7,7 +7,7 @@
     "RQQQUSDT": 9.849999999999998,
     "RMETAUSDT": 1.2556999999999958,
     "RNVDAUSDT": 20.963599999999996,
-    "RTSLAUSDT": 2.4581000000000093,
+    "RTSLAUSDT": 1.9001000000000092,
     "RAAPLUSDT": 1.5185999999999995,
     "RAMZNUSDT": 2.003
   },
@@ -7235,6 +7235,16 @@
       "notional_usd": 500.00685,
       "rationale": "[Qwen3.8-max] The -1.04% spread (rToken -0.34% vs fair value +0.70%) over 16 hours clears the 0.30% round-trip cost, suggesting RAAPL is underpriced relative to the +0.42% index futures and +1.68% crypto beta moves since Monday's close. However, the backtest shows spreads like this average -37.6bp after costs and tend to continue rather than revert (+0.25 correlation), so I am sizing conservatively at $500. Adding long exposure pushes book net from +15.8% toward the 25% cap, but remains within limits and matches the scale of my recent fills in this symbol.",
       "cost_usd": 0.75001
+    },
+    {
+      "timestamp": "2026-10-26T09:03:38.075710+00:00",
+      "symbol": "RTSLAUSDT",
+      "side": "sell",
+      "qty": 0.558,
+      "price": 379.25,
+      "notional_usd": 211.62150000000003,
+      "rationale": "RTSLAUSDT return since the real share's last close +1.89% vs. blended proxy fair-value return -0.51% (futures +0.23%, crypto -2.08%, fx -0.00%) -> spread +2.40%, above the 1.5% threshold -> sell (bet on reversion toward fair value).",
+      "cost_usd": 0.317432
     }
   ],
   "equity_at_day_start_usd": 97007.72478000808,
